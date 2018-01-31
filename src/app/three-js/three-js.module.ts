@@ -8,6 +8,7 @@ import { OrbitControlsDirective } from './controls/orbit-controls.directive';
 import { ObjectLoaderDirective } from './objects/object-loader.directive';
 import { GridHelperDirective } from './objects/grid-helper.directive';
 import { PointLightDirective } from './objects/point-light.directive';
+import { DragControlsDirective } from './controls/drag-controls.directive';
 
 @NgModule({
   imports: [
@@ -23,7 +24,8 @@ import { PointLightDirective } from './objects/point-light.directive';
     PerspectiveCameraDirective,
     OrbitControlsDirective,
     ObjectLoaderDirective,
-    PointLightDirective
+    PointLightDirective,
+    DragControlsDirective
   ],
   exports: [
     RendererComponent,
@@ -35,7 +37,8 @@ import { PointLightDirective } from './objects/point-light.directive';
     PerspectiveCameraDirective,
     OrbitControlsDirective,
     ObjectLoaderDirective,
-    PointLightDirective
+    PointLightDirective,
+    DragControlsDirective
   ]
 })
 export class ThreeJsModule { }

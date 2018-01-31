@@ -1,4 +1,7 @@
-import { Component, OnInit, ViewChild, ElementRef, ContentChildren, HostListener, QueryList, EventEmitter, Output, AfterViewInit } from '@angular/core';
+import {
+  Component, OnInit, ViewChild, ElementRef, ContentChildren, HostListener, QueryList,
+  EventEmitter, Output, AfterViewInit, Input
+} from '@angular/core';
 import * as THREE from 'three';
 import { AbstractCamera } from '../cameras';
 import { SceneDirective } from '../objects/scene.directive';
@@ -13,6 +16,8 @@ export class RendererComponent implements AfterViewInit {
 
   private renderer: THREE.WebGLRenderer;
 
+  @Input() clearColor: THREE.Color = new THREE.Color('#d3d3d3');
+
   @ViewChild('canvas')
   private canvasRef: ElementRef; // NOTE: say bye-bye to server-side rendering ;)
 
@@ -20,21 +25,21 @@ export class RendererComponent implements AfterViewInit {
   @ContentChildren(AbstractCamera) cameraComponents: QueryList<AbstractCamera<THREE.Camera>>; // TODO: Multiple cameras
 
   constructor() {
-    console.log("RendererComponent.constructor");
+    console.log('RendererComponent.constructor');
     this.render = this.render.bind(this);
   }
 
   ngAfterViewInit() {
-    console.log("RendererComponent.ngAfterViewInit");
+    console.log('RendererComponent.ngAfterViewInit');
     this.startRendering();
   }
 
-  private get canvas(): HTMLCanvasElement {
+  get canvas(): HTMLCanvasElement {
     return this.canvasRef.nativeElement;
   }
 
   private startRendering() {
-    console.log("RendererComponent.startRendering");
+    console.log('RendererComponent.startRendering');
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
       antialias: true
@@ -44,7 +49,7 @@ export class RendererComponent implements AfterViewInit {
 
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.renderer.setClearColor(0xffffff, 1);
+    this.renderer.setClearColor(this.clearColor, 1);
     this.renderer.autoClear = true;
 
     this.updateChildCamerasAspectRatio();
@@ -52,18 +57,19 @@ export class RendererComponent implements AfterViewInit {
   }
 
   public render() {
-    //if (this.sceneComponents != undefined && this.sceneComponents.length == 1 && this.cameraComponents != undefined && this.cameraComponents.length == 1) {
-      let sceneComponent = this.sceneComponents.first;
-      let cameraComponent = this.cameraComponents.first;
-      //console.log("render");
-      //console.log(scene.getObject());
-      //console.log(camera.camera);
-      this.renderer.render(sceneComponent.getObject(), cameraComponent.camera);
-    //}
+    // if (this.sceneComponents != undefined && this.sceneComponents.length == 1
+    // && this.cameraComponents != undefined && this.cameraComponents.length == 1) {
+    const sceneComponent = this.sceneComponents.first;
+    const cameraComponent = this.cameraComponents.first;
+    // console.log("render");
+    // console.log(scene.getObject());
+    // console.log(camera.camera);
+    this.renderer.render(sceneComponent.getObject(), cameraComponent.camera);
+    // }
   }
 
   private calculateAspectRatio(): number {
-    let height = this.canvas.clientHeight;
+    const height = this.canvas.clientHeight;
     if (height === 0) {
       return 0;
     }
@@ -72,9 +78,9 @@ export class RendererComponent implements AfterViewInit {
 
   @HostListener('window:resize', ['$event'])
   public onResize(event: Event) {
-    this.canvas.style.width = "100%";
-    this.canvas.style.height = "100%";
-    console.log("RendererComponent.onResize: " + this.canvas.clientWidth + ", " + this.canvas.clientHeight);
+    this.canvas.style.width = '100%';
+    this.canvas.style.height = '100%';
+    console.log('RendererComponent.onResize: ' + this.canvas.clientWidth + ', ' + this.canvas.clientHeight);
 
     this.updateChildCamerasAspectRatio();
 
@@ -83,7 +89,7 @@ export class RendererComponent implements AfterViewInit {
   }
 
   public updateChildCamerasAspectRatio() {
-    let aspect = this.calculateAspectRatio();
+    const aspect = this.calculateAspectRatio();
     this.cameraComponents.forEach(camera => camera.updateAspectRatio(aspect));
   }
 

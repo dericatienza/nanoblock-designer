@@ -1,0 +1,62 @@
+{
+  "metadata": {
+    "version": 4.5,
+    "type": "Object",
+    "generator": "Object3D.toJSON"
+  },
+  "geometries": [{
+      "uuid": "FC27B89E-A0A9-4F9A-BE55-BE4375EF3075",
+      "type": "CylinderBufferGeometry",
+      "radiusTop": 1.5,
+      "radiusBottom": 1.5,
+      "height": 1.5,
+      "radialSegments": 8,
+      "heightSegments": 1,
+      "openEnded": false
+    },
+    {
+      "uuid": "FA659DF8-DAAF-4416-9D4D-1A13AC106684",
+      "type": "BoxBufferGeometry",
+      "width": 4,
+      "height": 3.5,
+      "depth": 4,
+      "widthSegments": 1,
+      "heightSegments": 1,
+      "depthSegments": 1
+    }
+  ],
+  "materials": [{
+    "uuid": "FBA0DBC6-7BF8-432C-8E0F-49F927DB4036",
+    "type": "MeshPhongMaterial",
+    "color": 16711680,
+    "emissive": 0,
+    "specular": 1118481,
+    "shininess": 50,
+    "depthFunc": 3,
+    "depthTest": true,
+    "depthWrite": true
+  }],
+  "object": {
+    "uuid": "FEBBF15B-6D17-4094-91E7-07909112BED5",
+    "type": "Group",
+    "name": "nanoblock-stud",
+    "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+    "children": [{
+        "uuid": "CDFD635B-F9AA-43F6-89EB-9EB211BC61B4",
+        "type": "Mesh",
+        "name": "Cylinder",
+        "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 4.25, 0, 1],
+        "geometry": "FC27B89E-A0A9-4F9A-BE55-BE4375EF3075",
+        "material": "FBA0DBC6-7BF8-432C-8E0F-49F927DB4036"
+      },
+      {
+        "uuid": "4B31AC1D-145E-480C-99AF-DE4A70588671",
+        "type": "Mesh",
+        "name": "Box",
+        "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1.75, 0, 1],
+        "geometry": "FA659DF8-DAAF-4416-9D4D-1A13AC106684",
+        "material": "FBA0DBC6-7BF8-432C-8E0F-49F927DB4036"
+      }
+    ]
+  }
+}
