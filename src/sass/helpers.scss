@@ -1,0 +1,13 @@
+$custom-spacers: ( 6: ($spacer * 5), 7: ($spacer * 7.5), 8: ($spacer * 10), 9: ($spacer * 15), 10: ($spacer * 20));
+$spacers: map-merge($spacers, $custom-spacers);
+$custom-sizes: ( 25w: 25vw, 50w: 50vw, 75w: 75vw, 100w: 100vw, 25h: 25vh, 50h: 50vh, 75h: 75vh, 100h: 100vh);
+$sizes: map-merge($sizes, $custom-sizes);
+@each $prop,
+$abbrev in (min-width: w-min, max-width: w-max, min-height: h-min, max-height: h-max) {
+  @each $size,
+  $length in $sizes {
+    .#{$abbrev}-#{$size} {
+      #{$prop}: $length !important;
+    }
+  }
+}
