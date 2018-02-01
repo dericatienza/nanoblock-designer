@@ -3,7 +3,6 @@ import * as THREE from 'three';
 import { AbstractCamera } from '../cameras/index';
 import { RendererComponent } from '../renderer/renderer.component';
 import { OrbitControlsDirective } from './orbit-controls.directive';
-import '../js/EnableThreeExamples';
 import 'three/examples/js/controls/DragControls';
 import { ObjectLoaderDirective } from '../objects/object-loader.directive';
 
@@ -21,7 +20,7 @@ export class DragControlsDirective implements AfterViewInit {
     console.log('DragControlsDirective.constructor');
   }
 
-  private controls: THREE.DragControls;
+  // private controls: THREE.DragControls;
 
   ngAfterViewInit(): void {
     console.log('DragControlsDirective.ngAfterViewInit');
@@ -35,9 +34,9 @@ export class DragControlsDirective implements AfterViewInit {
     console.log(`Draggable objects: ${this.childObjects} Count: ${this.childObjects.length}`);
     const objects = this.childObjects.map(ao => ao.getObject());
 
-    this.controls = new THREE.DragControls(objects, this.childCameras.first.camera, this.childRenderers.first.canvas);
-    this.controls.addEventListener('dragstart', () => this.childControls.first.controls.enabled = false);
-    this.controls.addEventListener('drag', this.childRenderers.first.render);
-    this.controls.addEventListener('dragend', () => this.childControls.first.controls.enabled = true);
+    // this.controls = new THREE.DragControls(objects, this.childCameras.first.camera, this.childRenderers.first.canvas);
+    // this.controls.addEventListener('dragstart', () => this.childControls.first.controls.enabled = false);
+    // this.controls.addEventListener('drag', this.childRenderers.first.render);
+    // this.controls.addEventListener('dragend', () => this.childControls.first.controls.enabled = true);
   }
 }

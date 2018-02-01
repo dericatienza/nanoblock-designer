@@ -2,7 +2,6 @@ import { Directive, Input, AfterViewInit, ContentChildren, QueryList } from '@an
 import * as THREE from 'three';
 import { AbstractCamera } from '../cameras/index';
 import { RendererComponent } from '../renderer/renderer.component';
-import '../js/EnableThreeExamples';
 import 'three/examples/js/controls/OrbitControls';
 
 @Directive({
