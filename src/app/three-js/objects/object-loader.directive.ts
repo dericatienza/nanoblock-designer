@@ -1,7 +1,6 @@
 import { Directive, AfterViewInit, Input, forwardRef, Output, EventEmitter } from '@angular/core';
 import * as THREE from 'three';
 import { AbstractObject3D } from './abstract-object-3d';
-import { RendererComponent } from '../renderer/renderer.component';
 import { Object3D } from 'three';
 
 @Directive({
@@ -11,7 +10,6 @@ import { Object3D } from 'three';
 export class ObjectLoaderDirective extends AbstractObject3D<THREE.Object3D> {
 
   @Input() model: string;
-  @Input() renderer: RendererComponent;
 
   constructor() {
     super();
@@ -33,7 +31,6 @@ export class ObjectLoaderDirective extends AbstractObject3D<THREE.Object3D> {
   private onObjectLoaded(object: THREE.Object3D) {
     console.log('ObjectLoaderDirective.onObjectLoaded');
     this.addChild(object);
-    this.renderer.render();
   }
 
 }

@@ -37,8 +37,8 @@ export class OrbitControlsDirective implements AfterViewInit {
     this._controls = new THREE.OrbitControls(this.childCameras.first.camera);
     this._controls.rotateSpeed = this.rotateSpeed;
     this._controls.zoomSpeed = this.zoomSpeed;
-    this._controls.addEventListener('change', this.childRenderers.first.render);
-    this.childRenderers.first.render();
+    // this._controls.addEventListener('change', this.childRenderers.first.render);
+    // this.childRenderers.first.render();
   }
 
   // enable() {

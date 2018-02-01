@@ -1,1 +1,2 @@
-THREE=require('three');
+THREE = require('three');
+Stats = require('stats');

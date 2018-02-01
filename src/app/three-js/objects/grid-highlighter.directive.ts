@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { AbstractCamera } from '../cameras/index';
 import { GridHelperDirective } from '../objects/grid-helper.directive';
 import { AbstractObject3D } from '../objects/index';
+import { RendererComponent } from '../renderer/renderer.component';
 
 @Directive({
   selector: 'grid-highlighter',
@@ -11,8 +12,11 @@ import { AbstractObject3D } from '../objects/index';
 export class GridHighlighterDirective extends AbstractObject3D<THREE.Mesh> {
   @Input() camera: AbstractCamera<THREE.Camera>;
   @Input() gridHelper: GridHelperDirective;
+  @Input() renderer: RendererComponent;
 
   private _highlight: THREE.Mesh;
+  private _raycaster = new THREE.Raycaster();
+  private _mousePosition = new THREE.Vector2();
 
   constructor() {
     super();
@@ -29,5 +33,22 @@ export class GridHighlighterDirective extends AbstractObject3D<THREE.Mesh> {
   }
 
   protected afterInit(): void {
+    this.renderer.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
+  }
+
+  onMouseMove(event: MouseEvent): any {
+    this._mousePosition.x = (event.clientX / this.renderer.canvas.clientWidth) * 2 - 1;
+    this._mousePosition.y = - (event.clientY / this.renderer.canvas.clientHeight) * 2 + 1;
+    this._raycaster.setFromCamera(this._mousePosition, this.camera.camera);
+
+    const intersects = this._raycaster.intersectObject(this.gridHelper.getObject());
+
+    if (intersects.length > 0) {
+      this._highlight.position.copy(intersects[0].point);
+      this._highlight.translateX(-2);
+      this._highlight.translateZ(-2);
+
+      // this.renderer.render();
+    }
   }
 }

@@ -1,18 +1,18 @@
 <three-orbit-contols [rotateSpeed]=1 [zoomSpeed]=1.2>
   <three-renderer #mainRenderer>
 
-    <three-perspective-camera #mainCamera [fov]=60 [near]=1 [far]=1100 positionX=40 positionY=40 positionZ=40></three-perspective-camera>
+    <three-perspective-camera #mainCamera="three-perspective-camera" [fov]=60 [near]=1 [far]=1100 positionX=40 positionY=40 positionZ=40></three-perspective-camera>
 
     <three-scene>
       <three-axes-helper size=160></three-axes-helper>
       <three-grid-helper #gridHelper="three-grid-helper" size=80 divisions=20></three-grid-helper>
-      <grid-highlighter [camera]="mainCamera" [gridHelper]="gridHelper">
+      <grid-highlighter [camera]="mainCamera" [gridHelper]="gridHelper" [renderer]="mainRenderer">
       </grid-highlighter>
 
       <three-point-light color="white" intensity="1" distance="1000" translateX=80 translateY=80 translateZ=80></three-point-light>
       <three-point-light color="white" intensity="1" distance="1000" translateX=-80 translateY=80 translateZ=80></three-point-light>
 
-      <!-- <three-object-loader model="assets/model/nanoblock-stud.json" [translateX]="2" [translateZ]="2" [renderer]="mainRenderer">
+      <!-- <three-object-loader model="assets/model/nanoblock-stud.json" [translateX]="2" [translateZ]="2">
       </three-object-loader> -->
     </three-scene>
   </three-renderer>

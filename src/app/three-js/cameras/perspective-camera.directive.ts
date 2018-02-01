@@ -4,11 +4,12 @@ import * as THREE from 'three';
 
 @Directive({
   selector: 'three-perspective-camera',
-  providers: [{ provide: AbstractCamera, useExisting: forwardRef(() => PerspectiveCameraDirective) }]
+  providers: [{ provide: AbstractCamera, useExisting: forwardRef(() => PerspectiveCameraDirective) }],
+  exportAs: 'three-perspective-camera'
 })
 export class PerspectiveCameraDirective extends AbstractCamera<THREE.PerspectiveCamera> {
 
-  //@Input() cameraTarget: THREE.Object3D;
+  // @Input() cameraTarget: THREE.Object3D;
 
   @Input() fov: number;
   @Input() near: number;
@@ -20,13 +21,13 @@ export class PerspectiveCameraDirective extends AbstractCamera<THREE.Perspective
 
 
   constructor() {
-    console.log("PerspectiveCameraDirective.constructor");
-    super();    
+    console.log('PerspectiveCameraDirective.constructor');
+    super();
   }
 
   protected afterInit(): void {
-    console.log("PerspectiveCameraDirective.afterInit");
-    //let aspectRatio = undefined; // Updated later
+    console.log('PerspectiveCameraDirective.afterInit');
+    // let aspectRatio = undefined; // Updated later
     this.camera = new THREE.PerspectiveCamera(
       this.fov,
       undefined,
@@ -42,7 +43,7 @@ export class PerspectiveCameraDirective extends AbstractCamera<THREE.Perspective
   }
 
   public updateAspectRatio(aspect: number) {
-    console.log("PerspectiveCameraDirective.updateAspectRatio: " + aspect);
+    console.log('PerspectiveCameraDirective.updateAspectRatio: ' + aspect);
     this.camera.aspect = aspect;
     this.camera.updateProjectionMatrix();
   }

@@ -6,7 +6,6 @@ import * as THREE from 'three';
 import { AbstractCamera } from '../cameras';
 import { SceneDirective } from '../objects/scene.directive';
 
-
 @Component({
   selector: 'three-renderer',
   templateUrl: './renderer.component.html',
@@ -31,6 +30,7 @@ export class RendererComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     console.log('RendererComponent.ngAfterViewInit');
+
     this.startRendering();
   }
 
@@ -53,10 +53,12 @@ export class RendererComponent implements AfterViewInit {
     this.renderer.autoClear = true;
 
     this.updateChildCamerasAspectRatio();
+
     this.render();
   }
 
   public render() {
+    requestAnimationFrame(this.render);
     // if (this.sceneComponents != undefined && this.sceneComponents.length == 1
     // && this.cameraComponents != undefined && this.cameraComponents.length == 1) {
     const sceneComponent = this.sceneComponents.first;
