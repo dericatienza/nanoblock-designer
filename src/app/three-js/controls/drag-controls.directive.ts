@@ -32,7 +32,7 @@ export class DragControlsDirective implements AfterViewInit {
     }
 
     console.log(`Draggable objects: ${this.childObjects} Count: ${this.childObjects.length}`);
-    const objects = this.childObjects.map(ao => ao.getObject());
+    const objects = this.childObjects.map(ao => ao.object);
 
     // this.controls = new THREE.DragControls(objects, this.childCameras.first.camera, this.childRenderers.first.canvas);
     // this.controls.addEventListener('dragstart', () => this.childControls.first.controls.enabled = false);

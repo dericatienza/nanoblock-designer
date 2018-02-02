@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 
 import { AppComponent } from './app.component';
 import { ThreeJsModule } from './three-js/three-js.module';
+import { NanoblockEditorModule } from './nanoblock-editor/nanoblock-editor.module';
 
 
 @NgModule({
@@ -11,7 +12,8 @@ import { ThreeJsModule } from './three-js/three-js.module';
   ],
   imports: [
     BrowserModule,
-    ThreeJsModule
+    ThreeJsModule,
+    NanoblockEditorModule
   ],
   providers: [],
   bootstrap: [AppComponent]

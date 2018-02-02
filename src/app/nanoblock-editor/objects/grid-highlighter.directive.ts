@@ -1,12 +1,14 @@
 import { Directive, ContentChildren, QueryList, AfterViewInit, Input, forwardRef } from '@angular/core';
 import * as THREE from 'three';
-import { AbstractCamera } from '../cameras/index';
-import { GridHelperDirective } from '../objects/grid-helper.directive';
-import { AbstractObject3D } from '../objects/index';
-import { RendererComponent } from '../renderer/renderer.component';
+import { AbstractObject3D } from '../../three-js/objects/index';
+import { GridHelperDirective } from '../../three-js/objects/grid-helper.directive';
+import { RendererComponent } from '../../three-js/renderer/renderer.component';
+import { AbstractCamera } from '../../three-js/cameras/index';
+import { Vector3 } from 'three';
+import { MathHelper } from '../../helpers/math-helper';
 
 @Directive({
-  selector: 'grid-highlighter',
+  selector: 'ne-grid-highlighter',
   providers: [{ provide: AbstractObject3D, useExisting: forwardRef(() => GridHighlighterDirective) }]
 })
 export class GridHighlighterDirective extends AbstractObject3D<THREE.Mesh> {
@@ -23,13 +25,17 @@ export class GridHighlighterDirective extends AbstractObject3D<THREE.Mesh> {
   }
 
   protected newObject3DInstance(): THREE.Mesh {
+    this.initHighlight();
+
+    return this._highlight;
+  }
+
+  initHighlight(): void {
     const highlightSize = this.gridHelper.divisionSize / 2;
 
     const geometry = new THREE.CylinderGeometry(highlightSize, 0, 5, 3);
-    geometry.translate(0, 2.5, 0);
+    geometry.translate(highlightSize, 2.5, highlightSize);
     this._highlight = new THREE.Mesh(geometry, new THREE.MeshNormalMaterial());
-
-    return this._highlight;
   }
 
   protected afterInit(): void {
@@ -41,14 +47,18 @@ export class GridHighlighterDirective extends AbstractObject3D<THREE.Mesh> {
     this._mousePosition.y = - (event.clientY / this.renderer.canvas.clientHeight) * 2 + 1;
     this._raycaster.setFromCamera(this._mousePosition, this.camera.camera);
 
-    const intersects = this._raycaster.intersectObject(this.gridHelper.getObject());
+    const intersects = this._raycaster.intersectObject(this.gridHelper.object);
 
     if (intersects.length > 0) {
-      this._highlight.position.copy(intersects[0].point);
-      // this._highlight.translateX(-2);
-      // this._highlight.translateZ(-2);
+      const intersectPoint = intersects[0].point;
 
-      // this.renderer.render();
+      const position = new Vector3(
+        MathHelper.snap(intersectPoint.x, this.gridHelper.divisionSize),
+        intersectPoint.y,
+        MathHelper.snap(intersectPoint.z, this.gridHelper.divisionSize)
+      );
+
+      this._highlight.position.copy(position);
     }
   }
 }

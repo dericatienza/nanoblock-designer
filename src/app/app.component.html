@@ -6,8 +6,8 @@
     <three-scene>
       <three-axes-helper size=160></three-axes-helper>
       <three-grid-helper #gridHelper="three-grid-helper" size=80 divisions=20></three-grid-helper>
-      <grid-highlighter [camera]="mainCamera" [gridHelper]="gridHelper" [renderer]="mainRenderer">
-      </grid-highlighter>
+      <ne-grid-highlighter [camera]="mainCamera" [gridHelper]="gridHelper" [renderer]="mainRenderer">
+      </ne-grid-highlighter>
 
       <three-point-light color="white" intensity="1" distance="1000" translateX=80 translateY=80 translateZ=80></three-point-light>
       <three-point-light color="white" intensity="1" distance="1000" translateX=-80 translateY=80 translateZ=80></three-point-light>

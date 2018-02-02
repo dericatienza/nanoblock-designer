@@ -71,11 +71,11 @@ export class RendererComponent implements AfterViewInit {
     const sceneComponent = this.sceneComponents.first;
     const cameraComponent = this.cameraComponents.first;
     // console.log("render");
-    // console.log(scene.getObject());
+    // console.log(scene.object);
     // console.log(camera.camera);
     this._stats.begin();
 
-    this.renderer.render(sceneComponent.getObject(), cameraComponent.camera);
+    this.renderer.render(sceneComponent.object, cameraComponent.camera);
 
     this._stats.end();
     // }
