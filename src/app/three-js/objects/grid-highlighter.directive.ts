@@ -26,7 +26,7 @@ export class GridHighlighterDirective extends AbstractObject3D<THREE.Mesh> {
     const highlightSize = this.gridHelper.divisionSize / 2;
 
     const geometry = new THREE.CylinderGeometry(highlightSize, 0, 5, 3);
-    geometry.translate(highlightSize, 2.5, highlightSize);
+    geometry.translate(0, 2.5, 0);
     this._highlight = new THREE.Mesh(geometry, new THREE.MeshNormalMaterial());
 
     return this._highlight;
@@ -45,8 +45,8 @@ export class GridHighlighterDirective extends AbstractObject3D<THREE.Mesh> {
 
     if (intersects.length > 0) {
       this._highlight.position.copy(intersects[0].point);
-      this._highlight.translateX(-2);
-      this._highlight.translateZ(-2);
+      // this._highlight.translateX(-2);
+      // this._highlight.translateZ(-2);
 
       // this.renderer.render();
     }

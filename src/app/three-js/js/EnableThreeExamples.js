@@ -1,2 +1,2 @@
 THREE = require('three');
-Stats = require('stats');
+StatsJS = require('stats.js');

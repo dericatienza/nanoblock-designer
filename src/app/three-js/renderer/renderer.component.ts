@@ -3,6 +3,7 @@ import {
   EventEmitter, Output, AfterViewInit, Input
 } from '@angular/core';
 import * as THREE from 'three';
+import 'stats.js';
 import { AbstractCamera } from '../cameras';
 import { SceneDirective } from '../objects/scene.directive';
 
@@ -20,6 +21,8 @@ export class RendererComponent implements AfterViewInit {
   @ViewChild('canvas')
   private canvasRef: ElementRef; // NOTE: say bye-bye to server-side rendering ;)
 
+  private _stats: Stats;
+
   @ContentChildren(SceneDirective) sceneComponents: QueryList<SceneDirective>; // TODO: Multiple scenes
   @ContentChildren(AbstractCamera) cameraComponents: QueryList<AbstractCamera<THREE.Camera>>; // TODO: Multiple cameras
 
@@ -30,6 +33,9 @@ export class RendererComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     console.log('RendererComponent.ngAfterViewInit');
+
+    this._stats = new Stats();
+    this.canvas.parentElement.appendChild(this._stats.dom);
 
     this.startRendering();
   }
@@ -55,10 +61,11 @@ export class RendererComponent implements AfterViewInit {
     this.updateChildCamerasAspectRatio();
 
     this.render();
+
+    this._stats.update();
   }
 
   public render() {
-    requestAnimationFrame(this.render);
     // if (this.sceneComponents != undefined && this.sceneComponents.length == 1
     // && this.cameraComponents != undefined && this.cameraComponents.length == 1) {
     const sceneComponent = this.sceneComponents.first;
@@ -66,8 +73,13 @@ export class RendererComponent implements AfterViewInit {
     // console.log("render");
     // console.log(scene.getObject());
     // console.log(camera.camera);
+    this._stats.begin();
+
     this.renderer.render(sceneComponent.getObject(), cameraComponent.camera);
+
+    this._stats.end();
     // }
+    requestAnimationFrame(this.render);
   }
 
   private calculateAspectRatio(): number {
