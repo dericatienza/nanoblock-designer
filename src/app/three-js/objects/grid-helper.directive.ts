@@ -1,7 +1,6 @@
 import { Directive, Input, AfterViewInit, forwardRef } from '@angular/core';
 import * as THREE from 'three';
 import { AbstractObject3D } from './abstract-object-3d';
-import { MeshBasicMaterial } from 'three';
 
 @Directive({
   selector: 'three-grid-helper',

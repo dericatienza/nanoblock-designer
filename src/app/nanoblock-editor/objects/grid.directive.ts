@@ -1,10 +1,100 @@
-import { Directive } from '@angular/core';
+import { Directive, forwardRef, Input } from '@angular/core';
+import { AbstractObject3D } from '../../three-js/objects/index';
+import * as THREE from 'three';
+import { MathHelper } from '../../helpers/math-helper';
+
+const CELL_SIZE = 4;
+
+export class Cell {
+  x: number;
+  y: number;
+
+  worldPosition: THREE.Vector3;
+
+  constructor(x: number, y: number, worldPosition: THREE.Vector3) {
+    this.x = x;
+    this.y = y;
+    this.worldPosition = worldPosition;
+  }
+}
 
 @Directive({
-  selector: 'ne-grid'
+  selector: 'ne-grid',
+  providers: [{ provide: AbstractObject3D, useExisting: forwardRef(() => GridDirective) }],
+  exportAs: 'ne-grid'
 })
-export class GridDirective {
+export class GridDirective extends AbstractObject3D<THREE.GridHelper> {
+  @Input() size: number;
 
-  constructor() { }
+  get width(): number {
+    return this.size * CELL_SIZE;
+  }
 
+  get depth(): number {
+    return this.size * CELL_SIZE;
+  }
+
+  private _cells: Cell[][];
+
+  get cells(): Cell[][] {
+    return this._cells;
+  }
+
+  private _selectorMesh: THREE.Mesh;
+
+  get selectorMesh(): THREE.Mesh {
+    return this._selectorMesh;
+  }
+
+  constructor() {
+    super();
+  }
+
+  protected newObject3DInstance(): THREE.GridHelper {
+    const gridHelper = new THREE.GridHelper(this.size * CELL_SIZE, this.size);
+
+    const selectorGeometry = new THREE.PlaneGeometry(this.size, this.size);
+    selectorGeometry.rotateX(THREE.Math.degToRad(90));
+    const material = new THREE.MeshBasicMaterial({ color: 'red', side: THREE.DoubleSide, visible: false });
+
+    this._selectorMesh = new THREE.Mesh(selectorGeometry, material);
+    gridHelper.add(this._selectorMesh);
+
+    return gridHelper;
+  }
+
+  protected afterInit(): void {
+    this.initCells();
+  }
+
+  private initCells(): void {
+    this._cells = [];
+
+    const startX = -(this.width / 2);
+    const startZ = -(this.depth / 2);
+
+    for (let z = 0; z < this.size; z++) {
+      this._cells[z] = [];
+      for (let x = 0; x < this.size; x++) {
+        const position = new THREE.Vector3(
+          startX + (CELL_SIZE * x),
+          0,
+          startZ + (CELL_SIZE * z));
+
+        this._cells[z][x] = new Cell(z, x, this.object.localToWorld(position));
+      }
+    }
+  }
+
+  getCellFromWorldPosition(worldPosition: THREE.Vector3): Cell {
+    const cellLocalPosition = this.selectorMesh.worldToLocal(worldPosition);
+
+    let x = MathHelper.snap(cellLocalPosition.x, CELL_SIZE);
+    let z = MathHelper.snap(cellLocalPosition.z, CELL_SIZE);
+
+    x = (x + this.size / 2) / CELL_SIZE;
+    z = (z + this.size / 2) / CELL_SIZE;
+
+    return this.cells[z][x];
+  }
 }

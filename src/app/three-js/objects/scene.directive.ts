@@ -4,21 +4,22 @@ import { AbstractObject3D } from './abstract-object-3d';
 
 @Directive({
   selector: 'three-scene',
-  providers: [{ provide: AbstractObject3D, useExisting: forwardRef(() => SceneDirective) }]
+  providers: [{ provide: AbstractObject3D, useExisting: forwardRef(() => SceneDirective) }],
+  exportAs: 'three-scene'
 })
 export class SceneDirective extends AbstractObject3D<THREE.Scene> {
 
   constructor() {
-    console.log("SceneDirective.constructor");
+    console.log('SceneDirective.constructor');
     super();
   }
 
   protected afterInit(): void {
-    console.log("SceneDirective.afterInit");
+    console.log('SceneDirective.afterInit');
   }
 
   protected newObject3DInstance(): THREE.Scene {
-    console.log("SceneDirective.newObject3DInstance");
+    console.log('SceneDirective.newObject3DInstance');
     return new THREE.Scene();
   }
 

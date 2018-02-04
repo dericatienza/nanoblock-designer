@@ -1,0 +1,19 @@
+<three-orbit-contols [rotateSpeed]=1 [zoomSpeed]=1.2>
+  <three-renderer #renderer>
+
+    <three-perspective-camera #mainCamera="three-perspective-camera" [fov]=60 [near]=1 [far]=1100 positionX=40 positionY=40 positionZ=40></three-perspective-camera>
+
+    <three-scene #scene="three-scene">
+      <three-axes-helper size=160></three-axes-helper>
+      <ne-grid #grid="ne-grid" size=20></ne-grid>
+      <ne-grid-selector #gridSelector="ne-grid-selector" [camera]="mainCamera" [grid]="grid" [renderer]="renderer">
+      </ne-grid-selector>
+
+      <three-point-light color="white" intensity="1" distance="1000" translateX=80 translateY=80 translateZ=80></three-point-light>
+      <three-point-light color="white" intensity="1" distance="1000" translateX=-80 translateY=80 translateZ=80></three-point-light>
+
+      <!-- <three-object-loader model="assets/model/nanoblock-blender.json" [translateX]="2" [translateZ]="2">
+      </three-object-loader> -->
+    </three-scene>
+  </three-renderer>
+</three-orbit-contols>
