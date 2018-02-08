@@ -92,8 +92,8 @@ export class GridDirective extends AbstractObject3D<THREE.GridHelper> {
     let x = MathHelper.snap(cellLocalPosition.x, CELL_SIZE);
     let z = MathHelper.snap(cellLocalPosition.z, CELL_SIZE);
 
-    x = (x + this.size / 2) / CELL_SIZE;
-    z = (z + this.size / 2) / CELL_SIZE;
+    x = (x + this.width / 2) / CELL_SIZE;
+    z = (z + this.depth / 2) / CELL_SIZE;
 
     return this.cells[z][x];
   }
