@@ -23,8 +23,9 @@ export class RendererComponent implements AfterViewInit {
 
   private _stats: Stats;
 
-  @ContentChildren(SceneDirective) sceneComponents: QueryList<SceneDirective>; // TODO: Multiple scenes
-  @ContentChildren(AbstractCamera) cameraComponents: QueryList<AbstractCamera<THREE.Camera>>; // TODO: Multiple cameras
+  @ContentChildren(SceneDirective, { descendants: true }) sceneComponents: QueryList<SceneDirective>; // TODO: Multiple scenes
+  @ContentChildren(AbstractCamera, { descendants: true })
+  cameraComponents: QueryList<AbstractCamera<THREE.Camera>>; // TODO: Multiple cameras
 
   constructor() {
     console.log('RendererComponent.constructor');

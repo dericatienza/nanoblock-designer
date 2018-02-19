@@ -11,3 +11,9 @@ $abbrev in (min-width: w-min, max-width: w-max, min-height: h-min, max-height: h
     }
   }
 }
+
+@each $overflow in (visible, hidden, scroll, auto, initial, inherit) {
+  .of-#{$overflow} {
+    overflow: $overflow;
+  }
+}
