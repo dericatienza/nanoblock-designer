@@ -1,6 +1,7 @@
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-md-10 h-100h p-0 of-hidden">
+<div class="container-fluid h-100h">
+  <div class="row h-100">
+    <!-- Window -->
+    <div class="col-md-10 p-0 of-hidden">
       <three-renderer #renderer>
         <three-orbit-contols [rotateSpeed]=1 [zoomSpeed]=1.2 [renderer]="renderer">
           <three-perspective-camera #mainCamera="three-perspective-camera" [fov]=60 [near]=1 [far]=1100 positionX=40 positionY=40 positionZ=40></three-perspective-camera>
@@ -20,6 +21,7 @@
         </three-orbit-contols>
       </three-renderer>
     </div>
+    <!-- Menu -->
     <div class="col-md-2">
 
     </div>

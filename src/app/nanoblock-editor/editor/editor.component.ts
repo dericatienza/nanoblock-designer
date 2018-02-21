@@ -2,6 +2,8 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { SceneDirective } from '../../three-js/objects/index';
 import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
 import { GridSelectorDirective } from '../objects/grid-selector.directive';
+import { Http } from '@angular/http';
+import { BrickType } from './editor.models';
 
 @Component({
   selector: 'ne-editor',
@@ -16,7 +18,17 @@ export class EditorComponent implements OnInit, AfterViewInit {
   @ViewChild('gridSelector')
   private _gridSelector: GridSelectorDirective;
 
-  constructor() { }
+  private _brickTypes: BrickType[];
+
+  constructor(private _http: Http) {
+
+  }
+
+  loadBrickTypes(): void {
+    // this.http.get('.././brick-types.json')
+    //   .map((res: any) => res.json())
+    //   .catch((error: any) => console.log(error));
+  }
 
   ngOnInit() {
   }
