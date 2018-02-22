@@ -2,8 +2,11 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { SceneDirective } from '../../three-js/objects/index';
 import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
 import { GridSelectorDirective } from '../objects/grid-selector.directive';
-import { Http } from '@angular/http';
 import { BrickType } from './editor.models';
+import { Response } from '@angular/http';
+
+import { BrickTypeService } from '../brick-type.service';
+import { Geometry } from 'three';
 
 @Component({
   selector: 'ne-editor',
@@ -19,18 +22,29 @@ export class EditorComponent implements OnInit, AfterViewInit {
   private _gridSelector: GridSelectorDirective;
 
   private _brickTypes: BrickType[];
+  private _brickTypeGeometries: Map<number, Geometry>;
 
-  constructor(private _http: Http) {
-
+  constructor(private _brickTypeService: BrickTypeService) {
   }
 
-  loadBrickTypes(): void {
-    // this.http.get('.././brick-types.json')
-    //   .map((res: any) => res.json())
-    //   .catch((error: any) => console.log(error));
+  initBrickTypes(): void {
+    this._brickTypeService.getBrickTypes()
+      .subscribe((brickTypes: BrickType[]) => {
+        this._brickTypes = brickTypes;
+        this.initBrickTypeGeometries();
+      });
+  }
+
+  initBrickTypeGeometries() {
+    this._brickTypeGeometries = new Map<number, Geometry>();
+
+    for (const brickType of this._brickTypes) {
+      this._brickTypeGeometries.set(brickType.id, this._brickTypeService.getBrickTypeGeometry(brickType));
+    }
   }
 
   ngOnInit() {
+    this.initBrickTypes();
   }
 
   ngAfterViewInit(): void {

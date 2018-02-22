@@ -1,0 +1,88 @@
+[{
+  "id": 0,
+  "name": "1x1",
+  "width": 1,
+  "height": 1,
+  "arrangement": [
+    1
+  ]
+}, {
+  "id": 1,
+  "name": "1x2",
+  "width": 1,
+  "height": 2,
+  "arrangement": [
+    1,
+    1
+  ]
+}, {
+  "id": 2,
+  "name": "1x3",
+  "width": 1,
+  "height": 3,
+  "arrangement": [
+    1,
+    1,
+    1
+  ]
+}, {
+  "id": 3,
+  "name": "1x4",
+  "width": 1,
+  "height": 4,
+  "arrangement": [
+    1,
+    1,
+    1,
+    1
+  ]
+}, {
+  "id": 4,
+  "name": "2x2",
+  "width": 2,
+  "height": 2,
+  "arrangement": [
+    1, 1,
+    1, 1
+  ]
+}, {
+  "id": 5,
+  "name": "2x3",
+  "width": 2,
+  "height": 3,
+  "arrangement": [
+    1, 1,
+    1, 1,
+    1, 1
+  ]
+}, {
+  "id": 6,
+  "name": "2x4",
+  "width": 2,
+  "height": 4,
+  "arrangement": [
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1
+  ]
+}, {
+  "id": 7,
+  "name": "L-shaped",
+  "width": 2,
+  "height": 2,
+  "arrangement": [
+    1, 1,
+    1, 0
+  ]
+}, {
+  "id": 8,
+  "name": "T-shaped",
+  "width": 2,
+  "height": 3,
+  "arrangement": [
+    1, 0,
+    1, 1,
+    1, 0
+  ]
+}]

@@ -5,12 +5,15 @@ import { ThreeJsModule } from '../three-js/three-js.module';
 import { GridDirective } from './objects/grid.directive';
 import { EditorComponent } from './editor/editor.component';
 import { NanoblockEditorRoutingModule } from './nanoblock-editor-routing.module';
+import { BrickTypeService } from './brick-type.service';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   imports: [
     CommonModule,
     ThreeJsModule,
-    NanoblockEditorRoutingModule
+    NanoblockEditorRoutingModule,
+    HttpClientModule
   ],
   declarations: [
     GridSelectorDirective,
@@ -20,6 +23,7 @@ import { NanoblockEditorRoutingModule } from './nanoblock-editor-routing.module'
   exports: [
     GridSelectorDirective,
     GridDirective
-  ]
+  ],
+  providers: [BrickTypeService, HttpClientModule]
 })
 export class NanoblockEditorModule { }
