@@ -3,7 +3,7 @@ import { AbstractObject3D } from '../../three-js/objects/index';
 import * as THREE from 'three';
 import { MathHelper } from '../../helpers/math-helper';
 
-const CELL_SIZE = 4;
+export const CELL_SIZE = 4;
 
 export class Cell {
   x: number;

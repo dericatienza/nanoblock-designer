@@ -39,11 +39,15 @@ export class BrickTypeService {
 
     const studSize = this.studGeometry.boundingBox.getSize();
 
-    for (let x = 0; x < columns; x++) {
-      for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < rows; x++) {
+      for (let y = 0; y < columns; y++) {
+        if (!brickType.arrangement[(x * columns) + y]) {
+          continue;
+        }
+
         const studGeometry = this.studGeometry.clone();
 
-        studGeometry.translate(x * studSize.x, 0, y * studSize.z);
+        studGeometry.translate(y * studSize.x, 0, x * studSize.z);
 
         geometry.merge(studGeometry);
       }

@@ -8,15 +8,15 @@
 
           <three-scene #scene="three-scene">
             <three-axes-helper size=160></three-axes-helper>
-            <ne-grid #grid="ne-grid" size=20></ne-grid>
+            <ne-grid #grid="ne-grid" size=24></ne-grid>
             <ne-grid-selector #gridSelector="ne-grid-selector" [camera]="mainCamera" [grid]="grid" [renderer]="renderer">
             </ne-grid-selector>
 
             <three-point-light color="white" intensity="1" distance="1000" translateX=80 translateY=80 translateZ=80></three-point-light>
             <three-point-light color="white" intensity="1" distance="1000" translateX=-80 translateY=80 translateZ=80></three-point-light>
 
-            <three-json-loader model="assets/models/nanoblock-blender.json" [translateX]="2" [translateZ]="2">
-            </three-json-loader>
+            <!-- <three-json-loader model="assets/models/nanoblock-blender.json" [translateX]="2" [translateZ]="2">
+            </three-json-loader> -->
           </three-scene>
         </three-orbit-contols>
       </three-renderer>
