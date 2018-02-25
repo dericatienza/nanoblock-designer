@@ -13,24 +13,19 @@ export class JsonLoaderDirective extends AbstractObject3D<THREE.Object3D> {
 
   constructor() {
     super();
-    console.log('JsonLoaderDirective.constructor');
   }
 
   protected newObject3DInstance(): THREE.Object3D {
-    console.log('JsonLoaderDirective.newObject3DInstance');
     return new THREE.Object3D();
   }
 
   protected afterInit(): void {
-    console.log('JsonLoaderDirective.afterInit');
     const loader = new THREE.JSONLoader();
     loader.load(this.model, this.onJSONLoaded.bind(this));
 
   }
 
   private onJSONLoaded(geometry: Geometry, materials: Material[]) {
-    console.log('JsonLoaderDirective.onObjectLoaded');
-
     let material: Material;
 
     if (materials === undefined || materials.length < 1) {

@@ -8,6 +8,8 @@ import { NanoblockEditorRoutingModule } from './nanoblock-editor-routing.module'
 import { BrickTypeService } from './brick-type.service';
 import { HttpClientModule } from '@angular/common/http';
 import { BrickColorService } from './brick-color.service';
+import { BrickTypesListComponent } from './brick-types-list/brick-types-list.component';
+import { BrickTypeComponent } from './brick-type/brick-type.component';
 
 @NgModule({
   imports: [
@@ -19,7 +21,9 @@ import { BrickColorService } from './brick-color.service';
   declarations: [
     GridSelectorDirective,
     GridDirective,
-    EditorComponent
+    EditorComponent,
+    BrickTypesListComponent,
+    BrickTypeComponent
   ],
   exports: [
     GridSelectorDirective,

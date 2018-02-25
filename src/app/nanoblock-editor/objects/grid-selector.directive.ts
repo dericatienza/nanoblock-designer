@@ -16,8 +16,8 @@ export class GridSelectorDirective implements AfterViewInit {
   @Input() grid: GridDirective;
   @Input() renderer: RendererComponent;
 
-  @Output() onHighlighted = new EventEmitter<Cell>();
-  @Output() onSelected = new EventEmitter<Cell>();
+  @Output() highlight = new EventEmitter<Cell>();
+  @Output() select = new EventEmitter<Cell>();
 
   private _raycaster = new THREE.Raycaster();
   private _mousePosition = new THREE.Vector2();
@@ -33,7 +33,7 @@ export class GridSelectorDirective implements AfterViewInit {
 
   ngAfterViewInit(): void {
     this.renderer.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
-    this.renderer.canvas.addEventListener('mousedown', this.onMouseDown.bind(this));
+    this.renderer.canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
   }
 
   private getCellOnMouse(event: MouseEvent): Cell {
@@ -60,15 +60,15 @@ export class GridSelectorDirective implements AfterViewInit {
       if (this._highlightedCell !== cell) {
         this._highlightedCell = cell;
 
-        this.onHighlighted.emit(this._highlightedCell);
+        this.highlight.emit(this._highlightedCell);
       }
     }
   }
 
-  onMouseDown(event: MouseEvent): any {
+  onMouseUp(event: MouseEvent): any {
     const cell = this.getCellOnMouse(event);
     if (cell) {
-      this.onSelected.emit(cell);
+      this.select.emit(cell);
     }
   }
 }

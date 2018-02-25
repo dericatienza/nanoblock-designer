@@ -8,12 +8,14 @@ export const CELL_SIZE = 4;
 export class Cell {
   x: number;
   y: number;
+  z: number;
 
   worldPosition: THREE.Vector3;
 
-  constructor(x: number, y: number, worldPosition: THREE.Vector3) {
+  constructor(x: number, y: number, z: number, worldPosition: THREE.Vector3) {
     this.x = x;
     this.y = y;
+    this.z = z;
     this.worldPosition = worldPosition;
   }
 }
@@ -34,9 +36,9 @@ export class GridDirective extends AbstractObject3D<THREE.GridHelper> {
     return this.size * CELL_SIZE;
   }
 
-  private _cells: Cell[][];
+  private _cells: Cell[][][];
 
-  get cells(): Cell[][] {
+  get cells(): Cell[][][] {
     return this._cells;
   }
 
@@ -53,7 +55,7 @@ export class GridDirective extends AbstractObject3D<THREE.GridHelper> {
   protected newObject3DInstance(): THREE.GridHelper {
     const gridHelper = new THREE.GridHelper(this.size * CELL_SIZE, this.size);
 
-    const selectorGeometry = new THREE.PlaneGeometry(this.size, this.size);
+    const selectorGeometry = new THREE.PlaneGeometry(this.width, this.depth);
     selectorGeometry.rotateX(THREE.Math.degToRad(90));
     const material = new THREE.MeshBasicMaterial({ color: 'red', side: THREE.DoubleSide, visible: false });
 
@@ -70,18 +72,23 @@ export class GridDirective extends AbstractObject3D<THREE.GridHelper> {
   private initCells(): void {
     this._cells = [];
 
+    const y = 0;
+
     const startX = -(this.width / 2);
     const startZ = -(this.depth / 2);
+    const startY = y;
+
+    this.cells[y] = [];
 
     for (let z = 0; z < this.size; z++) {
-      this._cells[z] = [];
+      this._cells[y][z] = [];
       for (let x = 0; x < this.size; x++) {
         const position = new THREE.Vector3(
           startX + (CELL_SIZE * x),
-          0,
+          startY + (CELL_SIZE * y),
           startZ + (CELL_SIZE * z));
 
-        this._cells[z][x] = new Cell(z, x, this.object.localToWorld(position));
+        this._cells[y][z][x] = new Cell(x, y, z, this.object.localToWorld(position));
       }
     }
   }
@@ -90,11 +97,21 @@ export class GridDirective extends AbstractObject3D<THREE.GridHelper> {
     const cellLocalPosition = this.selectorMesh.worldToLocal(worldPosition);
 
     let x = MathHelper.snap(cellLocalPosition.x, CELL_SIZE);
+    let y = MathHelper.snap(cellLocalPosition.y, CELL_SIZE);
     let z = MathHelper.snap(cellLocalPosition.z, CELL_SIZE);
 
     x = (x + this.width / 2) / CELL_SIZE;
+    y = y > 0 ? y / CELL_SIZE : 0;
     z = (z + this.depth / 2) / CELL_SIZE;
 
-    return this.cells[z][x];
+    if (y < this.cells.length) {
+      if (z < this.cells[y].length) {
+        if (x < this.cells[y][z].length) {
+          return this.cells[y][z][x];
+        }
+      }
+    }
+
+    throw new Error(`Cell not found at position ${worldPosition}, on indices ${x}, ${y}, ${z}.`);
   }
 }
