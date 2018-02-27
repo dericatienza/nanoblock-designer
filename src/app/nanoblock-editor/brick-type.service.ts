@@ -3,8 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { JsonConvert } from 'json2typescript';
 import { BrickType } from './editor/editor.models';
 import * as THREE from 'three';
+import '../../assets/js/ThreeCSG';
 import 'rxjs/add/operator/map';
 import { Geometry, Material } from 'three';
+
+declare var ThreeBSP: any;
 
 @Injectable()
 export class BrickTypeService {
@@ -30,14 +33,14 @@ export class BrickTypeService {
   }
 
   getBrickTypeGeometry(brickType: BrickType) {
-    const geometry = new Geometry();
-
     const rows = brickType.height;
     const columns = brickType.width;
 
     this.studGeometry.computeBoundingBox();
 
     const studSize = this.studGeometry.boundingBox.getSize();
+
+    let studBSP = new ThreeBSP(this.studGeometry);
 
     for (let x = 0; x < rows; x++) {
       for (let y = 0; y < columns; y++) {
@@ -49,9 +52,13 @@ export class BrickTypeService {
 
         studGeometry.translate(y * studSize.x, 0, x * studSize.z);
 
-        geometry.merge(studGeometry);
+        const studBSPClone = new ThreeBSP(studGeometry);
+
+        studBSP = studBSP.union(studBSPClone);
       }
     }
+
+    const geometry = studBSP.toGeometry();
 
     return geometry;
   }
