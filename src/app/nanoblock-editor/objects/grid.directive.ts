@@ -104,6 +104,16 @@ export class GridDirective extends AbstractObject3D<THREE.GridHelper> {
     y = y > 0 ? y / CELL_SIZE : 0;
     z = (z + this.depth / 2) / CELL_SIZE;
 
+    const cell = this.getCellByIndex(x, y, z);
+
+    if (!cell) {
+      throw new Error(`Cell not found at position ${worldPosition}, on indices ${x}, ${y}, ${z}.`);
+    }
+
+    return cell;
+  }
+
+  getCellByIndex(x: number, y: number, z: number): Cell {
     if (y < this.cells.length) {
       if (z < this.cells[y].length) {
         if (x < this.cells[y][z].length) {
@@ -112,6 +122,6 @@ export class GridDirective extends AbstractObject3D<THREE.GridHelper> {
       }
     }
 
-    throw new Error(`Cell not found at position ${worldPosition}, on indices ${x}, ${y}, ${z}.`);
+    return null;
   }
 }

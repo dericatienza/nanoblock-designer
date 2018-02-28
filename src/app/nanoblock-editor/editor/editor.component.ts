@@ -64,9 +64,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   private _currentMode: EditorMode;
   set currentMode(v: EditorMode) {
-    if (this._currentMode === v) {
-      return;
-    }
+    // if (this._currentMode === v) {
+    //   return;
+    // }
 
     if (this._currentMode) {
       this._currentMode.exit();
@@ -129,12 +129,21 @@ export class EditorComponent implements OnInit, AfterViewInit {
     // Implement add brick object
   }
 
-  createCurrentBrick() {
-    const brickObject = this.createBrick(this._currentBrickType, this._currentBrickColor);
+  createCurrentBrickObject() {
+    const brickObject = this.createBrickObject(this._currentBrickType, this._currentBrickColor);
 
     this._scene.object.add(brickObject.mesh);
 
     this._currentBrickObject = brickObject;
+  }
+
+  destroyCurrentBrickObject() {
+    if (!this._currentBrickObject) {
+      return;
+    }
+
+    this._scene.object.remove(this.currentBrickObject.mesh);
+    this._currentBrickObject = null;
   }
 
   setCurrentBrickOpacity() {
@@ -163,7 +172,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     for (let x = 0; x < this.brickTypes.length; x++) {
       const brickType = this.brickTypes[x];
 
-      const brickObject = this.createBrick(brickType, color);
+      const brickObject = this.createBrickObject(brickType, color);
 
       this._scene.object.add(brickObject.mesh);
 
@@ -173,7 +182,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     }
   }
 
-  createBrick(type: BrickType, color: BrickColor): BrickObject {
+  createBrickObject(type: BrickType, color: BrickColor): BrickObject {
     const geometry = this._brickTypeGeometries.get(type.id);
 
     const material = this._brickColorService.getBrickColorMaterial(color);
@@ -200,10 +209,6 @@ export class EditorComponent implements OnInit, AfterViewInit {
   onBrickTypeChanged(id: number) {
     this._currentBrickType = this.brickTypes.find(x => x.id === id);
 
-    this.createCurrentBrick();
-
-    this._currentBrickObject.mesh.position.set(1000, 1000, 1000);
-
     this.setMode(BuildEditorMode);
   }
 
@@ -219,9 +224,80 @@ export class EditorComponent implements OnInit, AfterViewInit {
     // TODO: Implement command history for undoing and redoing actions
     command.do(this);
   }
+
+  buildBrickObject(brickObject: BrickObject, cell: Cell) {
+    if (this.brickObjects.indexOf(brickObject) > -1) {
+      throw new RangeError(`Brick object is already in editor's built brick objects.`);
+    }
+
+    brickObject.mesh.position.set(cell.worldPosition.x, cell.worldPosition.y, cell.worldPosition.z);
+
+    brickObject.brick.x = cell.x;
+    brickObject.brick.y = cell.y;
+    brickObject.brick.z = cell.z;
+
+    brickObject.cell = cell;
+    this.brickObjects.push(brickObject);
+  }
+
+  destroyBrickObject(brickObject: BrickObject) {
+    const brickObjectIndex = this.brickObjects.indexOf(brickObject);
+
+    if (brickObjectIndex < 0) {
+      throw new RangeError(`Brick object is not in editor's built brick objects.`);
+    }
+
+    brickObject.cell = null;
+    this.brickObjects.splice(brickObjectIndex, 1);
+  }
+
+  checkCellBuildable(brickObject: BrickObject, cell: Cell): boolean {
+    const brickObjectCells = this.getOccupiedCells(brickObject, cell);
+
+    for (const builtBrickObject of this.brickObjects) {
+      const builtBrickObjectCells = this.getOccupiedCells(builtBrickObject, builtBrickObject.cell);
+
+      const isIntersecting = brickObjectCells.some(x => builtBrickObjectCells.indexOf(x) > -1);
+
+      if (isIntersecting) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  getOccupiedCells(brickObject: BrickObject, cell: Cell): Cell[] {
+    const brickType = this.brickTypes.find(x => x.id === brickObject.brick.typeId);
+
+    const cells = [];
+
+    for (let y = 0; y < brickType.height; y++) {
+      for (let z = 0; z < brickType.depth; z++) {
+        for (let x = 0; x < brickType.width; x++) {
+          if (!brickType.arrangement[(z * brickType.width) + x]) {
+            continue;
+          }
+
+          const occupiedCell = this._grid.getCellByIndex(
+            cell.x + x,
+            cell.y + y,
+            cell.z + z
+          );
+
+          if (cell) {
+            cells.push(occupiedCell);
+          }
+        }
+      }
+    }
+
+    return cells;
+  }
 }
 
 export class BrickObject {
   mesh: THREE.Mesh;
   brick: Brick;
+  cell: Cell;
 }

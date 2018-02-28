@@ -8,6 +8,8 @@ export class BrickType {
     // tslint:disable-next-line:no-inferrable-types
     width: number = 1;
     // tslint:disable-next-line:no-inferrable-types
+    depth: number = 1;
+    // tslint:disable-next-line:no-inferrable-types
     height: number = 1;
 
     @JsonProperty('arrangement', IntArrayToBooleanArrayJsonConverter)

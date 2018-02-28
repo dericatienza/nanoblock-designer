@@ -33,24 +33,21 @@ export class BrickTypeService {
   }
 
   getBrickTypeGeometry(brickType: BrickType) {
-    const rows = brickType.height;
-    const columns = brickType.width;
-
     this.studGeometry.computeBoundingBox();
 
     const studSize = this.studGeometry.boundingBox.getSize();
 
     let studBSP = new ThreeBSP(this.studGeometry);
 
-    for (let x = 0; x < rows; x++) {
-      for (let y = 0; y < columns; y++) {
-        if (!brickType.arrangement[(x * columns) + y]) {
+    for (let z = 0; z < brickType.depth; z++) {
+      for (let x = 0; x < brickType.width; x++) {
+        if (!brickType.arrangement[(z * brickType.width) + x]) {
           continue;
         }
 
         const studGeometry = this.studGeometry.clone();
 
-        studGeometry.translate(y * studSize.x, 0, x * studSize.z);
+        studGeometry.translate(x * studSize.x, 0, z * studSize.z);
 
         const studBSPClone = new ThreeBSP(studGeometry);
 
