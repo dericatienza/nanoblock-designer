@@ -6,6 +6,7 @@ import { AbstractCamera } from '../../three-js/cameras/index';
 import { Vector3, Object3D } from 'three';
 import { MathHelper } from '../../helpers/math-helper';
 import { GridDirective, Cell } from './grid.directive';
+import { OrbitControlsDirective } from '../../three-js/controls/orbit-controls.directive';
 
 @Directive({
   selector: 'ne-grid-selector',
@@ -13,6 +14,7 @@ import { GridDirective, Cell } from './grid.directive';
 })
 export class GridSelectorDirective implements OnInit, AfterViewInit {
   @Input() camera: AbstractCamera<THREE.Camera>;
+  @Input() cameraControls: OrbitControlsDirective;
   @Input() grid: GridDirective;
   @Input() renderer: RendererComponent;
 
@@ -35,6 +37,12 @@ export class GridSelectorDirective implements OnInit, AfterViewInit {
   }
 
   constructor() {
+    this.onMouseMove = this.onMouseMove.bind(this);
+    this.onMouseUp = this.onMouseUp.bind(this);
+    // this.enable = this.enable.bind(this);
+    // this.disable = this.disable.bind(this);
+    this.onCameraControlsChange = this.onCameraControlsChange.bind(this);
+    this.onCameraControlsEnd = this.onCameraControlsEnd.bind(this);
   }
 
   ngOnInit(): void {
@@ -44,8 +52,37 @@ export class GridSelectorDirective implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     this._selectableObjects.push(this.grid.selectorMesh);
 
-    this.renderer.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
-    this.renderer.canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
+    if (this.cameraControls) {
+      this.cameraControls.controls.addEventListener('change', this.onCameraControlsChange);
+    }
+
+    this.enable();
+  }
+
+  onCameraControlsChange() {
+    this.cameraControls.controls.removeEventListener('change', this.onCameraControlsChange);
+
+    this.disable();
+
+    this.cameraControls.controls.addEventListener('end', this.onCameraControlsEnd);
+  }
+
+  onCameraControlsEnd() {
+    this.cameraControls.controls.removeEventListener('end', this.onCameraControlsEnd);
+
+    this.enable();
+
+    this.cameraControls.controls.addEventListener('change', this.onCameraControlsChange);
+  }
+
+  enable() {
+    this.renderer.canvas.addEventListener('mousemove', this.onMouseMove);
+    this.renderer.canvas.addEventListener('mouseup', this.onMouseUp);
+  }
+
+  disable() {
+    this.renderer.canvas.removeEventListener('mousemove', this.onMouseMove);
+    this.renderer.canvas.removeEventListener('mouseup', this.onMouseUp);
   }
 
   private getCellOnMouse(event: MouseEvent): Cell {

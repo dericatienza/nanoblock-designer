@@ -5,7 +5,8 @@ import { RendererComponent } from '../renderer/renderer.component';
 import 'three/examples/js/controls/OrbitControls';
 
 @Directive({
-  selector: 'three-orbit-contols'
+  selector: 'three-orbit-contols',
+  exportAs: 'three-orbit-contols'
 })
 export class OrbitControlsDirective implements AfterViewInit {
 
@@ -22,11 +23,9 @@ export class OrbitControlsDirective implements AfterViewInit {
   }
 
   constructor(private _elemRef: ElementRef) {
-    console.log('OrbitControlsDirective.constructor');
   }
 
   ngAfterViewInit(): void {
-    console.log('OrbitControlsDirective.ngAfterViewInit');
     if (this.childCameras === undefined || this.childCameras.first === undefined) {
       throw new Error('Camera is not found');
     }

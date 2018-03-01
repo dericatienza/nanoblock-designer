@@ -10,7 +10,7 @@ export class BuildEditorMode extends EditorMode {
         this.validCell = this.editor.getValidCell(this.editor.currentBrickObject, cell);
 
         if (this.validCell) {
-            this.editor.currentBrickObject.mesh.position.set
+            this.editor.currentBrickObject.object.position.set
                 (this.validCell.worldPosition.x, this.validCell.worldPosition.y, this.validCell.worldPosition.z);
         }
     }
@@ -27,7 +27,7 @@ export class BuildEditorMode extends EditorMode {
     enter() {
         this.editor.createCurrentBrickObject();
 
-        this.editor.currentBrickObject.mesh.position.set(1000, 1000, 1000);
+        this.editor.currentBrickObject.object.position.set(1000, 1000, 1000);
 
         this.editor.setCurrentBrickOpacity();
     }
@@ -45,7 +45,7 @@ export class BuildEditorMode extends EditorMode {
 
         this.validCell = this.editor.getValidCell(this.editor.currentBrickObject, cell);
 
-        this.editor.currentBrickObject.mesh.position.set
+        this.editor.currentBrickObject.object.position.set
             (this.validCell.worldPosition.x, this.validCell.worldPosition.y, this.validCell.worldPosition.z);
     }
 

@@ -128,7 +128,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   createCurrentBrickObject() {
     const brickObject = this.createBrickObject(this._currentBrickType, this._currentBrickColor);
 
-    this._scene.object.add(brickObject.mesh);
+    this._scene.object.add(brickObject.object);
 
     this._currentBrickObject = brickObject;
   }
@@ -138,7 +138,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this._scene.object.remove(this.currentBrickObject.mesh);
+    this._scene.object.remove(this.currentBrickObject.object);
     this._currentBrickObject = null;
   }
 
@@ -170,9 +170,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
       const brickObject = this.createBrickObject(brickType, color);
 
-      this._scene.object.add(brickObject.mesh);
+      this._scene.object.add(brickObject.object);
 
-      brickObject.mesh.position.set(startX, 0, 0);
+      brickObject.object.position.set(startX, 0, 0);
 
       startX += (CELL_SIZE.x * brickType.width) + CELL_SIZE.x;
     }
@@ -183,7 +183,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     const material = this._brickColorService.getBrickColorMaterial(color);
 
+    const object = new THREE.Object3D();
     const mesh = new THREE.Mesh(geometry, material);
+
+    object.add(mesh);
 
     const brick = new Brick();
     brick.x = brick.y = brick.z = -1;
@@ -192,7 +195,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     brick.colorId = color.id;
 
     const brickObject = new BrickObject();
-    brickObject.mesh = mesh;
+    brickObject.object = object;
     brickObject.brick = brick;
 
     return brickObject;
@@ -226,9 +229,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
       throw new RangeError(`Brick object is already in editor's built brick objects.`);
     }
 
-    this._gridSelector.addSelectable(brickObject.mesh);
+    this._gridSelector.addSelectable(brickObject.object);
 
-    brickObject.mesh.position.set(cell.worldPosition.x, cell.worldPosition.y, cell.worldPosition.z);
+    brickObject.object.position.set(cell.worldPosition.x, cell.worldPosition.y, cell.worldPosition.z);
 
     brickObject.brick.x = cell.x;
     brickObject.brick.y = cell.y;
@@ -245,7 +248,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
       throw new RangeError(`Brick object is not in editor's built brick objects.`);
     }
 
-    this._gridSelector.removeSelectable(brickObject.mesh);
+    this._gridSelector.removeSelectable(brickObject.object);
 
     brickObject.cell = null;
     this.brickObjects.splice(brickObjectIndex, 1);
@@ -311,7 +314,11 @@ export class EditorComponent implements OnInit, AfterViewInit {
 }
 
 export class BrickObject {
-  mesh: THREE.Mesh;
+  object: THREE.Object3D;
   brick: Brick;
   cell: Cell;
+
+  get mesh(): THREE.Mesh {
+    return <THREE.Mesh>this.object.children[0];
+  }
 }
