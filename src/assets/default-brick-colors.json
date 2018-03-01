@@ -3,4 +3,44 @@
   "name": "red",
   "isClear": false,
   "colorHex": "#ff0000"
+}, {
+  "id": 1,
+  "name": "orange",
+  "isClear": false,
+  "colorHex": "#ffa500"
+}, {
+  "id": 2,
+  "name": "yellow",
+  "isClear": false,
+  "colorHex": "#ffff00"
+}, {
+  "id": 4,
+  "name": "green",
+  "isClear": false,
+  "colorHex": "#00ff00"
+}, {
+  "id": 5,
+  "name": "blue",
+  "isClear": false,
+  "colorHex": "#0000ff"
+}, {
+  "id": 6,
+  "name": "indigo",
+  "isClear": false,
+  "colorHex": "#4b0082"
+}, {
+  "id": 7,
+  "name": "violet",
+  "isClear": false,
+  "colorHex": "#ee82ee"
+}, {
+  "id": 8,
+  "name": "black",
+  "isClear": false,
+  "colorHex": "#000000"
+}, {
+  "id": 9,
+  "name": "white",
+  "isClear": false,
+  "colorHex": "#fffff"
 }]

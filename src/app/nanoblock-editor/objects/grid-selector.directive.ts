@@ -1,9 +1,9 @@
-import { Directive, ContentChildren, QueryList, AfterViewInit, Input, forwardRef, Output, EventEmitter } from '@angular/core';
+import { Directive, ContentChildren, QueryList, AfterViewInit, Input, forwardRef, Output, EventEmitter, OnInit } from '@angular/core';
 import * as THREE from 'three';
 import { AbstractObject3D } from '../../three-js/objects/index';
 import { RendererComponent } from '../../three-js/renderer/renderer.component';
 import { AbstractCamera } from '../../three-js/cameras/index';
-import { Vector3 } from 'three';
+import { Vector3, Object3D } from 'three';
 import { MathHelper } from '../../helpers/math-helper';
 import { GridDirective, Cell } from './grid.directive';
 
@@ -11,7 +11,7 @@ import { GridDirective, Cell } from './grid.directive';
   selector: 'ne-grid-selector',
   exportAs: 'ne-grid-selector'
 })
-export class GridSelectorDirective implements AfterViewInit {
+export class GridSelectorDirective implements OnInit, AfterViewInit {
   @Input() camera: AbstractCamera<THREE.Camera>;
   @Input() grid: GridDirective;
   @Input() renderer: RendererComponent;
@@ -24,6 +24,12 @@ export class GridSelectorDirective implements AfterViewInit {
 
   private _highlightedCell: Cell;
 
+  private _selectableObjects: Object3D[];
+
+  get selectableObjects(): Object3D[] {
+    return this._selectableObjects;
+  }
+
   get highlightedCell(): Cell {
     return this._highlightedCell;
   }
@@ -31,7 +37,13 @@ export class GridSelectorDirective implements AfterViewInit {
   constructor() {
   }
 
+  ngOnInit(): void {
+    this._selectableObjects = [];
+  }
+
   ngAfterViewInit(): void {
+    this._selectableObjects.push(this.grid.selectorMesh);
+
     this.renderer.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
     this.renderer.canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
   }
@@ -41,7 +53,7 @@ export class GridSelectorDirective implements AfterViewInit {
     this._mousePosition.y = - (event.clientY / this.renderer.canvas.clientHeight) * 2 + 1;
     this._raycaster.setFromCamera(this._mousePosition, this.camera.camera);
 
-    const intersects = this._raycaster.intersectObject(this.grid.selectorMesh);
+    const intersects = this._raycaster.intersectObjects(this._selectableObjects);
 
     if (intersects.length > 0) {
       const intersectPoint = intersects[0].point;
@@ -70,5 +82,19 @@ export class GridSelectorDirective implements AfterViewInit {
     if (cell) {
       this.select.emit(cell);
     }
+  }
+
+  addSelectable(object: Object3D) {
+    this._selectableObjects.push(object);
+  }
+
+  removeSelectable(object: Object3D) {
+    const index = this._selectableObjects.indexOf(object);
+
+    if (index < 0) {
+      return;
+    }
+
+    this._selectableObjects.splice(index, 1);
   }
 }

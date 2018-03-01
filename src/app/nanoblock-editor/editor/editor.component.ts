@@ -63,7 +63,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   private _modes: Map<string, EditorMode>;
 
   private _currentMode: EditorMode;
-  set currentMode(v: EditorMode) {
+  private set currentMode(v: EditorMode) {
     // if (this._currentMode === v) {
     //   return;
     // }
@@ -125,10 +125,6 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this.currentMode = this._modes.get(modeClassRef.name);
   }
 
-  addBrickObject(brickObject: BrickObject, cell: Cell) {
-    // Implement add brick object
-  }
-
   createCurrentBrickObject() {
     const brickObject = this.createBrickObject(this._currentBrickType, this._currentBrickColor);
 
@@ -178,7 +174,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
       brickObject.mesh.position.set(startX, 0, 0);
 
-      startX += (CELL_SIZE * brickType.width) + CELL_SIZE;
+      startX += (CELL_SIZE.x * brickType.width) + CELL_SIZE.x;
     }
   }
 
@@ -230,6 +226,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
       throw new RangeError(`Brick object is already in editor's built brick objects.`);
     }
 
+    this._gridSelector.addSelectable(brickObject.mesh);
+
     brickObject.mesh.position.set(cell.worldPosition.x, cell.worldPosition.y, cell.worldPosition.z);
 
     brickObject.brick.x = cell.x;
@@ -247,8 +245,24 @@ export class EditorComponent implements OnInit, AfterViewInit {
       throw new RangeError(`Brick object is not in editor's built brick objects.`);
     }
 
+    this._gridSelector.removeSelectable(brickObject.mesh);
+
     brickObject.cell = null;
     this.brickObjects.splice(brickObjectIndex, 1);
+  }
+
+  getValidCell(brickObject: BrickObject, cell: Cell): Cell {
+    let validCell: Cell;
+
+    while (!validCell) {
+      if (this.checkCellBuildable(brickObject, cell)) {
+        validCell = cell;
+      } else {
+        cell = this._grid.getCellByIndex(cell.x, cell.y + 1, cell.z);
+      }
+    }
+
+    return validCell;
   }
 
   checkCellBuildable(brickObject: BrickObject, cell: Cell): boolean {
