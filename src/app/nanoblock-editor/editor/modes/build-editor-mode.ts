@@ -1,10 +1,20 @@
 import { EditorMode } from '../editor-mode';
-import { EditorComponent } from '../editor.component';
+import { EditorComponent, RotateDirection } from '../editor.component';
 import { Cell } from '../../objects/grid.directive';
 import { BuildCommand } from '../commands/build-command';
 
+const KEY_ROTATE_RIGHT = 69;
+const KEY_ROTATE_LEFT = 81;
+
 export class BuildEditorMode extends EditorMode {
+
     validCell: Cell;
+
+    constructor(editor: EditorComponent) {
+        super(editor);
+
+        this.onKeyDown = this.onKeyDown.bind(this);
+    }
 
     highlight(cell: Cell) {
         this.validCell = this.editor.getValidCell(this.editor.currentBrickObject, cell);
@@ -30,10 +40,34 @@ export class BuildEditorMode extends EditorMode {
         this.editor.currentBrickObject.object.position.set(1000, 1000, 1000);
 
         this.editor.setCurrentBrickOpacity();
+
+        this.addListeners();
+
+        this.editor.renderer.canvas.focus();
+    }
+
+    addListeners() {
+        this.editor.renderer.canvas.addEventListener('keydown', this.onKeyDown);
+    }
+
+    removeListeners() {
+        this.editor.renderer.canvas.removeEventListener('keydown', this.onKeyDown);
+    }
+
+    onKeyDown(event: KeyboardEvent) {
+        if (event.keyCode === KEY_ROTATE_RIGHT) {
+            this.editor.rotateBrickObject(this.editor.currentBrickObject, RotateDirection.Right);
+        } else if (event.keyCode === KEY_ROTATE_LEFT) {
+            this.editor.rotateBrickObject(this.editor.currentBrickObject, RotateDirection.Left);
+        }
+
+        this.editor.gridSelector.refreshHighlight();
     }
 
     exit() {
         this.editor.destroyCurrentBrickObject();
+
+        this.removeListeners();
     }
 
     nextBrick(cell: Cell) {

@@ -88,7 +88,12 @@ export class GridSelectorDirective implements OnInit, AfterViewInit {
   private getCellOnMouse(event: MouseEvent): Cell {
     this._mousePosition.x = (event.clientX / this.renderer.canvas.clientWidth) * 2 - 1;
     this._mousePosition.y = - (event.clientY / this.renderer.canvas.clientHeight) * 2 + 1;
-    this._raycaster.setFromCamera(this._mousePosition, this.camera.camera);
+
+    return this.getCellOnPosition(this._mousePosition);
+  }
+
+  getCellOnPosition(position: THREE.Vector2): Cell {
+    this._raycaster.setFromCamera(position, this.camera.camera);
 
     const intersects = this._raycaster.intersectObjects(this._selectableObjects);
 
@@ -99,6 +104,16 @@ export class GridSelectorDirective implements OnInit, AfterViewInit {
       return cell;
     } else {
       return null;
+    }
+  }
+
+  refreshHighlight() {
+    const cell = this.getCellOnPosition(this._mousePosition);
+
+    if (cell) {
+      this._highlightedCell = cell;
+
+      this.highlight.emit(this._highlightedCell);
     }
   }
 

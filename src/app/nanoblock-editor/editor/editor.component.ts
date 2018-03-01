@@ -7,15 +7,21 @@ import { Response } from '@angular/http';
 
 import { BrickTypeService } from '../brick-type.service';
 import * as THREE from 'three';
-import { Geometry, Material, MeshPhongMaterial } from 'three';
+import { Geometry, Material, MeshPhongMaterial, Vector3 } from 'three';
 import { BrickColorService, CLEAR_COLOR_OPACITY } from '../brick-color.service';
 import { GridDirective, CELL_SIZE, Cell } from '../objects/grid.directive';
 import { EditorMode } from './editor-mode';
 import { SelectEditorMode } from './modes/select-editor-mode';
 import { BuildEditorMode } from './modes/build-editor-mode';
 import { Command } from './command';
+import { RendererComponent } from '../../three-js/renderer/renderer.component';
 
 const CURRENT_BRICK_OPACITY_FACTOR = 0.5;
+
+export enum RotateDirection {
+  Right,
+  Left
+}
 
 @Component({
   selector: 'ne-editor',
@@ -32,6 +38,16 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   @ViewChild('gridSelector')
   private _gridSelector: GridSelectorDirective;
+  get gridSelector(): GridSelectorDirective {
+    return this._gridSelector;
+  }
+
+  @ViewChild('renderer')
+  private _renderer: RendererComponent;
+
+  get renderer(): RendererComponent {
+    return this._renderer;
+  }
 
   brickTypes: BrickType[];
   brickColors: BrickColor[];
@@ -190,6 +206,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     const brick = new Brick();
     brick.x = brick.y = brick.z = -1;
+    brick.xRotation = brick.yRotation = brick.zRotation = 0;
     brick.id = this._brickIdCounter++;
     brick.typeId = type.id;
     brick.colorId = color.id;
@@ -199,6 +216,36 @@ export class EditorComponent implements OnInit, AfterViewInit {
     brickObject.brick = brick;
 
     return brickObject;
+  }
+
+  onRendererClick() {
+    this.renderer.canvas.focus();
+  }
+
+  rotateBrickObject(brickObject: BrickObject, direction: RotateDirection) {
+    let degrees: number;
+
+    switch (direction) {
+      case RotateDirection.Right:
+        degrees = 90;
+        break;
+      case RotateDirection.Left:
+        degrees = -90;
+        break;
+      default:
+        degrees = 90;
+        break;
+    }
+
+    brickObject.brick.yRotation += degrees;
+
+    if (brickObject.brick.yRotation >= 360) {
+      brickObject.brick.yRotation = 0;
+    }
+
+    const radians = THREE.Math.degToRad(brickObject.brick.yRotation);
+
+    brickObject.object.setRotationFromAxisAngle(new Vector3(0, 1, 0), radians);
   }
 
   ngAfterViewInit(): void {
@@ -229,7 +276,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
       throw new RangeError(`Brick object is already in editor's built brick objects.`);
     }
 
-    this._gridSelector.addSelectable(brickObject.object);
+    this._gridSelector.addSelectable(brickObject.mesh);
 
     brickObject.object.position.set(cell.worldPosition.x, cell.worldPosition.y, cell.worldPosition.z);
 
@@ -248,7 +295,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
       throw new RangeError(`Brick object is not in editor's built brick objects.`);
     }
 
-    this._gridSelector.removeSelectable(brickObject.object);
+    this._gridSelector.removeSelectable(brickObject.mesh);
 
     brickObject.cell = null;
     this.brickObjects.splice(brickObjectIndex, 1);
@@ -296,10 +343,37 @@ export class EditorComponent implements OnInit, AfterViewInit {
             continue;
           }
 
+          let xOffset, yOffset, zOffset;
+
+          switch (brickObject.brick.yRotation) {
+            case 0:
+              xOffset = x;
+              yOffset = y;
+              zOffset = z;
+              break;
+            case 90:
+              xOffset = z;
+              yOffset = y;
+              zOffset = -x;
+              break;
+            case 180:
+              xOffset = -x;
+              yOffset = y;
+              zOffset = -z;
+              break;
+            case 270:
+              xOffset = -z;
+              yOffset = y;
+              zOffset = x;
+              break;
+            default:
+              break;
+          }
+
           const occupiedCell = this._grid.getCellByIndex(
-            cell.x + x,
-            cell.y + y,
-            cell.z + z
+            cell.x + xOffset,
+            cell.y + yOffset,
+            cell.z + zOffset
           );
 
           if (cell) {

@@ -73,8 +73,8 @@ export class GridDirective extends AbstractObject3D<THREE.GridHelper> {
   private initCells(): void {
     this._cells = [];
 
-    const startX = -(this.width / 2);
-    const startZ = -(this.depth / 2);
+    const startX = -(this.width / 2) + CELL_SIZE.x / 2;
+    const startZ = -(this.depth / 2) + CELL_SIZE.z / 2;
     const startY = 0;
 
     for (let y = 0; y < this.size; y++) {
