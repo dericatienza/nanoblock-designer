@@ -61,7 +61,7 @@ export class BuildEditorMode extends EditorMode {
             this.editor.rotateBrickObject(this.editor.currentBrickObject, RotateDirection.Left);
         }
 
-        this.editor.gridSelector.refreshHighlight();
+        this.editor.gridSelector.forceHighlightOnMouse();
     }
 
     exit() {

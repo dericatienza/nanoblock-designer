@@ -58,7 +58,7 @@ export class GridDirective extends AbstractObject3D<THREE.GridHelper> {
 
     const selectorGeometry = new THREE.PlaneGeometry(this.width, this.depth);
     selectorGeometry.rotateX(THREE.Math.degToRad(90));
-    const material = new THREE.MeshBasicMaterial({ color: 'red', side: THREE.DoubleSide, visible: false });
+    const material = new THREE.MeshBasicMaterial({ color: 'red', side: THREE.BackSide, visible: false });
 
     this._selectorMesh = new THREE.Mesh(selectorGeometry, material);
     gridHelper.add(this._selectorMesh);

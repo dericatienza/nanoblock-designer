@@ -309,6 +309,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
         validCell = cell;
       } else {
         cell = this._grid.getCellByIndex(cell.x, cell.y + 1, cell.z);
+
+        if (!cell) {
+          return null;
+        }
       }
     }
 
@@ -328,7 +332,43 @@ export class EditorComponent implements OnInit, AfterViewInit {
       }
     }
 
+    if (cell.y > 0) {
+      const belowBrickObjectsCells = this.getBrickObjectsOccupiedCells(this.getBrickObjectsByIndex(-1, cell.y - 1, -1));
+
+      let hasFooting = brickObjectCells.some(x =>
+        belowBrickObjectsCells.some(y => y.x === x.x && y.z === x.z));
+
+      if (!hasFooting) {
+        const aboveBrickObjectsCells = this.getBrickObjectsOccupiedCells(this.getBrickObjectsByIndex(-1, cell.y + 1, -1));
+
+        hasFooting = brickObjectCells.some(x =>
+          aboveBrickObjectsCells.some(y => y.x === x.x && y.z === x.z));
+
+        if (!hasFooting) {
+          return false;
+        }
+      }
+    }
+
     return true;
+  }
+
+  getBrickObjectsOccupiedCells(brickObjects: BrickObject[]): Cell[] {
+    const cells = [];
+
+    brickObjects.map(x => cells.push(...this.getOccupiedCells(x, x.cell)));
+
+    return cells;
+  }
+
+  getBrickObjectsByIndex(x: number = -1, y: number = -1, z: number = -1) {
+    const brickObjects = this.brickObjects.filter(b =>
+      x > -1 ? b.brick.x === x : true &&
+        y > -1 ? b.brick.y === y : true &&
+          z > -1 ? b.brick.z === z : true
+    );
+
+    return brickObjects;
   }
 
   getOccupiedCells(brickObject: BrickObject, cell: Cell): Cell[] {
@@ -343,40 +383,16 @@ export class EditorComponent implements OnInit, AfterViewInit {
             continue;
           }
 
-          let xOffset, yOffset, zOffset;
-
-          switch (brickObject.brick.yRotation) {
-            case 0:
-              xOffset = x;
-              yOffset = y;
-              zOffset = z;
-              break;
-            case 90:
-              xOffset = z;
-              yOffset = y;
-              zOffset = -x;
-              break;
-            case 180:
-              xOffset = -x;
-              yOffset = y;
-              zOffset = -z;
-              break;
-            case 270:
-              xOffset = -z;
-              yOffset = y;
-              zOffset = x;
-              break;
-            default:
-              break;
-          }
+          const position = new THREE.Vector3(x, y, z);
+          const offset = this.getCellOffset(brickObject.brick.yRotation, position);
 
           const occupiedCell = this._grid.getCellByIndex(
-            cell.x + xOffset,
-            cell.y + yOffset,
-            cell.z + zOffset
+            cell.x + offset.x,
+            cell.y + offset.y,
+            cell.z + offset.z
           );
 
-          if (cell) {
+          if (occupiedCell) {
             cells.push(occupiedCell);
           }
         }
@@ -384,6 +400,37 @@ export class EditorComponent implements OnInit, AfterViewInit {
     }
 
     return cells;
+  }
+
+  getCellOffset(rotation: number, position: THREE.Vector3): THREE.Vector3 {
+    const offset = new THREE.Vector3();
+
+    switch (rotation) {
+      case 0:
+        offset.x = position.x;
+        offset.y = position.y;
+        offset.z = position.z;
+        break;
+      case 90:
+        offset.x = position.z;
+        offset.y = position.y;
+        offset.z = -position.x;
+        break;
+      case 180:
+        offset.x = -position.x;
+        offset.y = position.y;
+        offset.z = -position.z;
+        break;
+      case 270:
+        offset.x = -position.z;
+        offset.y = position.y;
+        offset.z = position.x;
+        break;
+      default:
+        break;
+    }
+
+    return offset;
   }
 }
 

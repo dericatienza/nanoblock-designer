@@ -99,7 +99,15 @@ export class GridSelectorDirective implements OnInit, AfterViewInit {
 
     if (intersects.length > 0) {
       const intersectPoint = intersects[0].point;
-      const cell = this.grid.getCellFromWorldPosition(intersectPoint);
+      let cell = this.grid.getCellFromWorldPosition(intersectPoint);
+
+      if (cell.y > 0 && intersects[0].object !== this.grid.selectorMesh) {
+        const objectLocalIntersectPoint = intersects[0].object.worldToLocal(intersectPoint);
+
+        if (objectLocalIntersectPoint.y <= 0) {
+          cell = this.grid.getCellByIndex(cell.x, cell.y - 1, cell.z);
+        }
+      }
 
       return cell;
     } else {
@@ -107,7 +115,7 @@ export class GridSelectorDirective implements OnInit, AfterViewInit {
     }
   }
 
-  refreshHighlight() {
+  forceHighlightOnMouse() {
     const cell = this.getCellOnPosition(this._mousePosition);
 
     if (cell) {
