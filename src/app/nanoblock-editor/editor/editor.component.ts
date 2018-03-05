@@ -7,7 +7,7 @@ import { Response } from '@angular/http';
 
 import { BrickTypeService } from '../brick-type.service';
 import * as THREE from 'three';
-import { Geometry, Material, MeshPhongMaterial, Vector3 } from 'three';
+import { Geometry, Material, MeshPhongMaterial, Vector3, Vector2 } from 'three';
 import { BrickColorService, CLEAR_COLOR_OPACITY } from '../brick-color.service';
 import { GridDirective, CELL_SIZE, Cell } from '../objects/grid.directive';
 import { EditorMode } from './editor-mode';
@@ -15,8 +15,10 @@ import { SelectEditorMode } from './modes/select-editor-mode';
 import { BuildEditorMode } from './modes/build-editor-mode';
 import { Command } from './command';
 import { RendererComponent } from '../../three-js/renderer/renderer.component';
+import { MathHelper } from '../../helpers/math-helper';
 
 const CURRENT_BRICK_OPACITY_FACTOR = 0.5;
+const VECTOR3_ZERO = new Vector3(0, 0, 0);
 
 export enum RotateDirection {
   Right,
@@ -214,6 +216,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     const brickObject = new BrickObject();
     brickObject.object = object;
     brickObject.brick = brick;
+    brickObject.brickType = type;
 
     return brickObject;
   }
@@ -239,7 +242,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     brickObject.brick.yRotation += degrees;
 
-    if (brickObject.brick.yRotation >= 360) {
+    if (brickObject.brick.yRotation >= 360 ||
+      brickObject.brick.yRotation <= -360) {
       brickObject.brick.yRotation = 0;
     }
 
@@ -372,7 +376,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   getOccupiedCells(brickObject: BrickObject, cell: Cell): Cell[] {
-    const brickType = this.brickTypes.find(x => x.id === brickObject.brick.typeId);
+    const brickType = brickObject.brickType;
 
     const cells = [];
 
@@ -406,6 +410,21 @@ export class EditorComponent implements OnInit, AfterViewInit {
     const offset = new THREE.Vector3();
 
     switch (rotation) {
+      case -270:
+        offset.x = position.z;
+        offset.y = position.y;
+        offset.z = -position.x;
+        break;
+      case -180:
+        offset.x = -position.x;
+        offset.y = position.y;
+        offset.z = -position.z;
+        break;
+      case -90:
+        offset.x = -position.z;
+        offset.y = position.y;
+        offset.z = position.x;
+        break;
       case 0:
         offset.x = position.x;
         offset.y = position.y;
@@ -437,9 +456,57 @@ export class EditorComponent implements OnInit, AfterViewInit {
 export class BrickObject {
   object: THREE.Object3D;
   brick: Brick;
+  brickType: BrickType;
   cell: Cell;
 
   get mesh(): THREE.Mesh {
     return <THREE.Mesh>this.object.children[0];
+  }
+
+  resetPivot() {
+    this.mesh.position.set(0, 0, 0);
+  }
+
+  get pivot(): Vector3 {
+    return new Vector3(
+      Math.abs(this.mesh.position.x / CELL_SIZE.x),
+      Math.abs(this.mesh.position.y / CELL_SIZE.y),
+      Math.abs(this.mesh.position.z / CELL_SIZE.z),
+    );
+  }
+
+  // set pivot(v: Vector3) {
+  //   this.mesh.position.set(
+  //     CELL_SIZE.x * v.x,
+  //     CELL_SIZE.y * v.y,
+  //     CELL_SIZE.z * v.z);
+  // }
+
+  get pivotX() {
+    return Math.abs(this.mesh.position.x / CELL_SIZE.x);
+  }
+
+  set pivotX(v: number) {
+    if (v >= this.brickType.width || v < 0) {
+      return;
+    }
+
+    if (this.brickType.arrangement[(this.pivotZ * this.brickType.width) + v]) {
+      this.mesh.position.setX(-CELL_SIZE.x * v);
+    }
+  }
+
+  get pivotZ() {
+    return Math.abs(this.mesh.position.z / CELL_SIZE.z);
+  }
+
+  set pivotZ(v: number) {
+    if (v >= this.brickType.depth || v < 0) {
+      return;
+    }
+
+    if (this.brickType.arrangement[(v * this.brickType.width) + this.pivotX]) {
+      this.mesh.position.setZ(-CELL_SIZE.z * v);
+    }
   }
 }
