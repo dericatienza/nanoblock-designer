@@ -1,6 +1,7 @@
 import { Command } from '../command';
 import { Cell } from '../../objects/grid.directive';
-import { EditorComponent, BrickObject } from '../editor.component';
+import { EditorComponent } from '../editor.component';
+import { BrickObject } from '../brick-object';
 
 export class BuildCommand extends Command {
     brickObject: BrickObject;

@@ -16,6 +16,7 @@ import { BuildEditorMode } from './modes/build-editor-mode';
 import { Command } from './command';
 import { RendererComponent } from '../../three-js/renderer/renderer.component';
 import { MathHelper } from '../../helpers/math-helper';
+import { BrickObject } from './brick-object';
 
 const CURRENT_BRICK_OPACITY_FACTOR = 0.5;
 const VECTOR3_ZERO = new Vector3(0, 0, 0);
@@ -37,6 +38,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   @ViewChild('grid')
   private _grid: GridDirective;
+
+  get grid(): GridDirective {
+    return this._grid;
+  }
 
   @ViewChild('gridSelector')
   private _gridSelector: GridSelectorDirective;
@@ -450,63 +455,5 @@ export class EditorComponent implements OnInit, AfterViewInit {
     }
 
     return offset;
-  }
-}
-
-export class BrickObject {
-  object: THREE.Object3D;
-  brick: Brick;
-  brickType: BrickType;
-  cell: Cell;
-
-  get mesh(): THREE.Mesh {
-    return <THREE.Mesh>this.object.children[0];
-  }
-
-  resetPivot() {
-    this.mesh.position.set(0, 0, 0);
-  }
-
-  get pivot(): Vector3 {
-    return new Vector3(
-      Math.abs(this.mesh.position.x / CELL_SIZE.x),
-      Math.abs(this.mesh.position.y / CELL_SIZE.y),
-      Math.abs(this.mesh.position.z / CELL_SIZE.z),
-    );
-  }
-
-  // set pivot(v: Vector3) {
-  //   this.mesh.position.set(
-  //     CELL_SIZE.x * v.x,
-  //     CELL_SIZE.y * v.y,
-  //     CELL_SIZE.z * v.z);
-  // }
-
-  get pivotX() {
-    return Math.abs(this.mesh.position.x / CELL_SIZE.x);
-  }
-
-  set pivotX(v: number) {
-    if (v >= this.brickType.width || v < 0) {
-      return;
-    }
-
-    if (this.brickType.arrangement[(this.pivotZ * this.brickType.width) + v]) {
-      this.mesh.position.setX(-CELL_SIZE.x * v);
-    }
-  }
-
-  get pivotZ() {
-    return Math.abs(this.mesh.position.z / CELL_SIZE.z);
-  }
-
-  set pivotZ(v: number) {
-    if (v >= this.brickType.depth || v < 0) {
-      return;
-    }
-
-    if (this.brickType.arrangement[(v * this.brickType.width) + this.pivotX]) {
-      this.mesh.position.setZ(-CELL_SIZE.z * v);
-    }
   }
 }
