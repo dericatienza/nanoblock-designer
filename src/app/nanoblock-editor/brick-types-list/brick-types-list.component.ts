@@ -8,7 +8,7 @@ import { BrickType } from '../editor/editor.models';
 })
 export class BrickTypesListComponent implements OnInit {
 
-  @Output() selectionChange = new EventEmitter<number>();
+  @Output() selectionChange = new EventEmitter<BrickType>();
 
   @Input() brickTypes: BrickType[];
 
@@ -17,7 +17,7 @@ export class BrickTypesListComponent implements OnInit {
   ngOnInit() {
   }
 
-  onChange(id: number) {
-    this.selectionChange.emit(id);
+  onChange(brickType: BrickType) {
+    this.selectionChange.emit(brickType);
   }
 }

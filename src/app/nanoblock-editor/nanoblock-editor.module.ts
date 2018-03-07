@@ -10,6 +10,8 @@ import { HttpClientModule } from '@angular/common/http';
 import { BrickColorService } from './brick-color.service';
 import { BrickTypesListComponent } from './brick-types-list/brick-types-list.component';
 import { BrickTypeComponent } from './brick-type/brick-type.component';
+import { BrickColorsListComponent } from './brick-colors-list/brick-colors-list.component';
+import { BrickColorComponent } from './brick-color/brick-color.component';
 
 @NgModule({
   imports: [
@@ -23,7 +25,9 @@ import { BrickTypeComponent } from './brick-type/brick-type.component';
     GridDirective,
     EditorComponent,
     BrickTypesListComponent,
-    BrickTypeComponent
+    BrickTypeComponent,
+    BrickColorsListComponent,
+    BrickColorComponent
   ],
   exports: [
     GridSelectorDirective,

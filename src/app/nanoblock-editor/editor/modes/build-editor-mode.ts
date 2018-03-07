@@ -2,6 +2,8 @@ import { EditorMode } from '../editor-mode';
 import { EditorComponent, RotateDirection } from '../editor.component';
 import { Cell } from '../../objects/grid.directive';
 import { BuildCommand } from '../commands/build-command';
+import { Vector3 } from 'three';
+import THREE = require('three');
 
 const KEY_ROTATE_RIGHT = 69;
 const KEY_ROTATE_LEFT = 81;
@@ -12,6 +14,7 @@ const KEY_PIVOT_MOVE_RIGHT = 65;
 const KEY_PIVOT_MOVE_LEFT = 68;
 
 export class BuildEditorMode extends EditorMode {
+    cameraDirection: Vector3 = new Vector3();
 
     validCell: Cell;
 
@@ -36,8 +39,6 @@ export class BuildEditorMode extends EditorMode {
             this.nextBrick(this.validCell);
 
             this.editor.gridSelector.forceHighlightOnMouse();
-        } else {
-            alert('Cells already occupied.');
         }
     }
 
@@ -69,15 +70,25 @@ export class BuildEditorMode extends EditorMode {
             this.editor.rotateBrickObject(this.editor.currentBrickObject, RotateDirection.Left);
         }
 
+        this.editor.gridSelector.camera.camera.getWorldDirection(this.cameraDirection);
+        // this.cameraDirection.x *= THREE.Math.RAD2DEG;
+        // this.cameraDirection.y *= THREE.Math.RAD2DEG;
+        // this.cameraDirection.z *= THREE.Math.RAD2DEG;
+
+        console.log(this.cameraDirection);
+
+        const zMove = this.cameraDirection.z < 0 ? 1 : -1;
+        const xMove = this.cameraDirection.x < 0 ? 1 : -1;
+
         // Pivot input
         if (event.keyCode === KEY_PIVOT_MOVE_UP) {
-            this.editor.currentBrickObject.pivotZ -= 1;
+            this.editor.currentBrickObject.pivotZ -= zMove;
         } else if (event.keyCode === KEY_PIVOT_MOVE_DOWN) {
-            this.editor.currentBrickObject.pivotZ += 1;
+            this.editor.currentBrickObject.pivotZ += zMove;
         } else if (event.keyCode === KEY_PIVOT_MOVE_RIGHT) {
-            this.editor.currentBrickObject.pivotX -= 1;
+            this.editor.currentBrickObject.pivotX -= xMove;
         } else if (event.keyCode === KEY_PIVOT_MOVE_LEFT) {
-            this.editor.currentBrickObject.pivotX += 1;
+            this.editor.currentBrickObject.pivotX += xMove;
         }
 
         console.log(`${this.editor.currentBrickObject.pivotX}, ${this.editor.currentBrickObject.pivotZ}`);
@@ -92,17 +103,18 @@ export class BuildEditorMode extends EditorMode {
     }
 
     nextBrick(cell: Cell) {
-        // Temp color test
-        this.editor.currentBrickColor = this.editor.brickColors[Math.floor(Math.random() * this.editor.brickColors.length)];
+        const pivotX = this.editor.currentBrickObject.pivotX;
+        const pivotZ = this.editor.currentBrickObject.pivotZ;
 
-        // const pivotX = this.editor.currentBrickObject.pivotX;
-        // const pivotZ = this.editor.currentBrickObject.pivotZ;
+        const rotationY = this.editor.currentBrickObject.rotationY;
 
         this.editor.createCurrentBrickObject();
         this.editor.setCurrentBrickOpacity();
 
-        this.editor.currentBrickObject.object.position.set
-            (this.validCell.worldPosition.x, this.validCell.worldPosition.y, this.validCell.worldPosition.z);
+        this.editor.currentBrickObject.pivotZ = pivotZ;
+        this.editor.currentBrickObject.pivotX = pivotX;
+
+        this.editor.currentBrickObject.rotationY = rotationY;
     }
 
     buildBrick(cell: Cell) {

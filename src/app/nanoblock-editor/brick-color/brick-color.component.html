@@ -1,0 +1,4 @@
+<input class="position-absolute" type="radio" id="{{ 'brickColor' + brickColor.id}}" name="brickColors" />
+<label class="m-0" for="{{ 'brickColor' + brickColor.id}}">
+  <div [ngStyle]="{ 'background-color': brickColor.colorHex }"></div>
+</label>

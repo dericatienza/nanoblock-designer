@@ -32,9 +32,12 @@ export class Brick {
     x: number = undefined;
     y: number = undefined;
     z: number = undefined;
-    xRotation: number = undefined;
-    yRotation: number = undefined;
-    zRotation: number = undefined;
+    rotationX: number = undefined;
+    rotationY: number = undefined;
+    rotationZ: number = undefined;
+    pivotX: number = undefined;
+    pivotY: number = undefined;
+    pivotZ: number = undefined;
     typeId: number = undefined;
     colorId: number = undefined;
 }

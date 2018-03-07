@@ -74,6 +74,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
   set currentBrickColor(v: BrickColor) {
     this._currentBrickColor = v;
+
+    if (this.currentBrickObject) {
+      this.refreshCurrentBrickColor();
+    }
   }
 
   private _currentBrickObject: BrickObject;
@@ -201,6 +205,12 @@ export class EditorComponent implements OnInit, AfterViewInit {
     }
   }
 
+  refreshCurrentBrickColor() {
+    this.currentBrickObject.mesh.material = this._brickColorService.getBrickColorMaterial(this.currentBrickColor);
+
+    this.setCurrentBrickOpacity();
+  }
+
   createBrickObject(type: BrickType, color: BrickColor): BrickObject {
     const geometry = this._brickTypeGeometries.get(type.id);
 
@@ -213,7 +223,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     const brick = new Brick();
     brick.x = brick.y = brick.z = -1;
-    brick.xRotation = brick.yRotation = brick.zRotation = 0;
+    brick.pivotX = brick.pivotY = brick.pivotZ = 0;
+    brick.rotationX = brick.rotationY = brick.rotationZ = 0;
     brick.id = this._brickIdCounter++;
     brick.typeId = type.id;
     brick.colorId = color.id;
@@ -245,26 +256,21 @@ export class EditorComponent implements OnInit, AfterViewInit {
         break;
     }
 
-    brickObject.brick.yRotation += degrees;
-
-    if (brickObject.brick.yRotation >= 360 ||
-      brickObject.brick.yRotation <= -360) {
-      brickObject.brick.yRotation = 0;
-    }
-
-    const radians = THREE.Math.degToRad(brickObject.brick.yRotation);
-
-    brickObject.object.setRotationFromAxisAngle(new Vector3(0, 1, 0), radians);
+    brickObject.rotationY += degrees;
   }
 
   ngAfterViewInit(): void {
     this.setMode(SelectEditorMode);
   }
 
-  onBrickTypeChanged(id: number) {
-    this._currentBrickType = this.brickTypes.find(x => x.id === id);
+  onBrickTypeChanged(brickType: BrickType) {
+    this.currentBrickType = brickType;
 
     this.setMode(BuildEditorMode);
+  }
+
+  onBrickColorChanged(brickColor: BrickColor) {
+    this.currentBrickColor = brickColor;
   }
 
   onCellHighlighted(cell: Cell) {
@@ -383,6 +389,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
   getOccupiedCells(brickObject: BrickObject, cell: Cell): Cell[] {
     const brickType = brickObject.brickType;
 
+    const pivot = brickObject.pivot;
+
     const cells = [];
 
     for (let y = 0; y < brickType.height; y++) {
@@ -391,9 +399,11 @@ export class EditorComponent implements OnInit, AfterViewInit {
           if (!brickType.arrangement[(z * brickType.width) + x]) {
             continue;
           }
-
           const position = new THREE.Vector3(x, y, z);
-          const offset = this.getCellOffset(brickObject.brick.yRotation, position);
+          position.x -= pivot.x;
+          position.z -= pivot.z;
+
+          const offset = this.getCellOffset(brickObject.brick.rotationY, position);
 
           const occupiedCell = this._grid.getCellByIndex(
             cell.x + offset.x,
@@ -411,10 +421,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
     return cells;
   }
 
-  getCellOffset(rotation: number, position: THREE.Vector3): THREE.Vector3 {
+  getCellOffset(yRotation: number, position: THREE.Vector3): THREE.Vector3 {
     const offset = new THREE.Vector3();
 
-    switch (rotation) {
+    switch (yRotation) {
       case -270:
         offset.x = position.z;
         offset.y = position.y;
