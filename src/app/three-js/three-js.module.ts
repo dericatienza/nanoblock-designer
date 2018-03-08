@@ -10,6 +10,7 @@ import { GridHelperDirective } from './objects/grid-helper.directive';
 import { PointLightDirective } from './objects/point-light.directive';
 import { DragControlsDirective } from './controls/drag-controls.directive';
 import { JsonLoaderDirective } from './objects/json-loader.directive';
+import { OrthographicCameraDirective } from './cameras/orthographic-camera.directive';
 
 @NgModule({
   imports: [
@@ -23,6 +24,7 @@ import { JsonLoaderDirective } from './objects/json-loader.directive';
     ColladaLoaderDirective,
     DegreePipe,
     PerspectiveCameraDirective,
+    OrthographicCameraDirective,
     OrbitControlsDirective,
     ObjectLoaderDirective,
     PointLightDirective,
@@ -37,6 +39,7 @@ import { JsonLoaderDirective } from './objects/json-loader.directive';
     ColladaLoaderDirective,
     DegreePipe,
     PerspectiveCameraDirective,
+    OrthographicCameraDirective,
     OrbitControlsDirective,
     ObjectLoaderDirective,
     PointLightDirective,

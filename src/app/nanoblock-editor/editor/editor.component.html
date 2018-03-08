@@ -5,7 +5,8 @@
       <three-renderer #renderer>
         <three-orbit-contols #cameraControls="three-orbit-contols" [rotateSpeed]=1 [zoomSpeed]=1.2 [renderer]="renderer">
           <three-perspective-camera #mainCamera="three-perspective-camera" [fov]=50 [near]=1 [far]=1000 positionX=60 positionY=60 positionZ=60></three-perspective-camera>
-
+          <!-- <three-orthographic-camera #mainCamera="three-orthographic-camera" [height]=40 [near]=1 [far]=1000 positionX=60 positionY=60
+            positionZ=60></three-orthographic-camera> -->
           <three-scene #scene="three-scene">
             <!-- <three-axes-helper size=160></three-axes-helper> -->
             <ne-grid #grid="ne-grid" size=24></ne-grid>
