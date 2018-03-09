@@ -3,7 +3,15 @@
     <input class="position-absolute" type="radio" id="{{ 'brickColor' + brickColor.id}}" name="brickColors" (change)="selectedBrickColor = brickColor"
       [checked]="selectedBrickColor == brickColor" />
     <label class="m-0" for="{{ 'brickColor' + brickColor.id}}">
-      <div>
+      <div [cpPosition]="'left'" 
+      [disabled]="selectedBrickColor != brickColor"
+      [(cpToggle)]="toggle"
+      [(colorPicker)]="brickColor.colorHex"
+      (colorPickerChange)="onColorPickerChanged(brickColor)" 
+      [cpPositionOffset]="'50%'"
+      [cpPositionRelativeToArrow]="true" 
+      [cpCancelButton]="true" 
+      [cpCancelButtonClass]= "'btn btn-primary btn-sm'">
         <ne-brick-color [brickColor]="brickColor"></ne-brick-color>
       </div>
     </label>

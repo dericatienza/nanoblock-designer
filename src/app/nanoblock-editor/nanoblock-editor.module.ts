@@ -12,13 +12,15 @@ import { BrickTypesListComponent } from './brick-types-list/brick-types-list.com
 import { BrickTypeComponent } from './brick-type/brick-type.component';
 import { BrickColorsListComponent } from './brick-colors-list/brick-colors-list.component';
 import { BrickColorComponent } from './brick-color/brick-color.component';
+import { ColorPickerModule } from 'ngx-color-picker';
 
 @NgModule({
   imports: [
     CommonModule,
     ThreeJsModule,
     NanoblockEditorRoutingModule,
-    HttpClientModule
+    HttpClientModule,
+    ColorPickerModule
   ],
   declarations: [
     GridSelectorDirective,

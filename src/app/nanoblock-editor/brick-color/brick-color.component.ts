@@ -14,5 +14,4 @@ export class BrickColorComponent implements OnInit {
 
   ngOnInit() {
   }
-
 }

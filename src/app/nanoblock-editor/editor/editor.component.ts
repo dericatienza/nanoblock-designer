@@ -293,8 +293,14 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this.setMode(BuildEditorMode);
   }
 
-  onBrickColorChanged(brickColor: BrickColor) {
+  onBrickColorSelectionChanged(brickColor: BrickColor) {
     this.currentBrickColor = brickColor;
+  }
+
+  onBrickColorChanged(brickColor: BrickColor) {
+    if (this.currentBrickColor === brickColor) {
+      this.setCurrentBrickOpacity();
+    }
   }
 
   onCellHighlighted(cell: Cell) {

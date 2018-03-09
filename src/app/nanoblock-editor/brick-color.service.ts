@@ -11,10 +11,10 @@ export const CLEAR_COLOR_OPACITY = 0.5;
 export class BrickColorService {
   brickColorsUrl = 'assets/default-brick-colors.json';
 
-  brickColorMaterials: Map<number, Material>;
+  brickColorMaterials: Map<number, MeshPhongMaterial>;
 
   constructor(private _http: HttpClient) {
-    this.brickColorMaterials = new Map<number, Material>();
+    this.brickColorMaterials = new Map<number, MeshPhongMaterial>();
   }
 
   getDefaultBrickColors() {
@@ -39,5 +39,13 @@ export class BrickColorService {
     this.brickColorMaterials.set(brickColor.id, material);
 
     return material;
+  }
+
+  updateBrickColorMaterial(brickColor: BrickColor) {
+    const material = this.brickColorMaterials.get(brickColor.id);
+
+    if (material) {
+      material.color.set(brickColor.colorHex);
+    }
   }
 }

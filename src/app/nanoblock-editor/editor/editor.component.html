@@ -28,7 +28,7 @@
       </div>
       <div class="h-50">
         <div class="mt-2">
-          <ne-brick-colors-list [brickColors]="brickColors" (selectionChange)="onBrickColorChanged($event)"></ne-brick-colors-list>
+          <ne-brick-colors-list [brickColors]="brickColors" (selectionChange)="onBrickColorSelectionChanged($event)" (brickColorChange)="onBrickColorChanged($event)"></ne-brick-colors-list>
         </div>
       </div>
     </div>

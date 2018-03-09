@@ -1,5 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter, AfterViewInit, OnChanges, SimpleChanges } from '@angular/core';
 import { BrickColor, Brick } from '../editor/editor.models';
+import { BrickColorService } from '../brick-color.service';
 
 @Component({
   selector: 'ne-brick-colors-list',
@@ -8,6 +9,7 @@ import { BrickColor, Brick } from '../editor/editor.models';
 })
 export class BrickColorsListComponent implements OnInit, OnChanges {
   @Output() selectionChange = new EventEmitter<BrickColor>();
+  @Output() brickColorChange = new EventEmitter<BrickColor>();
 
   @Input() brickColors: BrickColor[];
 
@@ -23,9 +25,15 @@ export class BrickColorsListComponent implements OnInit, OnChanges {
     this.onChange(this.selectedBrickColor);
   }
 
-  constructor() { }
+  constructor(private _brickColorService: BrickColorService) { }
 
   ngOnInit() {
+  }
+
+  onColorPickerChanged(brickColor: BrickColor) {
+    this._brickColorService.updateBrickColorMaterial(brickColor);
+
+    this.brickColorChange.emit(brickColor);
   }
 
   onChange(brickColor: BrickColor) {
