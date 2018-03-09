@@ -20,7 +20,13 @@ import { BrickObject } from './brick-object';
 import { BrickTypesListComponent } from '../brick-types-list/brick-types-list.component';
 
 const CURRENT_BRICK_OPACITY_FACTOR = 0.5;
+
 const VECTOR3_ZERO = new Vector3(0, 0, 0);
+
+const KEY_UNDO = 90;
+const KEY_REDO = 89;
+
+const COMMAND_MAX_HISTORY_LENGTH = 50;
 
 export enum RotateDirection {
   Right,
@@ -99,10 +105,6 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   private _currentMode: EditorMode;
   private set currentMode(v: EditorMode) {
-    // if (this._currentMode === v) {
-    //   return;
-    // }
-
     if (this._currentMode) {
       this._currentMode.exit();
     }
@@ -116,7 +118,12 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   private _currentBrickSelectedMaterial: MeshPhongMaterial;
 
+  private _commandHistory: Command[];
+  private _commandHistoryIndex = -1;
+
   constructor(private _brickTypeService: BrickTypeService, private _brickColorService: BrickColorService) {
+    this.onKeyDown = this.onKeyDown.bind(this);
+
     this._currentBrickSelectedMaterial = new MeshPhongMaterial({
       color: 'white',
       transparent: true,
@@ -153,6 +160,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this.initBrickColors();
     this._modes = new Map<string, EditorMode>();
     this.brickObjects = [];
+    this._commandHistory = [];
   }
 
   setMode(modeClassRef: { new(editor: EditorComponent) }) {
@@ -189,24 +197,6 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this._currentBrickObject.mesh.material = this._currentBrickSelectedMaterial;
 
     this._currentBrickSelectedMaterial.needsUpdate = true;
-  }
-
-  testBrickTypes() {
-    const color = this.brickColors[0];
-
-    let startX = this._grid.width / -2;
-
-    for (let x = 0; x < this.brickTypes.length; x++) {
-      const brickType = this.brickTypes[x];
-
-      const brickObject = this.createBrickObject(brickType, color);
-
-      this._scene.object.add(brickObject.object);
-
-      brickObject.object.position.set(startX, 0, 0);
-
-      startX += (CELL_SIZE.x * brickType.width) + CELL_SIZE.x;
-    }
   }
 
   refreshCurrentBrickColor() {
@@ -262,7 +252,39 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    this.addListeners();
+
     this.setMode(SelectEditorMode);
+  }
+
+  addListeners() {
+    this.renderer.canvas.addEventListener('keydown', this.onKeyDown);
+  }
+
+  removeListeners() {
+    this.renderer.canvas.removeEventListener('keydown', this.onKeyDown);
+  }
+
+  onKeyDown(event: KeyboardEvent) {
+    if (event.ctrlKey) {
+      if (event.keyCode === KEY_UNDO) {
+        this.undo();
+      } else if (event.keyCode === KEY_REDO) {
+        this.redo();
+      }
+    }
+  }
+
+  undo() {
+    if (this._commandHistoryIndex > -1) {
+      this._commandHistory[this._commandHistoryIndex--].undo(this);
+    }
+  }
+
+  redo() {
+    if (this._commandHistoryIndex < this._commandHistory.length - 1) {
+      this._commandHistory[++this._commandHistoryIndex].do(this);
+    }
   }
 
   onBrickTypeChanged(brickType: BrickType) {
@@ -284,8 +306,19 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   executeCommand(command: Command) {
-    // TODO: Implement command history for undoing and redoing actions
     command.do(this);
+
+    if (this._commandHistoryIndex < this._commandHistory.length - 1) {
+      this._commandHistory.splice(this._commandHistoryIndex + 1, this._commandHistory.length - this._commandHistoryIndex - 1);
+    }
+
+    this._commandHistory.push(command);
+
+    if (this._commandHistory.length > COMMAND_MAX_HISTORY_LENGTH) {
+      this._commandHistory.shift();
+    }
+
+    this._commandHistoryIndex = this._commandHistory.length - 1;
   }
 
   buildBrickObject(brickObject: BrickObject, cell: Cell) {
@@ -302,6 +335,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
     brickObject.brick.z = cell.z;
 
     brickObject.cell = cell;
+
+    this._scene.object.add(brickObject.object);
+
     this.brickObjects.push(brickObject);
   }
 
@@ -315,6 +351,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this._gridSelector.removeSelectable(brickObject.mesh);
 
     brickObject.cell = null;
+
+    this._scene.object.remove(brickObject.object);
+
     this.brickObjects.splice(brickObjectIndex, 1);
   }
 

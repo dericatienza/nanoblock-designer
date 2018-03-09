@@ -16,6 +16,6 @@ export class BuildCommand extends Command {
         editor.buildBrickObject(this.brickObject, this.cell);
     }
     undo(editor: EditorComponent) {
-        throw new Error('Method not implemented.');
+        editor.destroyBrickObject(this.brickObject);
     }
 }

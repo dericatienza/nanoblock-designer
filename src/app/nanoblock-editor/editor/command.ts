@@ -1,4 +1,4 @@
-import { EditorComponent } from "./editor.component";
+import { EditorComponent } from './editor.component';
 
 export abstract class Command {
     abstract do(editor: EditorComponent);

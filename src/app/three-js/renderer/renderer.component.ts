@@ -17,7 +17,7 @@ export class RendererComponent implements AfterViewInit {
   private renderer: THREE.WebGLRenderer;
 
   @Input() clearColor: THREE.Color = new THREE.Color('#d3d3d3');
-  @Input() clearColorAlpha:  = 1;
+  @Input() clearColorAlpha = 1;
   @Input() displayStats = false;
 
   @ViewChild('canvas')

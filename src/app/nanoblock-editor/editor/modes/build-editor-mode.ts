@@ -35,7 +35,6 @@ export class BuildEditorMode extends EditorMode {
 
     select(cell: Cell) {
         if (this.validCell) {
-            this.buildBrick(this.validCell);
             this.nextBrick(this.validCell);
 
             this.editor.gridSelector.forceHighlightOnMouse();
@@ -70,25 +69,15 @@ export class BuildEditorMode extends EditorMode {
             this.editor.rotateBrickObject(this.editor.currentBrickObject, RotateDirection.Left);
         }
 
-        this.editor.gridSelector.camera.camera.getWorldDirection(this.cameraDirection);
-        // this.cameraDirection.x *= THREE.Math.RAD2DEG;
-        // this.cameraDirection.y *= THREE.Math.RAD2DEG;
-        // this.cameraDirection.z *= THREE.Math.RAD2DEG;
-
-        // console.log(this.cameraDirection);
-
-        const zMove = this.cameraDirection.z < 0 ? 1 : -1;
-        const xMove = this.cameraDirection.x < 0 ? 1 : -1;
-
         // Pivot input
         if (event.keyCode === KEY_PIVOT_MOVE_UP) {
-            this.editor.currentBrickObject.pivotZ -= zMove;
+            this.editor.currentBrickObject.pivotZ -= 1;
         } else if (event.keyCode === KEY_PIVOT_MOVE_DOWN) {
-            this.editor.currentBrickObject.pivotZ += zMove;
+            this.editor.currentBrickObject.pivotZ += 1;
         } else if (event.keyCode === KEY_PIVOT_MOVE_RIGHT) {
-            this.editor.currentBrickObject.pivotX -= xMove;
+            this.editor.currentBrickObject.pivotX -= 1;
         } else if (event.keyCode === KEY_PIVOT_MOVE_LEFT) {
-            this.editor.currentBrickObject.pivotX += xMove;
+            this.editor.currentBrickObject.pivotX += 1;
         }
 
         this.editor.gridSelector.forceHighlightOnMouse();
@@ -106,6 +95,8 @@ export class BuildEditorMode extends EditorMode {
 
         const rotationY = this.editor.currentBrickObject.rotationY;
 
+        this.buildBrick(cell);
+
         this.editor.createCurrentBrickObject();
         this.editor.setCurrentBrickOpacity();
 
@@ -119,6 +110,9 @@ export class BuildEditorMode extends EditorMode {
         this.editor.refreshCurrentBrickColor();
 
         const command = new BuildCommand(this.editor.currentBrickObject, cell);
+
+        this.editor.destroyCurrentBrickObject();
+
         this.editor.executeCommand(command);
     }
 }
