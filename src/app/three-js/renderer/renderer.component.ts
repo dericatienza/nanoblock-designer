@@ -17,6 +17,8 @@ export class RendererComponent implements AfterViewInit {
   private renderer: THREE.WebGLRenderer;
 
   @Input() clearColor: THREE.Color = new THREE.Color('#d3d3d3');
+  @Input() clearColorAlpha:  = 1;
+  @Input() displayStats = false;
 
   @ViewChild('canvas')
   private canvasRef: ElementRef; // NOTE: say bye-bye to server-side rendering ;)
@@ -36,7 +38,10 @@ export class RendererComponent implements AfterViewInit {
     console.log('RendererComponent.ngAfterViewInit');
 
     this._stats = new Stats();
-    this.canvas.parentElement.appendChild(this._stats.dom);
+
+    if (this.displayStats) {
+      this.canvas.parentElement.appendChild(this._stats.dom);
+    }
 
     this.startRendering();
   }
@@ -46,17 +51,17 @@ export class RendererComponent implements AfterViewInit {
   }
 
   private startRendering() {
-    console.log('RendererComponent.startRendering');
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
-      antialias: true
+      antialias: true,
+      alpha: true
     });
     this.renderer.setPixelRatio(devicePixelRatio);
     this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
 
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.renderer.setClearColor(this.clearColor, 1);
+    this.renderer.setClearColor(this.clearColor, this.clearColorAlpha);
     this.renderer.autoClear = true;
 
     this.updateChildCamerasAspectRatio();

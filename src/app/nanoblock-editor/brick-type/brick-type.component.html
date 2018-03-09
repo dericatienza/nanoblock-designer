@@ -1,3 +1,11 @@
-<input class="position-absolute" type="radio" id="{{ 'brickType' + brickType.id}}" name="brickTypes" />
-<label class="btn btn-outline-primary w-100 text-truncate" for="{{ 'brickType' + brickType.id}}"> {{brickType.name}}
-</label>
+<div class="box w-100">
+  <div class="content">
+    <three-renderer [clearColorAlpha]="0">
+      <three-orthographic-camera [height]=10 [near]=1 [far]=1000 positionX=10 positionY=10 positionZ=10></three-orthographic-camera>
+      <three-scene #scene="three-scene">
+        <three-point-light color="white" intensity="1" distance="1000" translateX=40 translateY=80 translateZ=80></three-point-light>
+        <three-point-light color="white" intensity="1" distance="1000" translateX=-40 translateY=80 translateZ=-80></three-point-light>
+      </three-scene>
+    </three-renderer>
+  </div>
+</div>

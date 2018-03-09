@@ -1,24 +1,7 @@
-@import '~sass/variables';
 $min-size: 28px;
-input[type="radio"] {
-  clip: rect(0, 0, 0, 0);
-  +label {
-    div {
-      border: 1px solid rgba(0, 0, 0, 0.5);
-      border-radius: 5px;
-      min-width: $min-size;
-      min-height: $min-size;
-    }
-  }
-}
-
-input[type="radio"]:checked {
-  +label {
-    div {
-      outline: 4px solid $primary;
-      outline-offset: -2px;
-      border-radius: 0;
-      border: none;
-    }
-  }
+div {
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-radius: 5px;
+  min-width: $min-size;
+  min-height: $min-size;
 }

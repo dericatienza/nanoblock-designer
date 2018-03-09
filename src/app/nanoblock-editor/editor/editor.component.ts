@@ -7,7 +7,7 @@ import { Response } from '@angular/http';
 
 import { BrickTypeService } from '../brick-type.service';
 import * as THREE from 'three';
-import { Geometry, Material, MeshPhongMaterial, Vector3, Vector2 } from 'three';
+import { Geometry, Material, MeshPhongMaterial, Vector3, Vector2, Color } from 'three';
 import { BrickColorService, CLEAR_COLOR_OPACITY } from '../brick-color.service';
 import { GridDirective, CELL_SIZE, Cell } from '../objects/grid.directive';
 import { EditorMode } from './editor-mode';
@@ -17,6 +17,7 @@ import { Command } from './command';
 import { RendererComponent } from '../../three-js/renderer/renderer.component';
 import { MathHelper } from '../../helpers/math-helper';
 import { BrickObject } from './brick-object';
+import { BrickTypesListComponent } from '../brick-types-list/brick-types-list.component';
 
 const CURRENT_BRICK_OPACITY_FACTOR = 0.5;
 const VECTOR3_ZERO = new Vector3(0, 0, 0);
@@ -35,6 +36,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   @ViewChild('scene')
   private _scene: SceneDirective;
+
+  @ViewChild('brickTypesList')
+  private _brickTypesList: BrickTypesListComponent;
 
   @ViewChild('grid')
   private _grid: GridDirective;
@@ -58,7 +62,6 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   brickTypes: BrickType[];
   brickColors: BrickColor[];
-  private _brickTypeGeometries: Map<number, Geometry>;
 
   private _currentBrickType: BrickType;
   get currentBrickType(): BrickType {
@@ -75,8 +78,13 @@ export class EditorComponent implements OnInit, AfterViewInit {
   set currentBrickColor(v: BrickColor) {
     this._currentBrickColor = v;
 
+    this._brickTypesList.brickColor = this._currentBrickColor;
+
     if (this.currentBrickObject) {
+      this.currentBrickObject.brick.colorId = this.currentBrickColor.id;
+
       this.refreshCurrentBrickColor();
+      this.setCurrentBrickOpacity();
     }
   }
 
@@ -106,7 +114,14 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   brickObjects: BrickObject[];
 
+  private _currentBrickSelectedMaterial: MeshPhongMaterial;
+
   constructor(private _brickTypeService: BrickTypeService, private _brickColorService: BrickColorService) {
+    this._currentBrickSelectedMaterial = new MeshPhongMaterial({
+      color: 'white',
+      transparent: true,
+      opacity: CURRENT_BRICK_OPACITY_FACTOR
+    });
   }
 
   initBrickTypes(): void {
@@ -114,16 +129,12 @@ export class EditorComponent implements OnInit, AfterViewInit {
       .subscribe((brickTypes: BrickType[]) => {
         this.brickTypes = brickTypes;
         this.initBrickTypeGeometries();
-
-        this.initBrickColors();
       });
   }
 
   initBrickTypeGeometries() {
-    this._brickTypeGeometries = new Map<number, Geometry>();
-
     for (const brickType of this.brickTypes) {
-      this._brickTypeGeometries.set(brickType.id, this._brickTypeService.getBrickTypeGeometry(brickType));
+      this._brickTypeService.getBrickTypeGeometry(brickType);
     }
   }
 
@@ -132,12 +143,14 @@ export class EditorComponent implements OnInit, AfterViewInit {
       .subscribe((brickColors: BrickColor[]) => {
         this.brickColors = brickColors;
 
-        this._currentBrickColor = this.brickColors[0];
+        this.currentBrickColor = this.brickColors[0];
+
+        this.initBrickTypes();
       });
   }
 
   ngOnInit() {
-    this.initBrickTypes();
+    this.initBrickColors();
     this._modes = new Map<string, EditorMode>();
     this.brickObjects = [];
   }
@@ -170,21 +183,12 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   setCurrentBrickOpacity() {
-    const currentBrickMaterial = <Material>this._currentBrickObject.mesh.material;
+    this._currentBrickSelectedMaterial.color.set(this.currentBrickColor.colorHex);
+    this._currentBrickSelectedMaterial.opacity = (this.currentBrickColor.isClear ? 1 : 0.5) * CURRENT_BRICK_OPACITY_FACTOR;
 
-    currentBrickMaterial.transparent = true;
-    currentBrickMaterial.opacity *= CURRENT_BRICK_OPACITY_FACTOR;
+    this._currentBrickObject.mesh.material = this._currentBrickSelectedMaterial;
 
-    currentBrickMaterial.needsUpdate = true;
-  }
-
-  resetCurrentBrickOpacity() {
-    const currentBrickMaterial = <Material>this._currentBrickObject.mesh.material;
-
-    currentBrickMaterial.transparent = this.currentBrickColor.isClear;
-    currentBrickMaterial.opacity = this.currentBrickColor.isClear ? CLEAR_COLOR_OPACITY : 1;
-
-    currentBrickMaterial.needsUpdate = true;
+    this._currentBrickSelectedMaterial.needsUpdate = true;
   }
 
   testBrickTypes() {
@@ -207,12 +211,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   refreshCurrentBrickColor() {
     this.currentBrickObject.mesh.material = this._brickColorService.getBrickColorMaterial(this.currentBrickColor);
-
-    this.setCurrentBrickOpacity();
   }
 
   createBrickObject(type: BrickType, color: BrickColor): BrickObject {
-    const geometry = this._brickTypeGeometries.get(type.id);
+    const geometry = this._brickTypeService.getBrickTypeGeometry(type);
 
     const material = this._brickColorService.getBrickColorMaterial(color);
 

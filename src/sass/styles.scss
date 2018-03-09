@@ -6,3 +6,19 @@
 'mixins',
 'helpers';
 @import '~bootstrap/scss/bootstrap';
+.box {
+  position: relative;
+  .content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+  }
+}
+
+.box:before {
+  content: "";
+  display: block;
+  padding-top: 100%;
+}

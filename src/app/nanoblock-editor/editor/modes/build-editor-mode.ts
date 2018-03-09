@@ -75,7 +75,7 @@ export class BuildEditorMode extends EditorMode {
         // this.cameraDirection.y *= THREE.Math.RAD2DEG;
         // this.cameraDirection.z *= THREE.Math.RAD2DEG;
 
-        console.log(this.cameraDirection);
+        // console.log(this.cameraDirection);
 
         const zMove = this.cameraDirection.z < 0 ? 1 : -1;
         const xMove = this.cameraDirection.x < 0 ? 1 : -1;
@@ -90,8 +90,6 @@ export class BuildEditorMode extends EditorMode {
         } else if (event.keyCode === KEY_PIVOT_MOVE_LEFT) {
             this.editor.currentBrickObject.pivotX += xMove;
         }
-
-        console.log(`${this.editor.currentBrickObject.pivotX}, ${this.editor.currentBrickObject.pivotZ}`);
 
         this.editor.gridSelector.forceHighlightOnMouse();
     }
@@ -118,7 +116,7 @@ export class BuildEditorMode extends EditorMode {
     }
 
     buildBrick(cell: Cell) {
-        this.editor.resetCurrentBrickOpacity();
+        this.editor.refreshCurrentBrickColor();
 
         const command = new BuildCommand(this.editor.currentBrickObject, cell);
         this.editor.executeCommand(command);

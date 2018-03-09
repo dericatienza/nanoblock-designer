@@ -5,7 +5,7 @@ import { BrickType } from './editor/editor.models';
 import * as THREE from 'three';
 import '../../assets/js/ThreeCSG';
 import 'rxjs/add/operator/map';
-import { Geometry, Material } from 'three';
+import { Geometry, Material, Vector3 } from 'three';
 
 declare var ThreeBSP: any;
 
@@ -16,7 +16,14 @@ export class BrickTypeService {
 
   brickTypesUrl = 'assets/brick-types.json';
 
+  private _brickTypeGeometries: Map<number, Geometry>;
+
+  get studSize(): Vector3 {
+    return this.studGeometry.boundingBox.getSize();
+  }
+
   constructor(private _http: HttpClient) {
+    this._brickTypeGeometries = new Map<number, Geometry>();
     this.initStud();
   }
 
@@ -25,6 +32,7 @@ export class BrickTypeService {
     loader.load(this.studUrl,
       (geometry: Geometry, materials: Material[]) => {
         this.studGeometry = geometry;
+        this.studGeometry.computeBoundingBox();
       });
   }
 
@@ -32,8 +40,10 @@ export class BrickTypeService {
     return this._http.get<BrickType[]>(this.brickTypesUrl);
   }
 
-  getBrickTypeGeometry(brickType: BrickType) {
-    this.studGeometry.computeBoundingBox();
+  getBrickTypeGeometry(brickType: BrickType): Geometry {
+    if (this._brickTypeGeometries.has(brickType.id)) {
+      return this._brickTypeGeometries.get(brickType.id);
+    }
 
     const studSize = this.studGeometry.boundingBox.getSize();
 
@@ -56,6 +66,9 @@ export class BrickTypeService {
     }
 
     const geometry = studBSP.toGeometry();
+    geometry.computeBoundingBox();
+
+    this._brickTypeGeometries.set(brickType.id, geometry);
 
     return geometry;
   }

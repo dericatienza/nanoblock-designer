@@ -14,4 +14,10 @@ $abbrev in (min-width: w-min, max-width: w-max, min-height: h-min, max-height: h
   .of-#{$overflow} {
     overflow: $overflow;
   }
+  .ofx-#{$overflow} {
+    overflow-x: $overflow;
+  }
+  .ofy-#{$overflow} {
+    overflow-y: $overflow;
+  }
 }

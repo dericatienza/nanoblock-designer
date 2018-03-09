@@ -1,3 +1,11 @@
 <div>
-  <ne-brick-color *ngFor="let brickColor of brickColors" [brickColor]="brickColor" (change)="onChange(brickColor)"></ne-brick-color>
+  <div class="d-inline-block mr-1" *ngFor="let brickColor of brickColors">
+    <input class="position-absolute" type="radio" id="{{ 'brickColor' + brickColor.id}}" name="brickColors" (change)="selectedBrickColor = brickColor"
+      [checked]="selectedBrickColor == brickColor" />
+    <label class="m-0" for="{{ 'brickColor' + brickColor.id}}">
+      <div>
+        <ne-brick-color [brickColor]="brickColor"></ne-brick-color>
+      </div>
+    </label>
+  </div>
 </div>

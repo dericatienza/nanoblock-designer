@@ -1,8 +1,8 @@
 <div class="container-fluid h-100h">
-  <div class="row h-100">
+  <div class="row h-100 of-hidden">
     <!-- Window -->
-    <div class="col-md-10 p-0 of-hidden" (click)="onRendererClick()">
-      <three-renderer #renderer>
+    <div class="col-md-10 p-0" (click)="onRendererClick()">
+      <three-renderer #renderer [displayStats]="true">
         <three-orbit-contols #cameraControls="three-orbit-contols" [rotateSpeed]=1 [zoomSpeed]=1.2 [renderer]="renderer">
           <three-perspective-camera #mainCamera="three-perspective-camera" [fov]=50 [near]=1 [far]=1000 positionX=60 positionY=60 positionZ=60></three-perspective-camera>
           <!-- <three-orthographic-camera #mainCamera="three-orthographic-camera" [height]=40 [near]=1 [far]=1000 positionX=60 positionY=60
@@ -23,11 +23,13 @@
     </div>
     <!-- Menu -->
     <div class="col-md-2">
-      <div class="h-50">
-        <ne-brick-types-list [brickTypes]="brickTypes" (selectionChange)="onBrickTypeChanged($event)"></ne-brick-types-list>
+      <div class="h-50 ofy-auto ofx-hidden">
+        <ne-brick-types-list #brickTypesList [brickTypes]="brickTypes" [brickColor]="currentBrickColor" (selectionChange)="onBrickTypeChanged($event)"></ne-brick-types-list>
       </div>
       <div class="h-50">
-        <ne-brick-colors-list [brickColors]="brickColors" (selectionChange)="onBrickColorChanged($event)"></ne-brick-colors-list>
+        <div class="mt-2">
+          <ne-brick-colors-list [brickColors]="brickColors" (selectionChange)="onBrickColorChanged($event)"></ne-brick-colors-list>
+        </div>
       </div>
     </div>
   </div>

@@ -11,13 +11,21 @@ export const CLEAR_COLOR_OPACITY = 0.5;
 export class BrickColorService {
   brickColorsUrl = 'assets/default-brick-colors.json';
 
-  constructor(private _http: HttpClient) { }
+  brickColorMaterials: Map<number, Material>;
+
+  constructor(private _http: HttpClient) {
+    this.brickColorMaterials = new Map<number, Material>();
+  }
 
   getDefaultBrickColors() {
     return this._http.get<BrickColor[]>(this.brickColorsUrl);
   }
 
   getBrickColorMaterial(brickColor: BrickColor): Material {
+    if (this.brickColorMaterials.has(brickColor.id)) {
+      return this.brickColorMaterials.get(brickColor.id);
+    }
+
     const opacity = brickColor.isClear ? CLEAR_COLOR_OPACITY : 1;
 
     const material = new MeshPhongMaterial(
@@ -27,6 +35,8 @@ export class BrickColorService {
         transparent: brickColor.isClear
       }
     );
+
+    this.brickColorMaterials.set(brickColor.id, material);
 
     return material;
   }
