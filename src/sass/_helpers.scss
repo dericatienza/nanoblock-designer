@@ -21,3 +21,8 @@ $abbrev in (min-width: w-min, max-width: w-max, min-height: h-min, max-height: h
     overflow-y: $overflow;
   }
 }
+
+
+.lh-normal {
+  line-height: normal!important;
+}

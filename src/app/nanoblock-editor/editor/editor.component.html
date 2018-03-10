@@ -22,13 +22,14 @@
       </three-renderer>
     </div>
     <!-- Menu -->
-    <div class="col-md-2">
+    <div class="col-md-2 bg-dark">
       <div class="h-50 ofy-auto ofx-hidden">
         <ne-brick-types-list #brickTypesList [brickTypes]="brickTypes" [brickColor]="currentBrickColor" (selectionChange)="onBrickTypeChanged($event)"></ne-brick-types-list>
       </div>
       <div class="h-50">
         <div class="mt-2">
-          <ne-brick-colors-list [brickColors]="brickColors" (selectionChange)="onBrickColorSelectionChanged($event)" (brickColorChange)="onBrickColorChanged($event)"></ne-brick-colors-list>
+          <ne-brick-colors-list #brickColorsList [brickColors]="brickColors" (selectionChange)="onBrickColorSelectionChanged($event)"
+            (brickColorChange)="onBrickColorChanged($event)" (brickColorDelete)="onBrickColorDeleted($event)"></ne-brick-colors-list>
         </div>
       </div>
     </div>

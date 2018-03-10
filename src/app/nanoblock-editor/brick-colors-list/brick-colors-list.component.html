@@ -1,19 +1,33 @@
 <div>
-  <div class="d-inline-block mr-1" *ngFor="let brickColor of brickColors">
-    <input class="position-absolute" type="radio" id="{{ 'brickColor' + brickColor.id}}" name="brickColors" (change)="selectedBrickColor = brickColor"
-      [checked]="selectedBrickColor == brickColor" />
+  <div class="d-inline-block align-top" *ngFor="let brickColor of brickColors; let last = last" [ngStyle]="last && {'margin-right.px': -1}"
+    [ngClass]="{'mr-1': !last}">
+    <input class="position-absolute" type="radio" id="{{ 'brickColor' + brickColor.id}}" name="brickColors" (change)="onBrickColorChanged(brickColor)"
+      [checked]="selectedBrickColor == brickColor" (click)="onBrickColorClicked($event, brickColor)" />
     <label class="m-0" for="{{ 'brickColor' + brickColor.id}}">
-      <div [cpPosition]="'left'" 
-      [disabled]="selectedBrickColor != brickColor"
-      [(cpToggle)]="toggle"
-      [(colorPicker)]="brickColor.colorHex"
-      (colorPickerChange)="onColorPickerChanged(brickColor)" 
-      [cpPositionOffset]="'50%'"
-      [cpPositionRelativeToArrow]="true" 
-      [cpCancelButton]="true" 
-      [cpCancelButtonClass]= "'btn btn-primary btn-sm'">
+      <div>
         <ne-brick-color [brickColor]="brickColor"></ne-brick-color>
       </div>
     </label>
+  </div>
+  <div class="d-inline-block mr-1 align-top">
+    <button type="button" class="btn btn-outline-primary btn-sm lh-normal" (click)="onAddButtonClick()">
+      <i class="fas fa-plus"></i>
+    </button>
+  </div>
+  <div #colorPickerContainer class="color-picker-container pt-2 bg-dark" [hidden]="!showColorPickerContainer">
+    <div class="row px-2 mb-2">
+      <div class="col">
+        <button type="button" class="btn btn-danger btn-sm" (click)="onDeleteButtonClick()">Delete</button>
+      </div>
+      <div class="col">
+        <button type="button" class="close" aria-label="Close" (click)="showColorPickerContainer = false">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    </div>
+    <span [style.background]="selectedBrickColor.colorHex" [cpToggle]="true" [cpDialogDisplay]="'inline'" [cpCancelButton]="true"
+      [cpCancelButtonClass]="'btn btn-secondary btn-sm'" [cpCancelButtonText]="'Reset'" [(colorPicker)]="selectedBrickColor.colorHex"
+      (colorPickerChange)="onColorPickerChanged(selectedBrickColor)">
+    </span>
   </div>
 </div>

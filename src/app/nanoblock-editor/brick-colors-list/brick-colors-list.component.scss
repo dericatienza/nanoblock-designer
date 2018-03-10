@@ -11,3 +11,10 @@ input[type="radio"]:checked {
     }
   }
 }
+
+.color-picker-container {
+  position: absolute;
+  right: 100%;
+  bottom: 0; // top: 50%;
+  // transform: translateY(-50%);
+}

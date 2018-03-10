@@ -25,27 +25,27 @@
   "colorHex": "#0000ff"
 }, {
   "id": 6,
-  "name": "indigo",
+  "name": "purple",
   "isClear": false,
-  "colorHex": "#4b0082"
+  "colorHex": "#800080"
 }, {
   "id": 7,
-  "name": "violet",
+  "name": "gray",
   "isClear": false,
-  "colorHex": "#ee82ee"
+  "colorHex": "#808080"
 }, {
   "id": 8,
-  "name": "black",
-  "isClear": false,
-  "colorHex": "#000000"
-}, {
-  "id": 9,
   "name": "white",
   "isClear": false,
   "colorHex": "#ffffff"
 }, {
-  "id": 10,
-  "name": "saddle brown",
+  "id": 9,
+  "name": "black",
   "isClear": false,
-  "colorHex": "#8b4513"
+  "colorHex": "#000000"
+}, {
+  "id": 10,
+  "name": "brown",
+  "isClear": false,
+  "colorHex": "#a52a2a"
 }]

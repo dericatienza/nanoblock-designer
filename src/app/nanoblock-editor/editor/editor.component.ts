@@ -18,6 +18,7 @@ import { RendererComponent } from '../../three-js/renderer/renderer.component';
 import { MathHelper } from '../../helpers/math-helper';
 import { BrickObject } from './brick-object';
 import { BrickTypesListComponent } from '../brick-types-list/brick-types-list.component';
+import { BrickColorsListComponent } from '../brick-colors-list/brick-colors-list.component';
 
 const CURRENT_BRICK_OPACITY_FACTOR = 0.5;
 
@@ -45,6 +46,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   @ViewChild('brickTypesList')
   private _brickTypesList: BrickTypesListComponent;
+
+  @ViewChild('brickColorsList')
+  private _brickColorsList: BrickColorsListComponent;
 
   @ViewChild('grid')
   private _grid: GridDirective;
@@ -150,10 +154,18 @@ export class EditorComponent implements OnInit, AfterViewInit {
       .subscribe((brickColors: BrickColor[]) => {
         this.brickColors = brickColors;
 
+        this.initBrickColorMaterials();
+
         this.currentBrickColor = this.brickColors[0];
 
         this.initBrickTypes();
       });
+  }
+
+  initBrickColorMaterials() {
+    for (const brickColor of this.brickColors) {
+      this._brickColorService.getBrickColorMaterial(brickColor);
+    }
   }
 
   ngOnInit() {
@@ -298,7 +310,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   onBrickColorChanged(brickColor: BrickColor) {
-    if (this.currentBrickColor === brickColor) {
+    if (this.currentBrickObject && this.currentBrickColor === brickColor) {
       this.setCurrentBrickOpacity();
     }
   }
@@ -361,6 +373,26 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this._scene.object.remove(brickObject.object);
 
     this.brickObjects.splice(brickObjectIndex, 1);
+  }
+
+  onBrickColorDeleted(brickColor: BrickColor) {
+    const deleteBrickColorIndex = this.brickColors.indexOf(brickColor);
+
+    const fallbackBrickColor = this._brickColorsList.selectedBrickColor;
+
+    const brickObjects = this.brickObjects.filter(x => x.brick.colorId === brickColor.id);
+
+    brickObjects.forEach(x => this.setBrickObjectColor(x, fallbackBrickColor));
+
+    this.brickColors.splice(deleteBrickColorIndex, 1);
+
+    this._brickColorService.deleteBrickColorMaterial(brickColor);
+  }
+
+  setBrickObjectColor(brickObject: BrickObject, brickColor: BrickColor) {
+    brickObject.mesh.material = this._brickColorService.getBrickColorMaterial(brickColor);
+
+    brickObject.brick.colorId = brickColor.id;
   }
 
   getValidCell(brickObject: BrickObject, cell: Cell): Cell {

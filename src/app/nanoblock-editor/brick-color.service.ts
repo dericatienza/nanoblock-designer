@@ -7,6 +7,8 @@ import { Material, MeshPhongMaterial } from 'three';
 
 export const CLEAR_COLOR_OPACITY = 0.5;
 
+export const DEFAULT_BRICK_COLOR_HEX = '#FFFFFF';
+
 @Injectable()
 export class BrickColorService {
   brickColorsUrl = 'assets/default-brick-colors.json';
@@ -46,6 +48,12 @@ export class BrickColorService {
 
     if (material) {
       material.color.set(brickColor.colorHex);
+    }
+  }
+
+  deleteBrickColorMaterial(brickColor: BrickColor) {
+    if (this.brickColorMaterials.has(brickColor.id)) {
+      return this.brickColorMaterials.delete(brickColor.id);
     }
   }
 }
