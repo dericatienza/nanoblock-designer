@@ -1,12 +1,12 @@
-<div class="container-fluid h-100h">
-  <div class="row h-100 of-hidden">
+<div class="h-100h">
+  <div class="row h-100 of-hidden no-gutters">
     <!-- Window -->
-    <div class="col-md-10 p-0" (click)="onRendererClick()">
+    <div class="col-md-10" (click)="onRendererClick()">
       <three-renderer #renderer [displayStats]="true">
         <three-orbit-contols #cameraControls="three-orbit-contols" [rotateSpeed]=1 [zoomSpeed]=1.2 [renderer]="renderer">
-          <three-perspective-camera #mainCamera="three-perspective-camera" [fov]=50 [near]=1 [far]=1000 positionX=60 positionY=60 positionZ=60></three-perspective-camera>
-          <!-- <three-orthographic-camera #mainCamera="three-orthographic-camera" [height]=40 [near]=1 [far]=1000 positionX=60 positionY=60
-            positionZ=60></three-orthographic-camera> -->
+          <!-- <three-perspective-camera #mainCamera="three-perspective-camera" [fov]=50 [near]=1 [far]=1000 positionX=60 positionY=60 positionZ=60></three-perspective-camera> -->
+          <three-orthographic-camera #mainCamera="three-orthographic-camera" [height]=40 [near]=1 [far]=1000 positionX=60 positionY=60
+            positionZ=60></three-orthographic-camera>
           <three-scene #scene="three-scene">
             <!-- <three-axes-helper size=160></three-axes-helper> -->
             <ne-grid #grid="ne-grid" size=24></ne-grid>
@@ -22,15 +22,19 @@
       </three-renderer>
     </div>
     <!-- Menu -->
-    <div class="col-md-2 bg-dark">
-      <div class="h-50 ofy-auto ofx-hidden">
+    <div class="col-md-2 bg-dark gutters-l">
+      <div class="h-50 ofy-auto ofx-hidden gutters-r slim-scrollbar">
         <ne-brick-types-list #brickTypesList [brickTypes]="brickTypes" [brickColor]="currentBrickColor" (selectionChange)="onBrickTypeChanged($event)"></ne-brick-types-list>
       </div>
-      <div class="h-50">
-        <div class="mt-2">
-          <ne-brick-colors-list #brickColorsList [brickColors]="brickColors" (selectionChange)="onBrickColorSelectionChanged($event)"
-            (brickColorChange)="onBrickColorChanged($event)" (brickColorDelete)="onBrickColorDeleted($event)"></ne-brick-colors-list>
-        </div>
+      <div class="h-25 my-2 py-1 px-1 ofy-auto ofx-hidden gutters-r slim-scrollbar">
+        <ne-brick-colors-list #brickColorsList [brickColors]="brickColors" (selectionChange)="onBrickColorSelectionChanged($event)"
+          (brickColorChange)="onBrickColorChanged($event)" (brickColorDelete)="onBrickColorDeleted($event)"></ne-brick-colors-list>
+      </div>
+      <div class="gutters-r mt-auto">
+        <button type="button" class="btn btn-danger btn-block" (click)="onResetButtonClicked()">Reset</button>
+        <button type="button" class="btn btn-primary btn-block" [ngxFilePicker]="readMode" (filePick)="onLoadFilePicked($event)"
+          accept="text/json">Load design</button>
+        <button type="button" class="btn btn-primary btn-block" (click)="onSaveButtonClicked()">Save design</button>
       </div>
     </div>
   </div>

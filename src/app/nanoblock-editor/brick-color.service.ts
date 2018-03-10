@@ -23,6 +23,10 @@ export class BrickColorService {
     return this._http.get<BrickColor[]>(this.brickColorsUrl);
   }
 
+  clearBrickColorMaterials() {
+    this.brickColorMaterials.clear();
+  }
+
   getBrickColorMaterial(brickColor: BrickColor): Material {
     if (this.brickColorMaterials.has(brickColor.id)) {
       return this.brickColorMaterials.get(brickColor.id);

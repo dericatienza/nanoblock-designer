@@ -77,7 +77,8 @@ export class GridDirective extends AbstractObject3D<THREE.GridHelper> {
     const startZ = -(this.depth / 2) + CELL_SIZE.z / 2;
     const startY = 0;
 
-    for (let y = 0; y < this.size; y++) {
+    // Create cells at -1 Y to allow for highlighting and selecting beneath current bricks
+    for (let y = -1; y < this.size; y++) {
       this._cells[y] = [];
       for (let z = 0; z < this.size; z++) {
         this._cells[y][z] = [];
@@ -121,6 +122,8 @@ export class GridDirective extends AbstractObject3D<THREE.GridHelper> {
         }
       }
     }
+
+    console.log('Reached grid bounds.');
 
     return null;
   }

@@ -45,6 +45,11 @@ export class GridSelectorDirective implements OnInit, AfterViewInit {
     this.onCameraControlsEnd = this.onCameraControlsEnd.bind(this);
   }
 
+  clearSelectableObjects() {
+    this._selectableObjects = [];
+    this._selectableObjects.push(this.grid.selectorMesh);
+  }
+
   ngOnInit(): void {
     this._selectableObjects = [];
   }
@@ -101,7 +106,7 @@ export class GridSelectorDirective implements OnInit, AfterViewInit {
       const intersectPoint = intersects[0].point;
       let cell = this.grid.getCellFromWorldPosition(intersectPoint);
 
-      if (cell.y > 0 && intersects[0].object !== this.grid.selectorMesh) {
+      if (cell.y > -1 && intersects[0].object !== this.grid.selectorMesh) {
         const objectLocalIntersectPoint = intersects[0].object.worldToLocal(intersectPoint);
 
         if (objectLocalIntersectPoint.y <= 0) {

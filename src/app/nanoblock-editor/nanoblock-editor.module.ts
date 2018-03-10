@@ -14,13 +14,18 @@ import { BrickColorsListComponent } from './brick-colors-list/brick-colors-list.
 import { BrickColorComponent } from './brick-color/brick-color.component';
 import { ColorPickerModule } from 'ngx-color-picker';
 
+import { FileHelpersModule } from 'ngx-file-helpers';
+import { BrowserModule } from '@angular/platform-browser';
+
 @NgModule({
   imports: [
     CommonModule,
     ThreeJsModule,
     NanoblockEditorRoutingModule,
     HttpClientModule,
-    ColorPickerModule
+    ColorPickerModule,
+    FileHelpersModule,
+    BrowserModule
   ],
   declarations: [
     GridSelectorDirective,

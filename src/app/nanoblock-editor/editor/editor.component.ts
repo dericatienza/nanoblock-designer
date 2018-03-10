@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { SceneDirective } from '../../three-js/objects/index';
 import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
 import { GridSelectorDirective } from '../objects/grid-selector.directive';
-import { BrickType, Brick, BrickColor } from './editor.models';
+import { BrickType, Brick, BrickColor, Design } from './editor.models';
 import { Response } from '@angular/http';
 
 import { BrickTypeService } from '../brick-type.service';
@@ -19,6 +19,8 @@ import { MathHelper } from '../../helpers/math-helper';
 import { BrickObject } from './brick-object';
 import { BrickTypesListComponent } from '../brick-types-list/brick-types-list.component';
 import { BrickColorsListComponent } from '../brick-colors-list/brick-colors-list.component';
+import { ReadFile } from 'ngx-file-helpers';
+import { JsonConvert } from 'json2typescript';
 
 const CURRENT_BRICK_OPACITY_FACTOR = 0.5;
 
@@ -72,6 +74,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   brickTypes: BrickType[];
   brickColors: BrickColor[];
+
+  private _defaultBrickColors: BrickColor[];
 
   private _currentBrickType: BrickType;
   get currentBrickType(): BrickType {
@@ -152,7 +156,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
   initBrickColors() {
     this._brickColorService.getDefaultBrickColors()
       .subscribe((brickColors: BrickColor[]) => {
-        this.brickColors = brickColors;
+        this._defaultBrickColors = brickColors;
+
+        this.brickColors = [];
+        this.brickColors.push(...this._defaultBrickColors.map(x => BrickColor.clone(x)));
 
         this.initBrickColorMaterials();
 
@@ -344,6 +351,13 @@ export class EditorComponent implements OnInit, AfterViewInit {
       throw new RangeError(`Brick object is already in editor's built brick objects.`);
     }
 
+    if (cell.y < 0) {
+      // Shift all bricks up and insert brick at bottom
+      this.shiftLevel(0, 1);
+
+      cell = this.grid.getCellByIndex(cell.x, 0, cell.z);
+    }
+
     this._gridSelector.addSelectable(brickObject.mesh);
 
     brickObject.object.position.set(cell.worldPosition.x, cell.worldPosition.y, cell.worldPosition.z);
@@ -366,6 +380,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
       throw new RangeError(`Brick object is not in editor's built brick objects.`);
     }
 
+    const deletedBrickObjectY = brickObject.cell.y;
+
     this._gridSelector.removeSelectable(brickObject.mesh);
 
     brickObject.cell = null;
@@ -373,6 +389,12 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this._scene.object.remove(brickObject.object);
 
     this.brickObjects.splice(brickObjectIndex, 1);
+
+    const levelBrickObjects = this.getBrickObjectsByIndex(-1, deletedBrickObjectY, -1);
+
+    if (levelBrickObjects.length < 1) {
+      this.shiftLevel(deletedBrickObjectY, -1);
+    }
   }
 
   onBrickColorDeleted(brickColor: BrickColor) {
@@ -544,5 +566,116 @@ export class EditorComponent implements OnInit, AfterViewInit {
     }
 
     return offset;
+  }
+
+  shiftLevel(y: number, amount: number) {
+    if (amount === 0) {
+      return;
+    }
+
+    const brickObjects = this.brickObjects.filter(x => x.cell.y >= y);
+
+    for (const brickObject of brickObjects) {
+      const cell = this.grid.getCellByIndex(brickObject.cell.x, brickObject.cell.y + amount, brickObject.cell.z);
+
+      if (cell) {
+        this.moveBrickObject(brickObject, cell);
+      }
+    }
+  }
+
+  moveBrickObject(brickObject: BrickObject, cell: Cell) {
+    brickObject.object.position.set(cell.worldPosition.x, cell.worldPosition.y, cell.worldPosition.z);
+
+    brickObject.brick.x = cell.x;
+    brickObject.brick.y = cell.y;
+    brickObject.brick.z = cell.z;
+
+    brickObject.cell = cell;
+  }
+
+  onResetButtonClicked() {
+    this.resetEditor();
+  }
+
+  loadDesign(design: Design) {
+    this.clearBrickObjects();
+
+    this.brickObjects = [];
+
+    this._brickColorService.clearBrickColorMaterials();
+
+    this.brickColors = design.colors;
+
+    for (const brick of design.bricks) {
+      const brickType = this.brickTypes.find(x => x.id === brick.typeId);
+      const brickColor = this.brickColors.find(x => x.id === brick.colorId);
+
+      const brickObject = this.createBrickObject(brickType, brickColor);
+
+      brickObject.pivotZ = brick.pivotZ;
+      brickObject.pivotX = brick.pivotX;
+
+      brickObject.rotationY = brick.rotationY;
+
+      const cell = this.grid.getCellByIndex(brick.x, brick.y, brick.z);
+
+      this.buildBrickObject(brickObject, cell);
+    }
+  }
+
+  resetEditor() {
+    this.clearBrickObjects();
+
+    this.brickObjects = [];
+
+    this.resetBrickColors();
+  }
+
+  clearBrickObjects() {
+    this._gridSelector.clearSelectableObjects();
+
+    for (const brickObject of this.brickObjects) {
+      this._scene.object.remove(brickObject.object);
+    }
+  }
+
+  resetBrickColors() {
+    this._brickColorService.clearBrickColorMaterials();
+
+    this.brickColors = [];
+    this.brickColors.push(...this._defaultBrickColors.map(x => BrickColor.clone(x)));
+  }
+
+  onSaveButtonClicked() {
+    const design = new Design();
+
+    design.bricks = this.brickObjects.map(x => x.brick);
+    design.colors = this.brickColors;
+
+    this.promptDownloadJSON(design, 'nanoblock-design');
+  }
+
+  onLoadFilePicked(file: ReadFile) {
+    const jsonString = atob(file.content.replace('data:;base64,', ''));
+    const json: object = JSON.parse(jsonString);
+
+    const jsonConvert: JsonConvert = new JsonConvert();
+    const design: Design = jsonConvert.deserializeObject(json, Design);
+
+    if (design) {
+      this.loadDesign(design);
+    }
+  }
+
+  promptDownloadJSON(object: any, title: string) {
+    const json = JSON.stringify(object);
+
+    const data = 'data:text/json;charset=utf-8,' + encodeURIComponent(json);
+    const downloader = document.createElement('a');
+
+    downloader.setAttribute('href', data);
+    downloader.setAttribute('download', `${title}.json`);
+    downloader.click();
   }
 }
