@@ -38,7 +38,10 @@ export class BrickColorService {
       {
         color: brickColor.colorHex,
         opacity: opacity,
-        transparent: brickColor.isClear
+        transparent: brickColor.isClear,
+        polygonOffset: true,
+        polygonOffsetFactor: 1,
+        polygonOffsetUnits: 1
       }
     );
 

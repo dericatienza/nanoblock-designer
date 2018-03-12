@@ -5,10 +5,9 @@ import { BrickType } from './editor/editor.models';
 import * as THREE from 'three';
 import '../../assets/js/ThreeCSG';
 import 'rxjs/add/operator/map';
-import { Geometry, Material, Vector3 } from 'three';
+import { Geometry, Material, Vector3, BufferGeometry } from 'three';
 
 declare var ThreeBSP: any;
-
 @Injectable()
 export class BrickTypeService {
   studUrl = 'assets/models/nanoblock-blender.json';
@@ -16,14 +15,16 @@ export class BrickTypeService {
 
   brickTypesUrl = 'assets/brick-types.json';
 
-  private _brickTypeGeometries: Map<number, Geometry>;
+  private _brickTypeGeometries: Map<number, BufferGeometry>;
+
+  // simplifyModifier = new THREE.SimplifyModifier();
 
   get studSize(): Vector3 {
     return this.studGeometry.boundingBox.getSize();
   }
 
   constructor(private _http: HttpClient) {
-    this._brickTypeGeometries = new Map<number, Geometry>();
+    this._brickTypeGeometries = new Map<number, BufferGeometry>();
     this.initStud();
   }
 
@@ -40,7 +41,7 @@ export class BrickTypeService {
     return this._http.get<BrickType[]>(this.brickTypesUrl);
   }
 
-  getBrickTypeGeometry(brickType: BrickType): Geometry {
+  getBrickTypeGeometry(brickType: BrickType): BufferGeometry {
     if (this._brickTypeGeometries.has(brickType.id)) {
       return this._brickTypeGeometries.get(brickType.id);
     }
@@ -66,6 +67,9 @@ export class BrickTypeService {
     }
 
     const geometry = studBSP.toGeometry();
+    // tslint:disable-next-line:no-bitwise
+    // geometry = new BufferGeometry().fromGeometry(this.simplifyModifier.modify(geometry, geometry.vertices.length * 0.5 | 0));
+
     geometry.computeBoundingBox();
 
     this._brickTypeGeometries.set(brickType.id, geometry);
