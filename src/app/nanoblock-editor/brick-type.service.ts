@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import '../../assets/js/ThreeCSG';
 import 'rxjs/add/operator/map';
 import { Geometry, Material, Vector3, BufferGeometry } from 'three';
+import { SimplifyModifier } from '../three-js/modifiers/simplify-modifier';
 
 declare var ThreeBSP: any;
 @Injectable()
@@ -17,7 +18,7 @@ export class BrickTypeService {
 
   private _brickTypeGeometries: Map<number, BufferGeometry>;
 
-  // simplifyModifier = new THREE.SimplifyModifier();
+  simplifyModifier = new SimplifyModifier();
 
   get studSize(): Vector3 {
     return this.studGeometry.boundingBox.getSize();
@@ -66,9 +67,10 @@ export class BrickTypeService {
       }
     }
 
-    const geometry = studBSP.toGeometry();
+    // tslint:disable-next-line:prefer-const
+    let geometry = studBSP.toGeometry();
     // tslint:disable-next-line:no-bitwise
-    // geometry = new BufferGeometry().fromGeometry(this.simplifyModifier.modify(geometry, geometry.vertices.length * 0.5 | 0));
+    // geometry = this.simplifyModifier.modify(geometry, geometry.vertices.length * 0.5 | 0);
 
     geometry.computeBoundingBox();
 

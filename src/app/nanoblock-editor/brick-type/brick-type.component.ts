@@ -4,7 +4,7 @@ import { SceneDirective } from '../../three-js/objects';
 import { Mesh, MeshNormalMaterial } from 'three';
 import { BrickTypeService } from '../brick-type.service';
 import { BrickColorService } from '../brick-color.service';
-import THREE = require('three');
+import * as THREE from 'three';
 
 @Component({
   selector: 'ne-brick-type',

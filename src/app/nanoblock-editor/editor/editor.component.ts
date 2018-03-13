@@ -7,7 +7,7 @@ import { Response } from '@angular/http';
 
 import { BrickTypeService } from '../brick-type.service';
 import * as THREE from 'three';
-import { Geometry, Material, MeshPhongMaterial, Vector3, Vector2, Color, LineBasicMaterial, EdgesGeometry, BufferGeometry } from 'three';
+import { Geometry, Material, MeshPhongMaterial, Vector3, Vector2, Color, LineBasicMaterial, EdgesGeometry, BufferGeometry, WireframeGeometry } from 'three';
 import { BrickColorService, CLEAR_COLOR_OPACITY } from '../brick-color.service';
 import { GridDirective, CELL_SIZE, Cell } from '../objects/grid.directive';
 import { EditorMode } from './editor-mode';
@@ -239,9 +239,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
     const object = new THREE.Object3D();
     const mesh = new THREE.Mesh(geometry, material);
 
-    const wireframeGeometry = new EdgesGeometry(geometry, 1);
-    const wireframe = new THREE.LineSegments(wireframeGeometry, this._brickWireframeMaterial);
-    mesh.add(wireframe);
+    // const wireframeGeometry = new WireframeGeometry(geometry);
+    // const wireframeGeometry = new EdgesGeometry(geometry, 1);
+    // const wireframe = new THREE.LineSegments(wireframeGeometry, this._brickWireframeMaterial);
+    // mesh.add(wireframe);
 
     object.add(mesh);
 
