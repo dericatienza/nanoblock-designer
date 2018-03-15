@@ -53,6 +53,7 @@ export class BrickTypeService {
 
     for (let z = 0; z < brickType.depth; z++) {
       for (let x = 0; x < brickType.width; x++) {
+
         if (!brickType.arrangement[(z * brickType.width) + x]) {
           continue;
         }

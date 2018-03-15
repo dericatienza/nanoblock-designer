@@ -7,7 +7,10 @@ import { Response } from '@angular/http';
 
 import { BrickTypeService } from '../brick-type.service';
 import * as THREE from 'three';
-import { Geometry, Material, MeshPhongMaterial, Vector3, Vector2, Color, LineBasicMaterial, EdgesGeometry, BufferGeometry, WireframeGeometry } from 'three';
+import {
+  Geometry, Material, MeshPhongMaterial, Vector3, Vector2, Color, LineBasicMaterial,
+  EdgesGeometry, BufferGeometry, WireframeGeometry, MeshBasicMaterial
+} from 'three';
 import { BrickColorService, CLEAR_COLOR_OPACITY } from '../brick-color.service';
 import { GridDirective, CELL_SIZE, Cell } from '../objects/grid.directive';
 import { EditorMode } from './editor-mode';
@@ -29,7 +32,7 @@ const VECTOR3_ZERO = new Vector3(0, 0, 0);
 const KEY_UNDO = 90;
 const KEY_REDO = 89;
 
-const COMMAND_MAX_HISTORY_LENGTH = 50;
+const COMMAND_MAX_HISTORY_LENGTH = 20;
 
 export enum RotateDirection {
   Right,
@@ -92,7 +95,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
   set currentBrickColor(v: BrickColor) {
     this._currentBrickColor = v;
 
-    this._brickTypesList.brickColor = this._currentBrickColor;
+    if (this._brickTypesList) {
+      this._brickTypesList.brickColor = this._currentBrickColor;
+    }
 
     if (this.currentBrickObject) {
       this.currentBrickObject.brick.colorId = this.currentBrickColor.id;
@@ -135,6 +140,12 @@ export class EditorComponent implements OnInit, AfterViewInit {
     }
   );
 
+  private _brickHighlightMaterial = new MeshBasicMaterial(
+    {
+      color: 'black',
+      side: THREE.BackSide
+    });
+
   private _commandHistory: Command[];
   private _commandHistoryIndex = -1;
 
@@ -153,6 +164,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
       .subscribe((brickTypes: BrickType[]) => {
         this.brickTypes = brickTypes;
         this.initBrickTypeGeometries();
+
+        this.currentBrickColor = this.brickColors[0];
       });
   }
 
@@ -171,8 +184,6 @@ export class EditorComponent implements OnInit, AfterViewInit {
         this.brickColors.push(...this._defaultBrickColors.map(x => BrickColor.clone(x)));
 
         this.initBrickColorMaterials();
-
-        this.currentBrickColor = this.brickColors[0];
 
         this.initBrickTypes();
       });
