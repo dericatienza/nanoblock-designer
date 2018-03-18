@@ -2,13 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { JsonConvert } from 'json2typescript';
 import { BrickType } from './editor/editor.models';
-import * as THREE from 'three';
+import * as three from 'three';
 import '../../assets/js/ThreeCSG';
 import 'rxjs/add/operator/map';
 import { Geometry, Material, Vector3, BufferGeometry } from 'three';
 import { SimplifyModifier } from '../three-js/modifiers/simplify-modifier';
 
-declare var ThreeBSP: any;
+declare var THREE: any;
 @Injectable()
 export class BrickTypeService {
   studUrl = 'assets/models/nanoblock-blender.json';
@@ -17,8 +17,6 @@ export class BrickTypeService {
   brickTypesUrl = 'assets/brick-types.json';
 
   private _brickTypeGeometries: Map<number, BufferGeometry>;
-
-  simplifyModifier = new SimplifyModifier();
 
   get studSize(): Vector3 {
     return this.studGeometry.boundingBox.getSize();
@@ -30,7 +28,7 @@ export class BrickTypeService {
   }
 
   initStud() {
-    const loader = new THREE.JSONLoader();
+    const loader = new three.JSONLoader();
     loader.load(this.studUrl,
       (geometry: Geometry, materials: Material[]) => {
         this.studGeometry = geometry;
@@ -49,11 +47,10 @@ export class BrickTypeService {
 
     const studSize = this.studGeometry.boundingBox.getSize();
 
-    let studBSP = new ThreeBSP(this.studGeometry);
+    let studCSG = THREE.CSG.toCSG(this.studGeometry);
 
     for (let z = 0; z < brickType.depth; z++) {
       for (let x = 0; x < brickType.width; x++) {
-
         if (!brickType.arrangement[(z * brickType.width) + x]) {
           continue;
         }
@@ -62,14 +59,14 @@ export class BrickTypeService {
 
         studGeometry.translate(x * studSize.x, 0, z * studSize.z);
 
-        const studBSPClone = new ThreeBSP(studGeometry);
+        const studCSGClone = THREE.CSG.toCSG(studGeometry);
 
-        studBSP = studBSP.union(studBSPClone);
+        studCSG = studCSG.union(studCSGClone);
       }
     }
 
     // tslint:disable-next-line:prefer-const
-    let geometry = studBSP.toGeometry();
+    let geometry = <BufferGeometry>THREE.CSG.fromCSG(studCSG);
     // tslint:disable-next-line:no-bitwise
     // geometry = this.simplifyModifier.modify(geometry, geometry.vertices.length * 0.5 | 0);
 

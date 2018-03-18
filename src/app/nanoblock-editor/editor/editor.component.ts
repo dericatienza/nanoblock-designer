@@ -6,7 +6,7 @@ import { BrickType, Brick, BrickColor, Design } from './editor.models';
 import { Response } from '@angular/http';
 
 import { BrickTypeService } from '../brick-type.service';
-import * as THREE from 'three';
+import * as three from 'three';
 import {
   Geometry, Material, MeshPhongMaterial, Vector3, Vector2, Color, LineBasicMaterial,
   EdgesGeometry, BufferGeometry, WireframeGeometry, MeshBasicMaterial
@@ -25,7 +25,11 @@ import { BrickColorsListComponent } from '../brick-colors-list/brick-colors-list
 import { ReadFile } from 'ngx-file-helpers';
 import { JsonConvert } from 'json2typescript';
 
-const CURRENT_BRICK_OPACITY_FACTOR = 0.5;
+import '../../../assets/js/OutlinesGeometry';
+
+declare var THREE: any;
+
+const CURRENT_BRICK_OPACITY_FACTOR = 0.75;
 
 const VECTOR3_ZERO = new Vector3(0, 0, 0);
 
@@ -136,14 +140,14 @@ export class EditorComponent implements OnInit, AfterViewInit {
       color: 'black',
       linewidth: 2,
       transparent: true,
-      opacity: 0.5
+      opacity: 0.4
     }
   );
 
   private _brickHighlightMaterial = new MeshBasicMaterial(
     {
       color: 'black',
-      side: THREE.BackSide
+      side: three.BackSide
     });
 
   private _commandHistory: Command[];
@@ -247,13 +251,12 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     const material = this._brickColorService.getBrickColorMaterial(color);
 
-    const object = new THREE.Object3D();
-    const mesh = new THREE.Mesh(geometry, material);
+    const object = new three.Object3D();
+    const mesh = new three.Mesh(geometry, material);
 
-    // const wireframeGeometry = new WireframeGeometry(geometry);
-    // const wireframeGeometry = new EdgesGeometry(geometry, 1);
-    // const wireframe = new THREE.LineSegments(wireframeGeometry, this._brickWireframeMaterial);
-    // mesh.add(wireframe);
+    const edgesGeometry = new THREE.OutlinesGeometry(geometry, 45);
+    const edges = new three.LineSegments(edgesGeometry, this._brickWireframeMaterial);
+    mesh.add(edges);
 
     object.add(mesh);
 
@@ -395,6 +398,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     this._scene.object.add(brickObject.object);
 
+    // const helper = new THREE.FaceNormalsHelper(brickObject.mesh, 2, 0x00ff00, 1);
+    // this._scene.object.add(helper);
+
     this.brickObjects.push(brickObject);
   }
 
@@ -525,7 +531,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
           if (!brickType.arrangement[(z * brickType.width) + x]) {
             continue;
           }
-          const position = new THREE.Vector3(x, y, z);
+          const position = new three.Vector3(x, y, z);
           position.x -= pivot.x;
           position.z -= pivot.z;
 
@@ -547,8 +553,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
     return cells;
   }
 
-  getCellOffset(yRotation: number, position: THREE.Vector3): THREE.Vector3 {
-    const offset = new THREE.Vector3();
+  getCellOffset(yRotation: number, position: three.Vector3): three.Vector3 {
+    const offset = new three.Vector3();
 
     switch (yRotation) {
       case -270:
@@ -632,6 +638,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     this.brickColors = design.colors;
 
+    this.clearCommandHistory();
+
     for (const brick of design.bricks) {
       const brickType = this.brickTypes.find(x => x.id === brick.typeId);
       const brickColor = this.brickColors.find(x => x.id === brick.colorId);
@@ -655,6 +663,13 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this.brickObjects = [];
 
     this.resetBrickColors();
+
+    this.clearCommandHistory();
+  }
+
+  clearCommandHistory() {
+    this._commandHistory = [];
+    this._commandHistoryIndex = -1;
   }
 
   clearBrickObjects() {

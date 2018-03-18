@@ -12,7 +12,7 @@ import { SceneDirective } from '../objects/scene.directive';
   templateUrl: './renderer.component.html',
   styleUrls: ['./renderer.component.scss']
 })
-export class RendererComponent implements AfterViewInit {
+export class RendererComponent implements AfterViewInit, OnInit {
 
   private renderer: THREE.WebGLRenderer;
 
@@ -28,6 +28,14 @@ export class RendererComponent implements AfterViewInit {
   @ContentChildren(SceneDirective, { descendants: true }) sceneComponents: QueryList<SceneDirective>; // TODO: Multiple scenes
   @ContentChildren(AbstractCamera, { descendants: true })
   cameraComponents: QueryList<AbstractCamera<THREE.Camera>>; // TODO: Multiple cameras
+
+  ngOnInit(): void {
+    this.renderer = new THREE.WebGLRenderer({
+      canvas: this.canvas,
+      antialias: true,
+      alpha: true
+    });
+  }
 
   constructor() {
     console.log('RendererComponent.constructor');
@@ -51,11 +59,6 @@ export class RendererComponent implements AfterViewInit {
   }
 
   private startRendering() {
-    this.renderer = new THREE.WebGLRenderer({
-      canvas: this.canvas,
-      antialias: true,
-      alpha: true
-    });
     this.renderer.setPixelRatio(devicePixelRatio);
     this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
 
