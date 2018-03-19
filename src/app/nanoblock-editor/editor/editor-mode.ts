@@ -2,6 +2,8 @@ import { EditorComponent } from './editor.component';
 import { Cell } from '../objects/grid.directive';
 
 export abstract class EditorMode {
+    name: string;
+
     private _editor: EditorComponent;
 
     get editor(): EditorComponent {

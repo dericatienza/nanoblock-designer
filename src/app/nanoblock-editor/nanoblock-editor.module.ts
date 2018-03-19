@@ -16,6 +16,9 @@ import { ColorPickerModule } from 'ngx-color-picker';
 
 import { FileHelpersModule } from 'ngx-file-helpers';
 import { BrowserModule } from '@angular/platform-browser';
+import { BrickObjectHighlightDirective } from './objects/brick-object-highlight.directive';
+import { EditorControlsComponent } from './editor-controls/editor-controls.component';
+import { EditorModeComponent } from './editor-mode/editor-mode.component';
 
 @NgModule({
   imports: [
@@ -34,7 +37,10 @@ import { BrowserModule } from '@angular/platform-browser';
     BrickTypesListComponent,
     BrickTypeComponent,
     BrickColorsListComponent,
-    BrickColorComponent
+    BrickColorComponent,
+    BrickObjectHighlightDirective,
+    EditorControlsComponent,
+    EditorModeComponent
   ],
   exports: [
     GridSelectorDirective,

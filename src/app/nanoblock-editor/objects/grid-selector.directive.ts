@@ -5,7 +5,7 @@ import { RendererComponent } from '../../three-js/renderer/renderer.component';
 import { AbstractCamera } from '../../three-js/cameras/index';
 import { Vector3, Object3D } from 'three';
 import { MathHelper } from '../../helpers/math-helper';
-import { GridDirective, Cell } from './grid.directive';
+import { GridDirective, Cell, CELL_SIZE } from './grid.directive';
 import { OrbitControlsDirective } from '../../three-js/controls/orbit-controls.directive';
 
 @Directive({
@@ -103,7 +103,30 @@ export class GridSelectorDirective implements OnInit, AfterViewInit {
     const intersects = this._raycaster.intersectObjects(this._selectableObjects);
 
     if (intersects.length > 0) {
-      const intersectPoint = intersects[0].point;
+      let intersectPoint = intersects[0].point.clone();
+
+      // Brick object hit; set intersect point to center of brick
+      if (intersects[0].object !== this.grid.selectorMesh) {
+        const objectLocalIntersectPoint = intersectPoint.clone();
+
+        intersects[0].object.worldToLocal(objectLocalIntersectPoint);
+
+        objectLocalIntersectPoint.x = objectLocalIntersectPoint.x > 0 ?
+          MathHelper.snap(objectLocalIntersectPoint.x, CELL_SIZE.x) : 0;
+        objectLocalIntersectPoint.z = objectLocalIntersectPoint.z > 0 ?
+          MathHelper.snap(objectLocalIntersectPoint.z, CELL_SIZE.z) : 0;
+
+        let yAdjustment = intersectPoint.y;
+
+        if (objectLocalIntersectPoint.y > CELL_SIZE.y) {
+          yAdjustment -= objectLocalIntersectPoint.y;
+          yAdjustment += CELL_SIZE.y / 2;
+        }
+
+        intersectPoint = intersects[0].object.localToWorld(objectLocalIntersectPoint);
+        intersectPoint.y = yAdjustment;
+      }
+
       let cell = this.grid.getCellFromWorldPosition(intersectPoint);
 
       if (cell.y > -1 && intersects[0].object !== this.grid.selectorMesh) {

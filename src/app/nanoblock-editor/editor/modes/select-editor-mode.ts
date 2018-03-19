@@ -4,13 +4,18 @@ import { Cell } from '../../objects/grid.directive';
 import { BrickObject } from '../brick-object';
 
 export class SelectEditorMode extends EditorMode {
+    constructor(editor: EditorComponent) {
+        super(editor);
+        this.name = 'select';
+    }
+
     highlight(cell: Cell) {
         const brickObject = this.getBrickObjectFromCell(cell);
 
         if (brickObject) {
-            // Select indicator here
-            // brickObject.mesh.renderOrder = 1;
-            // brickObject.mesh.onBeforeRender = function (renderer) { renderer.clearDepth(); };
+            this.editor.brickObjectHighlight.setHighlight(brickObject);
+        } else {
+            this.editor.brickObjectHighlight.removeHighlight();
         }
     }
     select(cell: Cell) {
@@ -20,23 +25,21 @@ export class SelectEditorMode extends EditorMode {
         console.log('Entered select mode.');
     }
     exit() {
-        console.log('Exited select mode.');
+        this.editor.brickObjectHighlight.removeHighlight();
     }
 
     getBrickObjectFromCell(cell: Cell): BrickObject {
-        const checkCells = [cell, this.editor.grid.getCellByIndex(cell.x, cell.y + 1, cell.z)];
+        const brickObjects = this.editor.getBrickObjectsByIndex(-1, cell.y, -1);
 
-        for (const checkCell of checkCells) {
-            for (const brickObject of this.editor.brickObjects) {
-                if (brickObject.cell === checkCell) {
-                    return brickObject;
-                }
+        for (const brickObject of brickObjects) {
+            if (brickObject.cell === cell) {
+                return brickObject;
+            }
 
-                const cells = this.editor.getOccupiedCells(brickObject, brickObject.cell);
+            const cells = this.editor.getOccupiedCells(brickObject, brickObject.cell);
 
-                if (cells.indexOf(checkCell) > -1) {
-                    return brickObject;
-                }
+            if (cells.indexOf(cell) > -1) {
+                return brickObject;
             }
         }
 

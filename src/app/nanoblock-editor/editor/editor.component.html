@@ -2,6 +2,12 @@
   <div class="row h-100 of-hidden no-gutters">
     <!-- Window -->
     <div class="col-md-10" (click)="onRendererClick()">
+      <div class="position-absolute mode py-1 px-2">
+        <ne-editor-mode [modes]="modes"></ne-editor-mode>
+      </div>
+      <div class="position-absolute controls py-1 px-2">
+        <ne-editor-controls></ne-editor-controls>
+      </div>
       <three-renderer #renderer [displayStats]="true">
         <three-orbit-contols #cameraControls="three-orbit-contols" [rotateSpeed]=1 [zoomSpeed]=1.2 [renderer]="renderer">
           <!-- <three-perspective-camera #mainCamera="three-perspective-camera" [fov]=50 [near]=1 [far]=1000 positionX=60 positionY=60 positionZ=60></three-perspective-camera> -->
@@ -10,10 +16,10 @@
           <three-scene #scene="three-scene">
             <!-- <three-axes-helper size=160></three-axes-helper> -->
             <ne-grid #grid="ne-grid" size=24></ne-grid>
+            <ne-brick-object-highlight #brickObjectHighlight="ne-brick-object-highlight"></ne-brick-object-highlight>
 
             <three-point-light color="white" intensity="1" distance="1000" translateX=40 translateY=80 translateZ=80></three-point-light>
             <three-point-light color="white" intensity="1" distance="1000" translateX=-40 translateY=80 translateZ=-80></three-point-light>
-
           </three-scene>
         </three-orbit-contols>
         <ne-grid-selector #gridSelector="ne-grid-selector" [camera]="mainCamera" [grid]="grid" [renderer]="renderer" [cameraControls]="cameraControls"

@@ -9,7 +9,7 @@ import { BrickTypeService } from '../brick-type.service';
 import * as three from 'three';
 import {
   Geometry, Material, MeshPhongMaterial, Vector3, Vector2, Color, LineBasicMaterial,
-  EdgesGeometry, BufferGeometry, WireframeGeometry, MeshBasicMaterial
+  EdgesGeometry, BufferGeometry, WireframeGeometry, MeshBasicMaterial, Object3D
 } from 'three';
 import { BrickColorService, CLEAR_COLOR_OPACITY } from '../brick-color.service';
 import { GridDirective, CELL_SIZE, Cell } from '../objects/grid.directive';
@@ -24,8 +24,11 @@ import { BrickTypesListComponent } from '../brick-types-list/brick-types-list.co
 import { BrickColorsListComponent } from '../brick-colors-list/brick-colors-list.component';
 import { ReadFile } from 'ngx-file-helpers';
 import { JsonConvert } from 'json2typescript';
+import { BrickObjectHighlightDirective } from '../objects/brick-object-highlight.directive';
 
 import '../../../assets/js/OutlinesGeometry';
+import { PaintEditorMode } from './modes/paint-editor-mode';
+import { EraseEditorMode } from './modes/erase-editor-mode';
 
 declare var THREE: any;
 
@@ -42,6 +45,15 @@ export enum RotateDirection {
   Right,
   Left
 }
+
+export const BRICK_OUTLINE_MATERIAL = new LineBasicMaterial(
+  {
+    color: 'black',
+    linewidth: 2,
+    transparent: true,
+    opacity: 0.4
+  }
+);
 
 @Component({
   selector: 'ne-editor',
@@ -70,6 +82,13 @@ export class EditorComponent implements OnInit, AfterViewInit {
   private _gridSelector: GridSelectorDirective;
   get gridSelector(): GridSelectorDirective {
     return this._gridSelector;
+  }
+
+  @ViewChild('brickObjectHighlight')
+  private _brickObjectHighlight: BrickObjectHighlightDirective;
+
+  get brickObjectHighlight(): BrickObjectHighlightDirective {
+    return this._brickObjectHighlight;
   }
 
   @ViewChild('renderer')
@@ -118,7 +137,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   private _brickIdCounter = 0;
 
-  private _modes: Map<string, EditorMode>;
+  private _modes: EditorMode[];
+  get modes(): EditorMode[] {
+    return this._modes;
+  }
 
   private _currentMode: EditorMode;
   private set currentMode(v: EditorMode) {
@@ -134,21 +156,6 @@ export class EditorComponent implements OnInit, AfterViewInit {
   brickObjects: BrickObject[];
 
   private _currentBrickSelectedMaterial: MeshPhongMaterial;
-
-  private _brickWireframeMaterial = new LineBasicMaterial(
-    {
-      color: 'black',
-      linewidth: 2,
-      transparent: true,
-      opacity: 0.4
-    }
-  );
-
-  private _brickHighlightMaterial = new MeshBasicMaterial(
-    {
-      color: 'black',
-      side: three.BackSide
-    });
 
   private _commandHistory: Command[];
   private _commandHistoryIndex = -1;
@@ -201,19 +208,24 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.initBrickColors();
-    this._modes = new Map<string, EditorMode>();
+
+    this._modes = [
+      new SelectEditorMode(this),
+      new BuildEditorMode(this),
+      new PaintEditorMode(this),
+      new EraseEditorMode(this)
+    ];
+
     this.brickObjects = [];
     this._commandHistory = [];
   }
 
-  setMode(modeClassRef: { new(editor: EditorComponent) }) {
-    if (!this._modes.has(modeClassRef.name)) {
-      const newModeInstance = new modeClassRef(this);
+  setMode(name: string) {
+    const mode = this._modes.find(x => x.name === name);
 
-      this._modes.set(modeClassRef.name, newModeInstance);
+    if (mode) {
+      this.currentMode = mode;
     }
-
-    this.currentMode = this._modes.get(modeClassRef.name);
   }
 
   createCurrentBrickObject() {
@@ -254,9 +266,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
     const object = new three.Object3D();
     const mesh = new three.Mesh(geometry, material);
 
-    const edgesGeometry = new THREE.OutlinesGeometry(geometry, 45);
-    const edges = new three.LineSegments(edgesGeometry, this._brickWireframeMaterial);
-    mesh.add(edges);
+    const outlinesGeometry = new THREE.OutlinesGeometry(geometry, 45);
+    const outline = new three.LineSegments(outlinesGeometry, BRICK_OUTLINE_MATERIAL);
+    mesh.add(outline);
 
     object.add(mesh);
 
@@ -301,7 +313,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     this.addListeners();
 
-    this.setMode(SelectEditorMode);
+    this.setMode('select');
   }
 
   addListeners() {
@@ -337,7 +349,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   onBrickTypeChanged(brickType: BrickType) {
     this.currentBrickType = brickType;
 
-    this.setMode(BuildEditorMode);
+    this.setMode('build');
   }
 
   onBrickColorSelectionChanged(brickColor: BrickColor) {

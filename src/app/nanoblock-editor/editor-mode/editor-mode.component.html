@@ -1,0 +1,15 @@
+<div>
+  <div *ngFor="let mode of modes" class="mb-1">
+    <input class="btn-radio" type="radio" id="{{ 'mode' + mode.name}}" name="modes" />
+    <label class="btn btn-outline-primary w-100 text-truncate" data-toggle="tooltip" data-placement="left" title="{{mode.name}}"
+      for="{{ 'mode' + mode.name}}">
+      <span [ngSwitch]="mode.name">
+        <i *ngSwitchCase="'select'" class="fa fa-hand-pointer fa-2x"></i>
+        <i *ngSwitchCase="'build'" class="fa fa-gavel fa-2x"></i>
+        <i *ngSwitchCase="'paint'" class="fa fa-paint-brush fa-2x"></i>
+        <i *ngSwitchCase="'erase'" class="fa fa-eraser fa-2x"></i>
+        <i *ngSwitchDefault></i>
+      </span>
+    </label>
+  </div>
+</div>

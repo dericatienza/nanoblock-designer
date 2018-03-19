@@ -20,6 +20,7 @@ export class BuildEditorMode extends EditorMode {
 
     constructor(editor: EditorComponent) {
         super(editor);
+        this.name = 'build';
 
         this.onKeyDown = this.onKeyDown.bind(this);
     }

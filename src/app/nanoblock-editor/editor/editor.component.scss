@@ -8,3 +8,13 @@
 .slim-scrollbar::-webkit-scrollbar-thumb {
   background: $primary;
 }
+
+.mode {
+  top: 0;
+  right: 0;
+}
+
+.controls {
+  bottom: 0;
+  left: 0;
+}

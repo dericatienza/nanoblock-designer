@@ -4,7 +4,12 @@ import { SceneDirective } from '../../three-js/objects';
 import { Mesh, MeshNormalMaterial } from 'three';
 import { BrickTypeService } from '../brick-type.service';
 import { BrickColorService } from '../brick-color.service';
-import * as THREE from 'three';
+import * as three from 'three';
+
+import '../../../assets/js/OutlinesGeometry';
+import { BRICK_OUTLINE_MATERIAL } from '../editor/editor.component';
+
+declare var THREE: any;
 
 @Component({
   selector: 'ne-brick-type',
@@ -43,7 +48,11 @@ export class BrickTypeComponent implements OnInit, AfterViewInit {
 
     const material = this._brickColorService.getBrickColorMaterial(this.brickColor);
 
-    this.mesh = new THREE.Mesh(geometry, material);
+    this.mesh = new three.Mesh(geometry, material);
+
+    const outlinesGeometry = new THREE.OutlinesGeometry(geometry, 45);
+    const outline = new three.LineSegments(outlinesGeometry, BRICK_OUTLINE_MATERIAL);
+    this.mesh.add(outline);
 
     const studSize = this._brickTypeService.studSize;
 
