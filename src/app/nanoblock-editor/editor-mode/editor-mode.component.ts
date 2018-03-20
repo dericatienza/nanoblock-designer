@@ -23,7 +23,7 @@ export class EditorModeComponent implements OnInit {
     this.currentMode = mode;
     this.currentModeChange.emit(this.currentMode);
   }
-  
+
   onModeChanged(mode: EditorMode) {
     this.onChange(mode);
   }

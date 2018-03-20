@@ -30,11 +30,11 @@
     <!-- Menu -->
     <div class="col-md-2 bg-dark gutters-l">
       <div class="h-50 ofy-auto ofx-hidden gutters-r slim-scrollbar" *ngIf="brickTypes">
-        <ne-brick-types-list #brickTypesList [brickTypes]="brickTypes" [brickColor]="currentBrickColor" (selectionChange)="onBrickTypeChanged($event)"></ne-brick-types-list>
+        <ne-brick-types-list #brickTypesList [(currentBrickType)]="currentBrickType" [brickTypes]="brickTypes" [brickColor]="currentBrickColor"></ne-brick-types-list>
       </div>
       <div class="h-25 my-2 py-1 px-1 ofy-auto ofx-hidden gutters-r slim-scrollbar" *ngIf="brickColors">
-        <ne-brick-colors-list #brickColorsList [brickColors]="brickColors" (selectionChange)="onBrickColorSelectionChanged($event)"
-          (brickColorChange)="onBrickColorChanged($event)" (brickColorDelete)="onBrickColorDeleted($event)"></ne-brick-colors-list>
+        <ne-brick-colors-list #brickColorsList [brickColors]="brickColors" [(currentBrickColor)]="currentBrickColor" (brickColorChange)="onBrickColorChanged($event)"
+          (brickColorDelete)="onBrickColorDeleted($event)"></ne-brick-colors-list>
       </div>
       <div class="gutters-r mt-auto">
         <button type="button" class="btn btn-danger btn-block" (click)="onResetButtonClicked()">Reset</button>

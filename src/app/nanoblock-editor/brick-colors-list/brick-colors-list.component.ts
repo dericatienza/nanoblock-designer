@@ -10,17 +10,17 @@ import { BrickColorService, DEFAULT_BRICK_COLOR_HEX } from '../brick-color.servi
   templateUrl: './brick-colors-list.component.html',
   styleUrls: ['./brick-colors-list.component.scss']
 })
-export class BrickColorsListComponent implements OnInit, OnChanges {
+export class BrickColorsListComponent implements OnInit {
   @ViewChild('colorPickerContainer')
   private _colorPickerContainer: ElementRef;
 
-  @Output() selectionChange = new EventEmitter<BrickColor>();
+  @Input() currentBrickColor: BrickColor;
+  @Output() currentBrickColorChange = new EventEmitter<BrickColor>();
+
   @Output() brickColorChange = new EventEmitter<BrickColor>();
   @Output() brickColorDelete = new EventEmitter<BrickColor>();
 
   @Input() brickColors: BrickColor[];
-
-  private _selectedBrickColor: BrickColor;
 
   private _showColorPickerContainer = false;
 
@@ -30,16 +30,6 @@ export class BrickColorsListComponent implements OnInit, OnChanges {
 
   set showColorPickerContainer(v: boolean) {
     this._showColorPickerContainer = v;
-  }
-
-  get selectedBrickColor(): BrickColor {
-    return this._selectedBrickColor;
-  }
-
-  set selectedBrickColor(v: BrickColor) {
-    this._selectedBrickColor = v;
-
-    this.onChange(this.selectedBrickColor);
   }
 
   constructor(private _renderer: Renderer2, private _brickColorService: BrickColorService) {
@@ -54,26 +44,19 @@ export class BrickColorsListComponent implements OnInit, OnChanges {
     this.brickColorChange.emit(brickColor);
   }
 
-  onChange(brickColor: BrickColor) {
-    this.selectionChange.emit(brickColor);
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    const brickColors = changes.brickColors;
-
-    if (brickColors.currentValue && brickColors.isFirstChange) {
-      this.selectedBrickColor = brickColors.currentValue[0];
-    }
+  onBrickColorChanged(brickColor: BrickColor) {
+    this.currentBrickColor = brickColor;
+    this.currentBrickColorChange.emit(this.currentBrickColor);
   }
 
   onBrickColorClicked(event, brickColor: BrickColor) {
-    if (this.selectedBrickColor === brickColor) {
+    if (this.currentBrickColor === brickColor) {
       this.showColorPickerContainer = !this.showColorPickerContainer;
     }
   }
 
   onBrickColorChanged(brickColor: BrickColor) {
-    this.selectedBrickColor = brickColor;
+    this.currentBrickColor = brickColor;
   }
 
   onAddButtonClick() {
@@ -86,7 +69,7 @@ export class BrickColorsListComponent implements OnInit, OnChanges {
 
     this.brickColors.push(brickColor);
 
-    this.selectedBrickColor = brickColor;
+    this.currentBrickColor = brickColor;
     this.showColorPickerContainer = true;
   }
 
@@ -95,7 +78,7 @@ export class BrickColorsListComponent implements OnInit, OnChanges {
       return;
     }
 
-    const deleteBrickColor = this.selectedBrickColor;
+    const deleteBrickColor = this.currentBrickColor;
 
     const deleteBrickColorIndex = this.brickColors.indexOf(deleteBrickColor);
 
@@ -103,7 +86,7 @@ export class BrickColorsListComponent implements OnInit, OnChanges {
       deleteBrickColorIndex - 1 :
       deleteBrickColorIndex + 1;
 
-    this.selectedBrickColor = this.brickColors[newSelectedBrickColorIndex];
+    this.currentBrickColor = this.brickColors[newSelectedBrickColorIndex];
 
     this.brickColorDelete.emit(deleteBrickColor);
   }

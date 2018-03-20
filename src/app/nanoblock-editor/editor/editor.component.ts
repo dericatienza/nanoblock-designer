@@ -113,6 +113,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
   set currentBrickType(v: BrickType) {
     this._currentBrickType = v;
+
+    this.setMode('build');
   }
 
   private _currentBrickColor: BrickColor;
@@ -147,7 +149,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   private _currentMode: EditorMode;
-  get currentMode():EditorMode {
+  get currentMode(): EditorMode {
     return this._currentMode;
   }
 
@@ -184,7 +186,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
         this.brickTypes = brickTypes;
         this.initBrickTypeGeometries();
 
-        this.currentBrickColor = this.brickColors[0];
+        this._currentBrickType = this.brickTypes[0];
       });
   }
 
@@ -203,6 +205,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
         this.brickColors.push(...this._defaultBrickColors.map(x => BrickColor.clone(x)));
 
         this.initBrickColorMaterials();
+
+        this.currentBrickColor = this.brickColors[0];
 
         this.initBrickTypes();
       });
@@ -226,6 +230,12 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     this.brickObjects = [];
     this._commandHistory = [];
+  }
+
+  ngAfterViewInit(): void {
+    this.addListeners();
+
+    this.setMode('select');
   }
 
   setMode(name: string) {
@@ -318,12 +328,6 @@ export class EditorComponent implements OnInit, AfterViewInit {
     brickObject.rotationY += degrees;
   }
 
-  ngAfterViewInit(): void {
-    this.addListeners();
-
-    this.setMode('select');
-  }
-
   addListeners() {
     this.renderer.canvas.addEventListener('keydown', this.onKeyDown);
   }
@@ -352,12 +356,6 @@ export class EditorComponent implements OnInit, AfterViewInit {
     if (this._commandHistoryIndex < this._commandHistory.length - 1) {
       this._commandHistory[++this._commandHistoryIndex].do(this);
     }
-  }
-
-  onBrickTypeChanged(brickType: BrickType) {
-    this.currentBrickType = brickType;
-
-    this.setMode('build');
   }
 
   onBrickColorSelectionChanged(brickColor: BrickColor) {
@@ -451,7 +449,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   onBrickColorDeleted(brickColor: BrickColor) {
     const deleteBrickColorIndex = this.brickColors.indexOf(brickColor);
 
-    const fallbackBrickColor = this._brickColorsList.selectedBrickColor;
+    const fallbackBrickColor = this._brickColorsList.currentBrickColor;
 
     const brickObjects = this.brickObjects.filter(x => x.brick.colorId === brickColor.id);
 

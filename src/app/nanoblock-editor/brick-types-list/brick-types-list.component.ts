@@ -11,7 +11,8 @@ export class BrickTypesListComponent implements OnInit {
   @ViewChildren('brickTypes')
   brickTypeComponents: QueryList<BrickTypeComponent>;
 
-  @Output() selectionChange = new EventEmitter<BrickType>();
+  @Input() currentBrickType: BrickType;
+  @Output() currentBrickTypeChange = new EventEmitter<BrickType>();
 
   @Input() brickTypes: BrickType[];
 
@@ -35,7 +36,8 @@ export class BrickTypesListComponent implements OnInit {
   ngOnInit() {
   }
 
-  onChange(brickType: BrickType) {
-    this.selectionChange.emit(brickType);
+  onBrickTypeChanged(brickType: BrickType) {
+    this.currentBrickType = brickType;
+    this.currentBrickTypeChange.emit(this.currentBrickType);
   }
 }

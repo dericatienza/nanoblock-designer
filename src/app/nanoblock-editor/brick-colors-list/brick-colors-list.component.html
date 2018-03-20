@@ -2,7 +2,7 @@
   <div class="d-inline-block align-top" *ngFor="let brickColor of brickColors; let last = last" [ngStyle]="last && {'margin-right.px': -1}"
     [ngClass]="{'mr-1': !last}">
     <input class="position-absolute" type="radio" id="{{ 'brickColor' + brickColor.id}}" name="brickColors" (change)="onBrickColorChanged(brickColor)"
-      [checked]="selectedBrickColor == brickColor" (click)="onBrickColorClicked($event, brickColor)" />
+      [checked]="currentBrickColor == brickColor" (click)="onBrickColorClicked($event, brickColor)" />
     <label class="m-0" for="{{ 'brickColor' + brickColor.id}}">
       <div>
         <ne-brick-color [brickColor]="brickColor"></ne-brick-color>
@@ -25,9 +25,9 @@
         </button>
       </div>
     </div>
-    <span [style.background]="selectedBrickColor.colorHex" [cpToggle]="true" [cpDialogDisplay]="'inline'" [cpCancelButton]="true"
-      [cpCancelButtonClass]="'btn btn-secondary btn-sm'" [cpCancelButtonText]="'Reset'" [(colorPicker)]="selectedBrickColor.colorHex"
-      (colorPickerChange)="onColorPickerChanged(selectedBrickColor)">
+    <span [style.background]="currentBrickColor.colorHex" [cpToggle]="true" [cpDialogDisplay]="'inline'" [cpCancelButton]="true"
+      [cpCancelButtonClass]="'btn btn-secondary btn-sm'" [cpCancelButtonText]="'Reset'" [(colorPicker)]="currentBrickColor.colorHex"
+      (colorPickerChange)="onColorPickerChanged(currentBrickColor)">
     </span>
   </div>
 </div>
