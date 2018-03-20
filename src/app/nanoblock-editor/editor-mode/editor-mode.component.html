@@ -1,6 +1,6 @@
 <div>
   <div *ngFor="let mode of modes" class="mb-1">
-    <input class="btn-radio" type="radio" id="{{ 'mode' + mode.name}}" name="modes" />
+    <input class="btn-radio" type="radio" id="{{ 'mode' + mode.name}}" name="modes" [checked]="currentMode == mode" (change)="onModeChanged(mode)"/>
     <label class="btn btn-outline-primary w-100 text-truncate" data-toggle="tooltip" data-placement="left" title="{{mode.name}}"
       for="{{ 'mode' + mode.name}}">
       <span [ngSwitch]="mode.name">

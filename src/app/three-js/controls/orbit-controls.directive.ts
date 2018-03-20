@@ -5,8 +5,8 @@ import { RendererComponent } from '../renderer/renderer.component';
 import 'three/examples/js/controls/OrbitControls';
 
 @Directive({
-  selector: 'three-orbit-contols',
-  exportAs: 'three-orbit-contols'
+  selector: 'three-orbit-controls',
+  exportAs: 'three-orbit-controls'
 })
 export class OrbitControlsDirective implements AfterViewInit {
 

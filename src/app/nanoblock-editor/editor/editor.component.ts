@@ -29,6 +29,7 @@ import { BrickObjectHighlightDirective } from '../objects/brick-object-highlight
 import '../../../assets/js/OutlinesGeometry';
 import { PaintEditorMode } from './modes/paint-editor-mode';
 import { EraseEditorMode } from './modes/erase-editor-mode';
+import { EditorModeComponent } from '../editor-mode/editor-mode.component';
 
 declare var THREE: any;
 
@@ -64,6 +65,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   @ViewChild('scene')
   private _scene: SceneDirective;
+
+  @ViewChild('modesList')
+  private _modesList: EditorModeComponent;
 
   @ViewChild('brickTypesList')
   private _brickTypesList: BrickTypesListComponent;
@@ -143,7 +147,11 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   private _currentMode: EditorMode;
-  private set currentMode(v: EditorMode) {
+  get currentMode():EditorMode {
+    return this._currentMode;
+  }
+
+  set currentMode(v: EditorMode) {
     if (this._currentMode) {
       this._currentMode.exit();
     }

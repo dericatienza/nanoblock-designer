@@ -1,4 +1,7 @@
-import { Component, OnInit, Input, Output, EventEmitter, AfterViewInit, OnChanges, SimpleChanges, ElementRef, ViewChild, HostListener, Renderer2 } from '@angular/core';
+import {
+  Component, OnInit, Input, Output, EventEmitter, AfterViewInit, OnChanges, SimpleChanges,
+  ElementRef, ViewChild, HostListener, Renderer2
+} from '@angular/core';
 import { BrickColor, Brick } from '../editor/editor.models';
 import { BrickColorService, DEFAULT_BRICK_COLOR_HEX } from '../brick-color.service';
 
