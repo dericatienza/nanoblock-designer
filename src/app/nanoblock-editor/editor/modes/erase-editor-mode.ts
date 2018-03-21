@@ -4,23 +4,23 @@ import { Cell } from '../../objects/grid.directive';
 import { BuildCommand } from '../commands/build-command';
 import { Vector3 } from 'three';
 import THREE = require('three');
+import { SelectEditorMode } from './select-editor-mode';
+import { EraseCommand } from '../commands/erase-command';
 
-export class EraseEditorMode extends EditorMode {
+export class EraseEditorMode extends SelectEditorMode {
 
     constructor(editor: EditorComponent) {
         super(editor);
         this.name = 'erase';
     }
 
-    highlight(cell: Cell) {
-    }
-
     select(cell: Cell) {
-    }
+        const brickObject = this.editor.getBrickObjectFromCell(cell);
 
-    enter() {
-    }
+        if (brickObject) {
+            const command = new EraseCommand(brickObject);
 
-    exit() {
+            this.editor.executeCommand(command);
+        }
     }
 }

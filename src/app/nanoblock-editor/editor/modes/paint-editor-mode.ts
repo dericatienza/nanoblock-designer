@@ -4,23 +4,23 @@ import { Cell } from '../../objects/grid.directive';
 import { BuildCommand } from '../commands/build-command';
 import { Vector3 } from 'three';
 import THREE = require('three');
+import { SelectEditorMode } from './select-editor-mode';
+import { PaintCommand } from '../commands/paint-command';
 
-export class PaintEditorMode extends EditorMode {
+export class PaintEditorMode extends SelectEditorMode {
 
     constructor(editor: EditorComponent) {
         super(editor);
         this.name = 'paint';
     }
 
-    highlight(cell: Cell) {
-    }
-
     select(cell: Cell) {
-    }
+        const brickObject = this.editor.getBrickObjectFromCell(cell);
 
-    enter() {
-    }
+        if (brickObject && brickObject.brickColor !== this.editor.currentBrickColor) {
+            const command = new PaintCommand(brickObject, this.editor.currentBrickColor);
 
-    exit() {
+            this.editor.executeCommand(command);
+        }
     }
 }

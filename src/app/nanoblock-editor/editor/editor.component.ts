@@ -52,7 +52,7 @@ export const BRICK_OUTLINE_MATERIAL = new LineBasicMaterial(
     color: 'black',
     linewidth: 2,
     transparent: true,
-    opacity: 0.4
+    opacity: 0.25
   }
 );
 
@@ -472,6 +472,13 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this.currentBrickObject = brickObject;
   }
 
+  paintBrickObject(brickObject: BrickObject, brickColor: BrickColor) {
+    brickObject.mesh.material = this._brickColorService.getBrickColorMaterial(brickColor);
+
+    brickObject.brickColor = brickColor;
+    brickObject.brick.colorId = brickColor.id;
+  }
+
   onBrickColorDeleted(brickColor: BrickColor) {
     const deleteBrickColorIndex = this.brickColors.indexOf(brickColor);
 
@@ -699,6 +706,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this._brickColorService.clearBrickColorMaterials();
 
     this.brickColors = design.colors;
+    this.currentBrickColor = this.brickColors[0];
 
     this.clearCommandHistory();
 
@@ -720,6 +728,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   resetEditor() {
+    this.brickObjectHighlight.removeHighlight();
+
     this.clearBrickObjects();
 
     this.brickObjects = [];
