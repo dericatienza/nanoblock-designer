@@ -55,10 +55,6 @@ export class BrickColorsListComponent implements OnInit {
     }
   }
 
-  onBrickColorChanged(brickColor: BrickColor) {
-    this.currentBrickColor = brickColor;
-  }
-
   onAddButtonClick() {
     const brickColor = new BrickColor();
 

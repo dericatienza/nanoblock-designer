@@ -1,5 +1,5 @@
 import { CELL_SIZE, Cell } from '../objects/grid.directive';
-import { Brick, BrickType } from './editor.models';
+import { Brick, BrickType, BrickColor } from './editor.models';
 import { Vector3 } from 'three';
 import THREE = require('three');
 
@@ -8,6 +8,7 @@ export class BrickObject {
     object: THREE.Object3D;
     brick: Brick;
     brickType: BrickType;
+    brickColor: BrickColor;
     cell: Cell;
 
     get mesh(): THREE.Mesh {

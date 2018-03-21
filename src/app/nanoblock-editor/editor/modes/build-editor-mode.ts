@@ -4,6 +4,7 @@ import { Cell } from '../../objects/grid.directive';
 import { BuildCommand } from '../commands/build-command';
 import { Vector3 } from 'three';
 import THREE = require('three');
+import { MoveCommand } from '../commands/move-command';
 
 const KEY_ROTATE_RIGHT = 69;
 const KEY_ROTATE_LEFT = 81;
@@ -17,6 +18,9 @@ export class BuildEditorMode extends EditorMode {
     cameraDirection: Vector3 = new Vector3();
 
     validCell: Cell;
+
+    isMoving = false;
+    oldCell: Cell;
 
     constructor(editor: EditorComponent) {
         super(editor);
@@ -43,9 +47,20 @@ export class BuildEditorMode extends EditorMode {
     }
 
     enter() {
-        this.editor.createCurrentBrickObject();
+        if (this.editor.currentBrickObject) {
+            this.oldCell = this.editor.currentBrickObject.cell;
 
-        this.editor.currentBrickObject.object.position.set(1000, 1000, 1000);
+            this.editor.removeBrickObject(this.editor.currentBrickObject);
+
+            this.isMoving = true;
+
+        } else {
+            this.editor.createCurrentBrickObject();
+
+            this.editor.currentBrickObject.object.position.set(1000, 1000, 1000);
+
+            this.isMoving = false;
+        }
 
         this.editor.setCurrentBrickOpacity();
 
@@ -96,21 +111,35 @@ export class BuildEditorMode extends EditorMode {
 
         const rotationY = this.editor.currentBrickObject.rotationY;
 
-        this.buildBrick(cell);
+        this.editor.refreshCurrentBrickColor();
 
-        this.editor.createCurrentBrickObject();
-        this.editor.setCurrentBrickOpacity();
+        if (this.isMoving) {
+            this.moveBrick(cell);
 
-        this.editor.currentBrickObject.pivotZ = pivotZ;
-        this.editor.currentBrickObject.pivotX = pivotX;
+            this.editor.setMode('select');
+        } else {
+            this.buildBrick(cell);
 
-        this.editor.currentBrickObject.rotationY = rotationY;
+            this.editor.createCurrentBrickObject();
+            this.editor.setCurrentBrickOpacity();
+
+            this.editor.currentBrickObject.pivotZ = pivotZ;
+            this.editor.currentBrickObject.pivotX = pivotX;
+
+            this.editor.currentBrickObject.rotationY = rotationY;
+        }
     }
 
     buildBrick(cell: Cell) {
-        this.editor.refreshCurrentBrickColor();
-
         const command = new BuildCommand(this.editor.currentBrickObject, cell);
+
+        this.editor.destroyCurrentBrickObject();
+
+        this.editor.executeCommand(command);
+    }
+
+    moveBrick(cell: Cell) {
+        const command = new MoveCommand(this.editor.currentBrickObject, cell, this.oldCell);
 
         this.editor.destroyCurrentBrickObject();
 

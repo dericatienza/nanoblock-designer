@@ -10,7 +10,7 @@ export class SelectEditorMode extends EditorMode {
     }
 
     highlight(cell: Cell) {
-        const brickObject = this.getBrickObjectFromCell(cell);
+        const brickObject = this.editor.getBrickObjectFromCell(cell);
 
         if (brickObject) {
             this.editor.brickObjectHighlight.setHighlight(brickObject);
@@ -19,30 +19,18 @@ export class SelectEditorMode extends EditorMode {
         }
     }
     select(cell: Cell) {
-        // console.log(`Selected cell ${cell.x}, ${cell.y}, ${cell.z}`);
+        const brickObject = this.editor.getBrickObjectFromCell(cell);
+
+        if (brickObject) {
+            this.editor.selectBrickObject(brickObject);
+
+            this.editor.setMode('build');
+        }
     }
     enter() {
         console.log('Entered select mode.');
     }
     exit() {
         this.editor.brickObjectHighlight.removeHighlight();
-    }
-
-    getBrickObjectFromCell(cell: Cell): BrickObject {
-        const brickObjects = this.editor.getBrickObjectsByIndex(-1, cell.y, -1);
-
-        for (const brickObject of brickObjects) {
-            if (brickObject.cell === cell) {
-                return brickObject;
-            }
-
-            const cells = this.editor.getOccupiedCells(brickObject, brickObject.cell);
-
-            if (cells.indexOf(cell) > -1) {
-                return brickObject;
-            }
-        }
-
-        return null;
     }
 }

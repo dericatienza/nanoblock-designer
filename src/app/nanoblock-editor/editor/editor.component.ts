@@ -141,6 +141,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
     return this._currentBrickObject;
   }
 
+  set currentBrickObject(v: BrickObject) {
+    this._currentBrickObject = v;
+  }
+
   private _brickIdCounter = 0;
 
   private _modes: EditorMode[];
@@ -302,6 +306,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     brickObject.object = object;
     brickObject.brick = brick;
     brickObject.brickType = type;
+    brickObject.brickColor = color;
 
     return brickObject;
   }
@@ -397,6 +402,13 @@ export class EditorComponent implements OnInit, AfterViewInit {
       throw new RangeError(`Brick object is already in editor's built brick objects.`);
     }
 
+    // Insert handling
+    const existingBrickObject = this.getBrickObjectFromCell(cell);
+
+    if (existingBrickObject) {
+      this.shiftLevel(cell.y, 1);
+    }
+
     if (cell.y < 0) {
       // Shift all bricks up and insert brick at bottom
       this.shiftLevel(0, 1);
@@ -420,9 +432,11 @@ export class EditorComponent implements OnInit, AfterViewInit {
     // this._scene.object.add(helper);
 
     this.brickObjects.push(brickObject);
+
+    this.currentBrickObject = null;
   }
 
-  destroyBrickObject(brickObject: BrickObject) {
+  removeBrickObject(brickObject: BrickObject) {
     const brickObjectIndex = this.brickObjects.indexOf(brickObject);
 
     if (brickObjectIndex < 0) {
@@ -435,8 +449,6 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     brickObject.cell = null;
 
-    this._scene.object.remove(brickObject.object);
-
     this.brickObjects.splice(brickObjectIndex, 1);
 
     const levelBrickObjects = this.getBrickObjectsByIndex(-1, deletedBrickObjectY, -1);
@@ -444,6 +456,20 @@ export class EditorComponent implements OnInit, AfterViewInit {
     if (levelBrickObjects.length < 1) {
       this.shiftLevel(deletedBrickObjectY, -1);
     }
+
+  }
+
+  destroyBrickObject(brickObject: BrickObject) {
+    this.removeBrickObject(brickObject);
+
+    this._scene.object.remove(brickObject.object);
+  }
+
+  selectBrickObject(brickObject: BrickObject) {
+    this._currentBrickType = brickObject.brickType;
+    this.currentBrickColor = brickObject.brickColor;
+
+    this.currentBrickObject = brickObject;
   }
 
   onBrickColorDeleted(brickColor: BrickColor) {
@@ -569,6 +595,24 @@ export class EditorComponent implements OnInit, AfterViewInit {
     }
 
     return cells;
+  }
+
+  getBrickObjectFromCell(cell: Cell): BrickObject {
+    const brickObjects = this.getBrickObjectsByIndex(-1, cell.y, -1);
+
+    for (const brickObject of brickObjects) {
+      if (brickObject.cell === cell) {
+        return brickObject;
+      }
+
+      const cells = this.getOccupiedCells(brickObject, brickObject.cell);
+
+      if (cells.indexOf(cell) > -1) {
+        return brickObject;
+      }
+    }
+
+    return null;
   }
 
   getCellOffset(yRotation: number, position: three.Vector3): three.Vector3 {
