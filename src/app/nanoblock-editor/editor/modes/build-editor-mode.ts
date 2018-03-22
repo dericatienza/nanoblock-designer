@@ -17,8 +17,6 @@ const KEY_PIVOT_MOVE_LEFT = 68;
 export class BuildEditorMode extends EditorMode {
     cameraDirection: Vector3 = new Vector3();
 
-    validCell: Cell;
-
     isMoving = false;
     oldCell: Cell;
 
@@ -30,17 +28,19 @@ export class BuildEditorMode extends EditorMode {
     }
 
     highlight(cell: Cell) {
-        this.validCell = this.editor.getValidCell(this.editor.currentBrickObject, cell);
+        const validCell = this.editor.getValidCell(this.editor.currentBrickObject, cell);
 
-        if (this.validCell) {
-            this.editor.currentBrickObject.object.position.set
-                (this.validCell.worldPosition.x, this.validCell.worldPosition.y, this.validCell.worldPosition.z);
+        if (validCell) {
+            this.editor.currentBrickObject.position.set
+                (validCell.worldPosition.x, validCell.worldPosition.y, validCell.worldPosition.z);
         }
     }
 
     select(cell: Cell) {
-        if (this.validCell) {
-            this.nextBrick(this.validCell);
+        const validCell = this.editor.getValidCell(this.editor.currentBrickObject, cell);
+
+        if (validCell) {
+            this.nextBrick(validCell);
 
             this.editor.gridSelector.forceHighlightOnMouse();
         }
@@ -57,7 +57,7 @@ export class BuildEditorMode extends EditorMode {
         } else {
             this.editor.createCurrentBrickObject();
 
-            this.editor.currentBrickObject.object.position.set(1000, 1000, 1000);
+            this.editor.currentBrickObject.position.set(1000, 1000, 1000);
 
             this.isMoving = false;
         }
@@ -87,13 +87,13 @@ export class BuildEditorMode extends EditorMode {
 
         // Pivot input
         if (event.keyCode === KEY_PIVOT_MOVE_UP) {
-            this.editor.currentBrickObject.pivotZ -= 1;
+            this.editor.currentBrickObject.brickPivotZ -= 1;
         } else if (event.keyCode === KEY_PIVOT_MOVE_DOWN) {
-            this.editor.currentBrickObject.pivotZ += 1;
+            this.editor.currentBrickObject.brickPivotZ += 1;
         } else if (event.keyCode === KEY_PIVOT_MOVE_RIGHT) {
-            this.editor.currentBrickObject.pivotX -= 1;
+            this.editor.currentBrickObject.brickPivotX -= 1;
         } else if (event.keyCode === KEY_PIVOT_MOVE_LEFT) {
-            this.editor.currentBrickObject.pivotX += 1;
+            this.editor.currentBrickObject.brickPivotX += 1;
         }
 
         this.editor.gridSelector.forceHighlightOnMouse();
@@ -106,8 +106,8 @@ export class BuildEditorMode extends EditorMode {
     }
 
     nextBrick(cell: Cell) {
-        const pivotX = this.editor.currentBrickObject.pivotX;
-        const pivotZ = this.editor.currentBrickObject.pivotZ;
+        const pivotX = this.editor.currentBrickObject.brickPivotX;
+        const pivotZ = this.editor.currentBrickObject.brickPivotZ;
 
         const rotationY = this.editor.currentBrickObject.rotationY;
 
@@ -123,8 +123,8 @@ export class BuildEditorMode extends EditorMode {
             this.editor.createCurrentBrickObject();
             this.editor.setCurrentBrickOpacity();
 
-            this.editor.currentBrickObject.pivotZ = pivotZ;
-            this.editor.currentBrickObject.pivotX = pivotX;
+            this.editor.currentBrickObject.brickPivotZ = pivotZ;
+            this.editor.currentBrickObject.brickPivotX = pivotX;
 
             this.editor.currentBrickObject.rotationY = rotationY;
         }

@@ -2,29 +2,29 @@ import { CELL_SIZE, Cell } from '../objects/grid.directive';
 import { Brick, BrickType, BrickColor } from './editor.models';
 import { Vector3 } from 'three';
 import THREE = require('three');
+import { PivotObject3D } from './pivot-object';
 
 
-export class BrickObject {
-    object: THREE.Object3D;
+export class BrickObject extends PivotObject3D {
     brick: Brick;
     brickType: BrickType;
     brickColor: BrickColor;
     cell: Cell;
 
     get mesh(): THREE.Mesh {
-        return <THREE.Mesh>this.object.children[0];
+        return <THREE.Mesh>this.pivot.children[0];
     }
 
     get wireframe(): THREE.LineSegments {
-        return <THREE.LineSegments>this.mesh.children[0];
+        return <THREE.LineSegments>this.pivot.children[0];
     }
 
     resetPivot() {
-        this.mesh.position.set(0, 0, 0);
+        this.pivot.position.set(0, 0, 0);
         this.brick.pivotX = this.brick.pivotY = this.brick.pivotZ = 0;
     }
 
-    get pivot(): Vector3 {
+    get brickPivot(): Vector3 {
         return new Vector3(
             this.brick.pivotX,
             this.brick.pivotY,
@@ -32,32 +32,32 @@ export class BrickObject {
         );
     }
 
-    get pivotX() {
-        return -this.mesh.position.x / CELL_SIZE.x;
+    get brickPivotX() {
+        return -this.pivot.position.x / CELL_SIZE.x;
     }
 
-    set pivotX(v: number) {
+    set brickPivotX(v: number) {
         if (v >= this.brickType.width || v < 0) {
             return;
         }
 
-        if (this.brickType.arrangement[(this.pivotZ * this.brickType.width) + v]) {
-            this.mesh.position.setX(-CELL_SIZE.x * v);
+        if (this.brickType.arrangement[(this.brickPivotZ * this.brickType.width) + v]) {
+            this.pivot.position.setX(-CELL_SIZE.x * v);
             this.brick.pivotX = v;
         }
     }
 
-    get pivotZ() {
-        return -this.mesh.position.z / CELL_SIZE.z;
+    get brickPivotZ() {
+        return -this.pivot.position.z / CELL_SIZE.z;
     }
 
-    set pivotZ(v: number) {
+    set brickPivotZ(v: number) {
         if (v >= this.brickType.depth || v < 0) {
             return;
         }
 
-        if (this.brickType.arrangement[(v * this.brickType.width) + this.pivotX]) {
-            this.mesh.position.setZ(-CELL_SIZE.z * v);
+        if (this.brickType.arrangement[(v * this.brickType.width) + this.brickPivotX]) {
+            this.pivot.position.setZ(-CELL_SIZE.z * v);
             this.brick.pivotZ = v;
         }
     }
@@ -80,7 +80,7 @@ export class BrickObject {
 
         const radians = THREE.Math.degToRad(this.brick.rotationY);
 
-        this.object.setRotationFromAxisAngle(new Vector3(0, 1, 0), radians);
+        this.setRotationFromAxisAngle(new Vector3(0, 1, 0), radians);
     }
 
     get rotationZ() {

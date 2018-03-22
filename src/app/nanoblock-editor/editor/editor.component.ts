@@ -253,7 +253,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   createCurrentBrickObject() {
     const brickObject = this.createBrickObject(this._currentBrickType, this._currentBrickColor);
 
-    this._scene.object.add(brickObject.object);
+    this._scene.object.add(brickObject);
 
     this._currentBrickObject = brickObject;
   }
@@ -263,7 +263,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this._scene.object.remove(this.currentBrickObject.object);
+    this._scene.object.remove(this.currentBrickObject);
     this._currentBrickObject = null;
   }
 
@@ -285,14 +285,14 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     const material = this._brickColorService.getBrickColorMaterial(color);
 
-    const object = new three.Object3D();
+    const brickObject = new BrickObject();
     const mesh = new three.Mesh(geometry, material);
 
     const outlinesGeometry = new THREE.OutlinesGeometry(geometry, 45);
     const outline = new three.LineSegments(outlinesGeometry, BRICK_OUTLINE_MATERIAL);
     mesh.add(outline);
 
-    object.add(mesh);
+    brickObject.add(mesh);
 
     const brick = new Brick();
     brick.x = brick.y = brick.z = -1;
@@ -302,8 +302,6 @@ export class EditorComponent implements OnInit, AfterViewInit {
     brick.typeId = type.id;
     brick.colorId = color.id;
 
-    const brickObject = new BrickObject();
-    brickObject.object = object;
     brickObject.brick = brick;
     brickObject.brickType = type;
     brickObject.brickColor = color;
@@ -418,7 +416,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     this._gridSelector.addSelectable(brickObject.mesh);
 
-    brickObject.object.position.set(cell.worldPosition.x, cell.worldPosition.y, cell.worldPosition.z);
+    brickObject.position.set(cell.worldPosition.x, cell.worldPosition.y, cell.worldPosition.z);
 
     brickObject.brick.x = cell.x;
     brickObject.brick.y = cell.y;
@@ -426,7 +424,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     brickObject.cell = cell;
 
-    this._scene.object.add(brickObject.object);
+    this._scene.object.add(brickObject);
 
     // const helper = new THREE.FaceNormalsHelper(brickObject.mesh, 2, 0x00ff00, 1);
     // this._scene.object.add(helper);
@@ -462,7 +460,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   destroyBrickObject(brickObject: BrickObject) {
     this.removeBrickObject(brickObject);
 
-    this._scene.object.remove(brickObject.object);
+    this._scene.object.remove(brickObject);
   }
 
   selectBrickObject(brickObject: BrickObject) {
@@ -520,6 +518,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
   checkCellBuildable(brickObject: BrickObject, cell: Cell): boolean {
     const brickObjectCells = this.getOccupiedCells(brickObject, cell);
 
+    if (!brickObjectCells) {
+      return false;
+    }
+
     for (const builtBrickObject of this.brickObjects) {
       const builtBrickObjectCells = this.getOccupiedCells(builtBrickObject, builtBrickObject.cell);
 
@@ -572,7 +574,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   getOccupiedCells(brickObject: BrickObject, cell: Cell): Cell[] {
     const brickType = brickObject.brickType;
 
-    const pivot = brickObject.pivot;
+    const pivot = brickObject.brickPivot;
 
     const cells = [];
 
@@ -596,6 +598,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
           if (occupiedCell) {
             cells.push(occupiedCell);
+          } else {
+            return null;
           }
         }
       }
@@ -685,7 +689,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   moveBrickObject(brickObject: BrickObject, cell: Cell) {
-    brickObject.object.position.set(cell.worldPosition.x, cell.worldPosition.y, cell.worldPosition.z);
+    brickObject.position.set(cell.worldPosition.x, cell.worldPosition.y, cell.worldPosition.z);
 
     brickObject.brick.x = cell.x;
     brickObject.brick.y = cell.y;
@@ -716,8 +720,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
       const brickObject = this.createBrickObject(brickType, brickColor);
 
-      brickObject.pivotZ = brick.pivotZ;
-      brickObject.pivotX = brick.pivotX;
+      brickObject.brickPivotZ = brick.pivotZ;
+      brickObject.brickPivotX = brick.pivotX;
 
       brickObject.rotationY = brick.rotationY;
 
@@ -737,6 +741,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this.resetBrickColors();
 
     this.clearCommandHistory();
+
+    this.setMode('select');
   }
 
   clearCommandHistory() {
@@ -748,7 +754,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this._gridSelector.clearSelectableObjects();
 
     for (const brickObject of this.brickObjects) {
-      this._scene.object.remove(brickObject.object);
+      this._scene.object.remove(brickObject);
     }
   }
 

@@ -46,10 +46,10 @@ export class BrickObjectHighlightDirective extends AbstractObject3D<PivotObject3
       new THREE.OutlinesGeometry(this._brickTypeService.getBrickTypeHighlightGeometry(brickObject.brickType), 1),
       this._highlightMaterial);
 
-    this.highlight.position.setZ(-CELL_SIZE.z * brickObject.pivotZ);
-    this.highlight.position.setX(-CELL_SIZE.x * brickObject.pivotX);
+    this.highlight.position.setZ(-CELL_SIZE.z * brickObject.brickPivotZ);
+    this.highlight.position.setX(-CELL_SIZE.x * brickObject.brickPivotX);
 
-    this.object.position.set(brickObject.object.position.x, brickObject.object.position.y, brickObject.object.position.z);
+    this.object.position.set(brickObject.position.x, brickObject.position.y, brickObject.position.z);
 
     this.object.add(this.highlight);
 
