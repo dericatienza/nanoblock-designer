@@ -1,12 +1,18 @@
-import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChanges, AfterViewInit } from '@angular/core';
 import { EditorMode } from '../editor/editor-mode';
+
+declare var $: any;
+
+interface $ {
+  tooltip(options?: any): any;
+}
 
 @Component({
   selector: 'ne-editor-mode',
   templateUrl: './editor-mode.component.html',
   styleUrls: ['./editor-mode.component.scss']
 })
-export class EditorModeComponent implements OnInit {
+export class EditorModeComponent implements OnInit, AfterViewInit {
   @Input()
   modes: EditorMode[];
 
@@ -17,6 +23,10 @@ export class EditorModeComponent implements OnInit {
   constructor() { }
 
   ngOnInit() {
+  }
+
+  ngAfterViewInit(): void {
+    $('[data-toggle="tooltip"]').tooltip();
   }
 
   onChange(mode: EditorMode) {
