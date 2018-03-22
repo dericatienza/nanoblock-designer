@@ -6,7 +6,20 @@
         <ne-editor-mode #modesList [modes]="modes" [(currentMode)]="currentMode" (selectionChange)="onModeSelectionChanged($event)"></ne-editor-mode>
       </div>
       <div class="position-absolute controls py-1 px-2">
-        <ne-editor-controls></ne-editor-controls>
+        <!-- <ne-editor-controls></ne-editor-controls> -->
+        <div class="text-muted">
+          <p>Controls:</p>
+          <p>
+            <strong>[Ctrl+Z]</strong> - Undo</p>
+          <p>
+            <strong>[Ctrl+Y]</strong> - Redo</p>
+          <div [hidden]="!currentMode || currentMode.name != 'build'">
+            <p>
+              <strong>[Q][E]</strong> - Rotate brick right and left</p>
+            <p>
+              <strong>[W][S][A][D]</strong> - Move brick pivot up, down, left, and right</p>
+          </div>
+        </div>
       </div>
       <three-renderer #renderer [displayStats]="true">
         <three-orbit-controls #cameraControls="three-orbit-controls" [rotateSpeed]=1 [zoomSpeed]=1.2 [renderer]="renderer">

@@ -90,4 +90,10 @@ export class BrickColorsListComponent implements OnInit {
   private getNewBrickColorId(): number {
     return Math.max.apply(Math, this.brickColors.map(function (x) { return x.id; })) + 1;
   }
+
+  onColorClearChanged(isClear: boolean) {
+    this.currentBrickColor.isClear = isClear;
+
+    this._brickColorService.updateBrickColorMaterial(this.currentBrickColor);
+  }
 }

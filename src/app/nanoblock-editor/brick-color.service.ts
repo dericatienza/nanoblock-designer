@@ -55,6 +55,8 @@ export class BrickColorService {
 
     if (material) {
       material.color.set(brickColor.colorHex);
+      material.opacity = brickColor.isClear ? CLEAR_COLOR_OPACITY : 1;
+      material.transparent = brickColor.isClear;
     }
   }
 

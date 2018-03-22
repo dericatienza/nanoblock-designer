@@ -80,9 +80,9 @@ export class BuildEditorMode extends EditorMode {
     onKeyDown(event: KeyboardEvent) {
         // Rotate input
         if (event.keyCode === KEY_ROTATE_RIGHT) {
-            this.editor.rotateBrickObject(this.editor.currentBrickObject, RotateDirection.Right);
+            this.editor.currentBrickObject.rotationY += 90;
         } else if (event.keyCode === KEY_ROTATE_LEFT) {
-            this.editor.rotateBrickObject(this.editor.currentBrickObject, RotateDirection.Left);
+            this.editor.currentBrickObject.rotationY -= 90;
         }
 
         // Pivot input

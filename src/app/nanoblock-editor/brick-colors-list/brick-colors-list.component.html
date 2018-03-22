@@ -29,5 +29,10 @@
       [cpCancelButtonClass]="'btn btn-secondary btn-sm'" [cpCancelButtonText]="'Reset'" [(colorPicker)]="currentBrickColor.colorHex"
       (colorPickerChange)="onColorPickerChanged(currentBrickColor)">
     </span>
+    <div class="form-check position-absolute clear-checkbox">
+      <label class="form-check-label">
+        <input type="checkbox" class="form-check-input" [checked]="currentBrickColor.isClear" (change)="onColorClearChanged(!currentBrickColor.isClear)"> Clear
+      </label>
+    </div>
   </div>
 </div>

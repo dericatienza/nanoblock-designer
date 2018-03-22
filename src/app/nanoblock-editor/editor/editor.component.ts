@@ -404,7 +404,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
     const existingBrickObject = this.getBrickObjectFromCell(cell);
 
     if (existingBrickObject) {
-      this.shiftLevel(cell.y, 1);
+      const existingBrickObjectGroup = this.getBrickObjectAdjacents(existingBrickObject,
+        this.getBrickObjectCellMapByLevelRange(cell.y, this.grid.size - 1));
+
+      this.shiftBrickObjects(existingBrickObjectGroup, 1);
     }
 
     if (cell.y < 0) {
@@ -445,16 +448,16 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     this._gridSelector.removeSelectable(brickObject.mesh);
 
-    brickObject.cell = null;
-
     this.brickObjects.splice(brickObjectIndex, 1);
 
-    const levelBrickObjects = this.getBrickObjectsByIndex(-1, deletedBrickObjectY, -1);
+    const levelBrickObjectGroup = this.getBrickObjectAdjacents(brickObject,
+      this.getBrickObjectCellMapByLevelRange(0, brickObject.cell.y));
 
-    if (levelBrickObjects.length < 1) {
-      this.shiftLevel(deletedBrickObjectY, -1);
+    if (levelBrickObjectGroup.length > 0) {
+      this.shiftBrickObjects(levelBrickObjectGroup, 1);
     }
 
+    brickObject.cell = null;
   }
 
   destroyBrickObject(brickObject: BrickObject) {
@@ -672,6 +675,52 @@ export class EditorComponent implements OnInit, AfterViewInit {
     return offset;
   }
 
+  getBrickObjectGroup(brickObject: BrickObject): BrickObject[] {
+    const brickObjectCellMap = this.getBrickObjectCellMap(this.brickObjects);
+
+    const brickObjectGroup = this.getBrickObjectAdjacents(brickObject, brickObjectCellMap);
+
+    return brickObjectGroup;
+  }
+
+  getBrickObjectAdjacents(brickObject: BrickObject, brickObjectCellMap: Map<BrickObject, Cell[]>): BrickObject[] {
+    const brickObjectCells = brickObjectCellMap.get(brickObject);
+
+    const adjacentBrickObjects = [brickObject];
+
+    brickObjectCellMap.forEach((adjacentBrickObjectCells: Cell[], adjacentBrickObject: BrickObject) => {
+      const isAdjacent = brickObjectCells.some(x => adjacentBrickObjectCells.some(y => {
+        const axisComparison = [
+          x.x === y.x,
+          x.y === y.y,
+          x.z === y.z
+        ];
+
+        return axisComparison.filter(z => z).length === 2;
+      }));
+
+      if (isAdjacent) {
+        adjacentBrickObjects.push(...this.getBrickObjectAdjacents(adjacentBrickObject, brickObjectCellMap));
+      }
+    });
+
+    return adjacentBrickObjects;
+  }
+
+  getBrickObjectCellMapByLevelRange(min: number, max: number): Map<BrickObject, Cell[]> {
+    return this.getBrickObjectCellMap(this.brickObjects.filter(x => x.cell.y >= min && x.cell.y <= max));
+  }
+
+  getBrickObjectCellMap(brickObjects: BrickObject[]): Map<BrickObject, Cell[]> {
+    const brickObjectCells = new Map<BrickObject, Cell[]>();
+
+    for (const brickObject of brickObjects) {
+      brickObjectCells.set(brickObject, this.getOccupiedCells(brickObject, brickObject.cell));
+    }
+
+    return brickObjectCells;
+  }
+
   shiftLevel(y: number, amount: number) {
     if (amount === 0) {
       return;
@@ -679,6 +728,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     const brickObjects = this.brickObjects.filter(x => x.cell.y >= y);
 
+    this.shiftBrickObjects(brickObjects, amount);
+  }
+
+  shiftBrickObjects(brickObjects: BrickObject[], amount: number) {
     for (const brickObject of brickObjects) {
       const cell = this.grid.getCellByIndex(brickObject.cell.x, brickObject.cell.y + amount, brickObject.cell.z);
 
