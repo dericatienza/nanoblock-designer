@@ -7,17 +7,20 @@
       </div>
       <div class="position-absolute controls py-1 px-2">
         <!-- <ne-editor-controls></ne-editor-controls> -->
-        <div class="text-muted">
-          <p>Controls:</p>
+        <div class="text-secondary">
           <p>
-            <strong>[Ctrl+Z]</strong> - Undo</p>
+            <span class="badge badge-secondary">Ctrl+Z</span> - Undo</p>
           <p>
-            <strong>[Ctrl+Y]</strong> - Redo</p>
+            <span class="badge badge-secondary">Ctrl+Y</span> - Redo</p>
           <div [hidden]="!currentMode || currentMode.name != 'build'">
             <p>
-              <strong>[Q][E]</strong> - Rotate brick right and left</p>
+              <span class="badge badge-secondary">Q</span>
+              <span class="badge badge-secondary">E</span> - Rotate brick right and left</p>
             <p>
-              <strong>[W][S][A][D]</strong> - Move brick pivot up, down, left, and right</p>
+              <span class="badge badge-secondary">W</span>
+              <span class="badge badge-secondary">S</span>
+              <span class="badge badge-secondary">A</span>
+              <span class="badge badge-secondary">D</span> - Move brick pivot up, down, left, and right</p>
           </div>
         </div>
       </div>

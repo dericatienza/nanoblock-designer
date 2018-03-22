@@ -22,7 +22,7 @@ import { MathHelper } from '../../helpers/math-helper';
 import { BrickObject } from './brick-object';
 import { BrickTypesListComponent } from '../brick-types-list/brick-types-list.component';
 import { BrickColorsListComponent } from '../brick-colors-list/brick-colors-list.component';
-import { ReadFile } from 'ngx-file-helpers';
+import { ReadFile, FilePickerDirective } from 'ngx-file-helpers';
 import { JsonConvert } from 'json2typescript';
 import { BrickObjectHighlightDirective } from '../objects/brick-object-highlight.directive';
 
@@ -101,6 +101,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
   get renderer(): RendererComponent {
     return this._renderer;
   }
+
+  @ViewChild(FilePickerDirective)
+  private _filePicker: FilePickerDirective;
 
   brickTypes: BrickType[];
   brickColors: BrickColor[];
@@ -404,10 +407,55 @@ export class EditorComponent implements OnInit, AfterViewInit {
     const existingBrickObject = this.getBrickObjectFromCell(cell);
 
     if (existingBrickObject) {
-      const existingBrickObjectGroup = this.getBrickObjectAdjacents(existingBrickObject,
-        this.getBrickObjectCellMapByLevelRange(cell.y, this.grid.size - 1));
+      const newBrickObjectCells = this.getOccupiedCells(brickObject, cell);
 
-      this.shiftBrickObjects(existingBrickObjectGroup, 1);
+      const intersectingBrickObjects = [];
+
+      for (const newBrickObjectCell of newBrickObjectCells) {
+        const intersectingBrickObject = this.getBrickObjectFromCell(newBrickObjectCell);
+
+        if (!intersectingBrickObjects.includes(intersectingBrickObject)) {
+          intersectingBrickObjects.push(intersectingBrickObject);
+        }
+      }
+
+      const intersectingBrickObjectsGroup = [];
+      const excludeTestCells = [];
+
+      for (const intersectingBrickObject of intersectingBrickObjects) {
+        const intersectingBrickObjectGroup = this.getBrickObjectGroup(intersectingBrickObject);
+
+        intersectingBrickObjectGroup.forEach(x => {
+          if (!intersectingBrickObjectsGroup.includes(x)) {
+            intersectingBrickObjectsGroup.push(x);
+          }
+        });
+
+        const bottomBrickObjects = this.getBrickObjectBottomBrickObjects(intersectingBrickObject);
+
+        excludeTestCells.push(...this.getBrickObjectCells(bottomBrickObjects));
+      }
+
+      const groupTestCells = this.getBrickObjectCells(intersectingBrickObjectsGroup);
+
+      excludeTestCells.forEach((x) => {
+        const i = groupTestCells.indexOf(x);
+
+        if (i > -1) {
+          groupTestCells.splice(i, 1);
+        }
+      });
+
+      const shiftBrickObjects = [];
+
+      for (const intersectingBrickObject of intersectingBrickObjects) {
+        shiftBrickObjects.push(intersectingBrickObject);
+        this.getBrickObjectAdjacents(intersectingBrickObject, shiftBrickObjects, groupTestCells);
+      }
+
+      if (shiftBrickObjects.length > 0) {
+        this.shiftBrickObjects(shiftBrickObjects, 1);
+      }
     }
 
     if (cell.y < 0) {
@@ -450,11 +498,42 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     this.brickObjects.splice(brickObjectIndex, 1);
 
-    const levelBrickObjectGroup = this.getBrickObjectAdjacents(brickObject,
-      this.getBrickObjectCellMapByLevelRange(0, brickObject.cell.y));
+    const topBrickObjects = this.getBrickObjectTopBrickObjects(brickObject);
 
-    if (levelBrickObjectGroup.length > 0) {
-      this.shiftBrickObjects(levelBrickObjectGroup, 1);
+    if (topBrickObjects.length > 0) {
+      const groupTestCells = [];
+
+      for (const topBrickObject of topBrickObjects) {
+        groupTestCells.push(...this.getBrickObjectCells(this.getBrickObjectGroup(topBrickObject)));
+      }
+
+      const levelBrickObjectGroup = [];
+
+      this.getBrickObjectAdjacents(brickObject, levelBrickObjectGroup, groupTestCells);
+
+      if (levelBrickObjectGroup.length > 0) {
+        const groupBottomY = Math.min(...levelBrickObjectGroup.map(x => x.cell.y));
+
+        if (groupBottomY > 0) {
+          let shouldShift = true;
+
+          const groupBottomBrickObjects: BrickObject[] = levelBrickObjectGroup.filter(x => x.cell.y === groupBottomY);
+
+          for (const bottomBrickObject of groupBottomBrickObjects) {
+            const bottomBrickObjectBottomBrickObjects = this.getBrickObjectBottomBrickObjects(bottomBrickObject);
+
+            if (bottomBrickObjectBottomBrickObjects.length > 0) {
+              shouldShift = false;
+
+              break;
+            }
+          }
+
+          if (shouldShift) {
+            this.shiftBrickObjects(levelBrickObjectGroup, -1);
+          }
+        }
+      }
     }
 
     brickObject.cell = null;
@@ -676,46 +755,89 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   getBrickObjectGroup(brickObject: BrickObject): BrickObject[] {
-    const brickObjectCellMap = this.getBrickObjectCellMap(this.brickObjects);
+    const brickObjectCells = this.getBrickObjectCells(this.brickObjects);
 
-    const brickObjectGroup = this.getBrickObjectAdjacents(brickObject, brickObjectCellMap);
+    const brickObjectGroup = [brickObject];
+
+    this.getBrickObjectAdjacents(brickObject, brickObjectGroup, brickObjectCells);
 
     return brickObjectGroup;
   }
 
-  getBrickObjectAdjacents(brickObject: BrickObject, brickObjectCellMap: Map<BrickObject, Cell[]>): BrickObject[] {
-    const brickObjectCells = brickObjectCellMap.get(brickObject);
+  getBrickObjectAdjacents(brickObject: BrickObject, brickObjects: BrickObject[], cells: Cell[],
+    recursive: boolean = true, checkSides: boolean = false) {
+    const brickObjectCells = this.getOccupiedCells(brickObject, brickObject.cell);
 
-    const adjacentBrickObjects = [brickObject];
+    const checkCells = cells.slice();
 
-    brickObjectCellMap.forEach((adjacentBrickObjectCells: Cell[], adjacentBrickObject: BrickObject) => {
-      const isAdjacent = brickObjectCells.some(x => adjacentBrickObjectCells.some(y => {
-        const axisComparison = [
-          x.x === y.x,
-          x.y === y.y,
-          x.z === y.z
-        ];
+    brickObjectCells.forEach((x) => {
+      const i = checkCells.indexOf(x);
 
-        return axisComparison.filter(z => z).length === 2;
-      }));
-
-      if (isAdjacent) {
-        adjacentBrickObjects.push(...this.getBrickObjectAdjacents(adjacentBrickObject, brickObjectCellMap));
+      if (i > -1) {
+        checkCells.splice(i, 1);
       }
     });
 
-    return adjacentBrickObjects;
+    for (const brickObjectCell of brickObjectCells) {
+      for (const checkCell of checkCells) {
+        let isAdjacent = false;
+
+        if (checkSides) {
+          const distance = Math.abs(checkCell.x - brickObjectCell.x) +
+            Math.abs(checkCell.y - brickObjectCell.y) +
+            Math.abs(checkCell.z - brickObjectCell.z);
+
+          isAdjacent = distance === 1;
+        } else {
+          const yDistance = Math.abs(checkCell.y - brickObjectCell.y);
+
+          isAdjacent = yDistance === 1 && checkCell.x === brickObjectCell.x && checkCell.z === brickObjectCell.z;
+        }
+
+        if (isAdjacent) {
+          const adjacentBrickObject = this.getBrickObjectFromCell(checkCell);
+
+          if (brickObjects.indexOf(adjacentBrickObject) < 0) {
+            brickObjects.push(adjacentBrickObject);
+
+            if (recursive) {
+              this.getBrickObjectAdjacents(adjacentBrickObject, brickObjects, cells);
+            }
+          }
+        }
+      }
+    }
   }
 
-  getBrickObjectCellMapByLevelRange(min: number, max: number): Map<BrickObject, Cell[]> {
-    return this.getBrickObjectCellMap(this.brickObjects.filter(x => x.cell.y >= min && x.cell.y <= max));
+  getBrickObjectTopBrickObjects(brickObject: BrickObject): BrickObject[] {
+    const brickObjectsCells = this.getBrickObjectCellsByLevelRange(brickObject.cell.y + 1, brickObject.cell.y + 1);
+
+    const brickObjects = [];
+
+    this.getBrickObjectAdjacents(brickObject, brickObjects, brickObjectsCells);
+
+    return brickObjects;
   }
 
-  getBrickObjectCellMap(brickObjects: BrickObject[]): Map<BrickObject, Cell[]> {
-    const brickObjectCells = new Map<BrickObject, Cell[]>();
+  getBrickObjectBottomBrickObjects(brickObject: BrickObject): BrickObject[] {
+    const brickObjectsCells = this.getBrickObjectCellsByLevelRange(brickObject.cell.y - 1, brickObject.cell.y - 1);
+
+    const brickObjects = [];
+
+    this.getBrickObjectAdjacents(brickObject, brickObjects, brickObjectsCells);
+
+    return brickObjects;
+  }
+
+  getBrickObjectCellsByLevelRange(min: number, max: number): Cell[] {
+    return this.getBrickObjectCells(this.brickObjects.filter(x => x.cell.y >= min && x.cell.y <= max));
+  }
+
+  getBrickObjectCells(brickObjects: BrickObject[]): Cell[] {
+    const brickObjectCells = [];
 
     for (const brickObject of brickObjects) {
-      brickObjectCells.set(brickObject, this.getOccupiedCells(brickObject, brickObject.cell));
+      brickObjectCells.push(...this.getOccupiedCells(brickObject, brickObject.cell));
     }
 
     return brickObjectCells;
@@ -766,6 +888,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this.currentBrickColor = this.brickColors[0];
 
     this.clearCommandHistory();
+
+    this.setMode('select');
 
     for (const brick of design.bricks) {
       const brickType = this.brickTypes.find(x => x.id === brick.typeId);
@@ -836,6 +960,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     if (design) {
       this.loadDesign(design);
+
+      this._filePicker.reset();
     }
   }
 
