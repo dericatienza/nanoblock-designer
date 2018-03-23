@@ -6,7 +6,6 @@ import * as three from 'three';
 import '../../assets/js/ThreeCSG';
 import 'rxjs/add/operator/map';
 import { Geometry, Material, Vector3, BufferGeometry, BoxGeometry } from 'three';
-import { SimplifyModifier } from '../three-js/modifiers/simplify-modifier';
 
 declare var THREE: any;
 

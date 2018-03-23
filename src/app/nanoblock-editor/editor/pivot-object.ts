@@ -1,4 +1,4 @@
-import THREE = require('three');
+import * as THREE from 'three';
 
 export class PivotObject3D extends THREE.Object3D {
 

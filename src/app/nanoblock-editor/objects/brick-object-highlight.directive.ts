@@ -4,7 +4,7 @@ import { PivotObject3D } from '../editor/pivot-object';
 import { BrickTypeService } from '../brick-type.service';
 import { Mesh, LineBasicMaterial } from 'three';
 import { BrickObject } from '../editor/brick-object';
-import three = require('three');
+import * as three from 'three';
 import { CELL_SIZE } from './grid.directive';
 
 import '../../../assets/js/OutlinesGeometry';

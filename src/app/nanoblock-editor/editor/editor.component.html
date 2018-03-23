@@ -3,7 +3,7 @@
     <!-- Window -->
     <div class="col-md-10" (click)="onRendererClick()">
       <div class="position-absolute mode py-1 px-2">
-        <ne-editor-mode #modesList [modes]="modes" [(currentMode)]="currentMode" (selectionChange)="onModeSelectionChanged($event)"></ne-editor-mode>
+        <ne-editor-mode #modesList [modes]="modes" [(currentMode)]="currentMode"></ne-editor-mode>
       </div>
       <div class="position-absolute controls py-1 px-2">
         <!-- <ne-editor-controls></ne-editor-controls> -->
@@ -54,7 +54,7 @@
       </div>
       <div class="gutters-r mt-auto">
         <button type="button" class="btn btn-danger btn-block" (click)="onResetButtonClicked()">Reset</button>
-        <button type="button" class="btn btn-primary btn-block" [ngxFilePicker]="readMode" (filePick)="onLoadFilePicked($event)"
+        <button type="button" class="btn btn-primary btn-block" [ngxFilePicker]="'readMode'" (filePick)="onLoadFilePicked($event)"
           accept="text/json">Load design</button>
         <button type="button" class="btn btn-primary btn-block" (click)="onSaveButtonClicked()">Save design</button>
       </div>

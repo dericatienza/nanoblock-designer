@@ -1,7 +1,7 @@
 import { CELL_SIZE, Cell } from '../objects/grid.directive';
 import { Brick, BrickType, BrickColor } from './editor.models';
 import { Vector3 } from 'three';
-import THREE = require('three');
+import * as THREE from 'three';
 import { PivotObject3D } from './pivot-object';
 
 

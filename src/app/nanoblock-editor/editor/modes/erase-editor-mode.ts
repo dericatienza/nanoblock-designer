@@ -3,7 +3,7 @@ import { EditorComponent, RotateDirection } from '../editor.component';
 import { Cell } from '../../objects/grid.directive';
 import { BuildCommand } from '../commands/build-command';
 import { Vector3 } from 'three';
-import THREE = require('three');
+import * as THREE from 'three';
 import { SelectEditorMode } from './select-editor-mode';
 import { EraseCommand } from '../commands/erase-command';
 
