@@ -354,32 +354,14 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   undo() {
     if (this._commandHistoryIndex > -1) {
-      const command = this._commandHistory[this._commandHistoryIndex--];
-
-      command.undo(this);
-
-      if (command.preDoBrickCells) {
-        command.preDoBrickCells.forEach((value: Cell, key: BrickObject) => {
-          this.moveBrickObject(key, value);
-        });
-      }
+      this._commandHistory[this._commandHistoryIndex--].undo(this);
     }
   }
 
   redo() {
     if (this._commandHistoryIndex < this._commandHistory.length - 1) {
-      this.do(this._commandHistory[++this._commandHistoryIndex]);
+      this._commandHistory[++this._commandHistoryIndex].do(this);
     }
-  }
-
-  do(command: Command) {
-    const preDoBrickCells = this.snapshotBrickCells();
-
-    command.do(this);
-
-    this.removeUnmovedBrickObject(preDoBrickCells);
-
-    command.preDoBrickCells = preDoBrickCells;
   }
 
   onBrickColorSelectionChanged(brickColor: BrickColor) {
@@ -401,7 +383,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   executeCommand(command: Command) {
-    this.do(command);
+    command.do(this);
 
     if (this._commandHistoryIndex < this._commandHistory.length - 1) {
       this._commandHistory.splice(this._commandHistoryIndex + 1, this._commandHistory.length - this._commandHistoryIndex - 1);
@@ -443,6 +425,70 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   fixBrickBuild() {
+    const brickObjectGroups = this.getBrickObjectGroups();
+
+    for (const brickObjectGroup of brickObjectGroups) {
+      const fallDistance = this.getFallDistance(brickObjectGroup);
+
+      if (fallDistance > 0) {
+        this.shiftBrickObjects(brickObjectGroup, -fallDistance);
+      }
+    }
+  }
+
+  getBrickObjectGroups() {
+    const brickObjectGroups = [];
+
+    for (const brickObject of this.brickObjects) {
+      if (!brickObjectGroups.some(x => x.includes(brickObject))) {
+        brickObjectGroups.push(this.getBrickObjectGroup(brickObject));
+      }
+    }
+
+    return brickObjectGroups;
+  }
+
+  getFallDistance(brickObjectGroup: BrickObject[]): number {
+    let bottomLevel = this.getGroupBottomBrickObjectLevel(brickObjectGroup);
+
+    if (bottomLevel < 1) {
+      return bottomLevel;
+    }
+
+    const brickObjectGroupCells = this.getBrickObjectCells(brickObjectGroup);
+
+    const intersectionTestCells = this.getBrickObjectCells(this.brickObjects);
+
+    brickObjectGroupCells.forEach(x => {
+      intersectionTestCells.splice(intersectionTestCells.indexOf(x), 1);
+    });
+
+    let fallDistance = 0;
+
+    while (bottomLevel > 0) {
+      for (let x = 0; x < brickObjectGroupCells.length; x++) {
+        brickObjectGroupCells[x] = this.grid.getCellByIndex(
+          brickObjectGroupCells[x].x, brickObjectGroupCells[x].y - 1, brickObjectGroupCells[x].z);
+      }
+
+      const hasIntersection = brickObjectGroupCells.some(y => intersectionTestCells.some(z => y === z));
+
+      if (hasIntersection) {
+        break;
+      }
+
+      fallDistance++;
+
+      bottomLevel--;
+    }
+
+    return fallDistance;
+  }
+
+  getGroupBottomBrickObjectLevel(brickObjectGroup: BrickObject[]): number {
+    const bottomY = Math.min(...brickObjectGroup.map(x => x.cell.y));
+
+    return bottomY;
   }
 
   buildBrickObject(brickObject: BrickObject, cell: Cell) {
