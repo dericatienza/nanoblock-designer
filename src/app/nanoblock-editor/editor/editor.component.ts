@@ -354,14 +354,32 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   undo() {
     if (this._commandHistoryIndex > -1) {
-      this._commandHistory[this._commandHistoryIndex--].undo(this);
+      const command = this._commandHistory[this._commandHistoryIndex--];
+
+      command.undo(this);
+
+      if (command.preDoBrickCells) {
+        command.preDoBrickCells.forEach((value: Cell, key: BrickObject) => {
+          this.moveBrickObject(key, value);
+        });
+      }
     }
   }
 
   redo() {
     if (this._commandHistoryIndex < this._commandHistory.length - 1) {
-      this._commandHistory[++this._commandHistoryIndex].do(this);
+      this.do(this._commandHistory[++this._commandHistoryIndex]);
     }
+  }
+
+  do(command: Command) {
+    const preDoBrickCells = this.snapshotBrickCells();
+
+    command.do(this);
+
+    this.removeUnmovedBrickObject(preDoBrickCells);
+
+    command.preDoBrickCells = preDoBrickCells;
   }
 
   onBrickColorSelectionChanged(brickColor: BrickColor) {
@@ -383,7 +401,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   executeCommand(command: Command) {
-    command.do(this);
+    this.do(command);
 
     if (this._commandHistoryIndex < this._commandHistory.length - 1) {
       this._commandHistory.splice(this._commandHistoryIndex + 1, this._commandHistory.length - this._commandHistoryIndex - 1);
@@ -398,69 +416,60 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this._commandHistoryIndex = this._commandHistory.length - 1;
   }
 
+  removeUnmovedBrickObject(brickCellsMap: Map<BrickObject, Cell>) {
+    const currentBrickCellsMap = this.snapshotBrickCells();
+
+    const unmovedBrickObjects = [];
+
+    brickCellsMap.forEach((value: Cell, key: BrickObject) => {
+      if (currentBrickCellsMap.has(key) && currentBrickCellsMap.get(key) === value) {
+        unmovedBrickObjects.push(key);
+      }
+    });
+
+    for (const unmovedBrickObject of unmovedBrickObjects) {
+      brickCellsMap.delete(unmovedBrickObject);
+    }
+  }
+
+  snapshotBrickCells(): Map<BrickObject, Cell> {
+    const snapshot = new Map<BrickObject, Cell>();
+
+    for (const brickObject of this.brickObjects) {
+      snapshot.set(brickObject, brickObject.cell);
+    }
+
+    return snapshot;
+  }
+
+  fixBrickBuild() {
+  }
+
   buildBrickObject(brickObject: BrickObject, cell: Cell) {
     if (this.brickObjects.indexOf(brickObject) > -1) {
       throw new RangeError(`Brick object is already in editor's built brick objects.`);
     }
 
-    // Insert handling
-    const existingBrickObject = this.getBrickObjectFromCell(cell);
+    if (cell.y < 0) {
+      brickObject.cell = cell;
 
-    if (existingBrickObject) {
-      const newBrickObjectCells = this.getOccupiedCells(brickObject, cell);
+      const topBrickObjects = this.getBrickObjectTopBrickObjects(brickObject);
 
-      const intersectingBrickObjects = [];
+      brickObject.cell = null;
 
-      for (const newBrickObjectCell of newBrickObjectCells) {
-        const intersectingBrickObject = this.getBrickObjectFromCell(newBrickObjectCell);
+      const topBrickObjectsGroup = [];
 
-        if (!intersectingBrickObjects.includes(intersectingBrickObject)) {
-          intersectingBrickObjects.push(intersectingBrickObject);
-        }
-      }
+      for (const topBrickObject of topBrickObjects) {
+        const topBrickObjectGroup = this.getBrickObjectGroup(topBrickObject);
 
-      const intersectingBrickObjectsGroup = [];
-      const excludeTestCells = [];
-
-      for (const intersectingBrickObject of intersectingBrickObjects) {
-        const intersectingBrickObjectGroup = this.getBrickObjectGroup(intersectingBrickObject);
-
-        intersectingBrickObjectGroup.forEach(x => {
-          if (!intersectingBrickObjectsGroup.includes(x)) {
-            intersectingBrickObjectsGroup.push(x);
+        topBrickObjectGroup.forEach(x => {
+          if (!topBrickObjectsGroup.includes(x)) {
+            topBrickObjectsGroup.push(x);
           }
         });
-
-        const bottomBrickObjects = this.getBrickObjectBottomBrickObjects(intersectingBrickObject);
-
-        excludeTestCells.push(...this.getBrickObjectCells(bottomBrickObjects));
       }
 
-      const groupTestCells = this.getBrickObjectCells(intersectingBrickObjectsGroup);
-
-      excludeTestCells.forEach((x) => {
-        const i = groupTestCells.indexOf(x);
-
-        if (i > -1) {
-          groupTestCells.splice(i, 1);
-        }
-      });
-
-      const shiftBrickObjects = [];
-
-      for (const intersectingBrickObject of intersectingBrickObjects) {
-        shiftBrickObjects.push(intersectingBrickObject);
-        this.getBrickObjectAdjacents(intersectingBrickObject, shiftBrickObjects, groupTestCells);
-      }
-
-      if (shiftBrickObjects.length > 0) {
-        this.shiftBrickObjects(shiftBrickObjects, 1);
-      }
-    }
-
-    if (cell.y < 0) {
-      // Shift all bricks up and insert brick at bottom
-      this.shiftLevel(0, 1);
+      this.shiftBrickObjects(topBrickObjectsGroup, 1);
 
       cell = this.grid.getCellByIndex(cell.x, 0, cell.z);
     }
@@ -477,15 +486,12 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     this._scene.object.add(brickObject);
 
-    // const helper = new THREE.FaceNormalsHelper(brickObject.mesh, 2, 0x00ff00, 1);
-    // this._scene.object.add(helper);
-
     this.brickObjects.push(brickObject);
 
     this.currentBrickObject = null;
   }
 
-  removeBrickObject(brickObject: BrickObject) {
+  removeBrickObject(brickObject: BrickObject, fixBuild: boolean = true) {
     const brickObjectIndex = this.brickObjects.indexOf(brickObject);
 
     if (brickObjectIndex < 0) {
@@ -498,45 +504,11 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     this.brickObjects.splice(brickObjectIndex, 1);
 
-    const topBrickObjects = this.getBrickObjectTopBrickObjects(brickObject);
-
-    if (topBrickObjects.length > 0) {
-      const groupTestCells = [];
-
-      for (const topBrickObject of topBrickObjects) {
-        groupTestCells.push(...this.getBrickObjectCells(this.getBrickObjectGroup(topBrickObject)));
-      }
-
-      const levelBrickObjectGroup = [];
-
-      this.getBrickObjectAdjacents(brickObject, levelBrickObjectGroup, groupTestCells);
-
-      if (levelBrickObjectGroup.length > 0) {
-        const groupBottomY = Math.min(...levelBrickObjectGroup.map(x => x.cell.y));
-
-        if (groupBottomY > 0) {
-          let shouldShift = true;
-
-          const groupBottomBrickObjects: BrickObject[] = levelBrickObjectGroup.filter(x => x.cell.y === groupBottomY);
-
-          for (const bottomBrickObject of groupBottomBrickObjects) {
-            const bottomBrickObjectBottomBrickObjects = this.getBrickObjectBottomBrickObjects(bottomBrickObject);
-
-            if (bottomBrickObjectBottomBrickObjects.length > 0) {
-              shouldShift = false;
-
-              break;
-            }
-          }
-
-          if (shouldShift) {
-            this.shiftBrickObjects(levelBrickObjectGroup, -1);
-          }
-        }
-      }
-    }
-
     brickObject.cell = null;
+
+    if (fixBuild) {
+      this.fixBrickBuild();
+    }
   }
 
   destroyBrickObject(brickObject: BrickObject) {
@@ -765,7 +737,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   getBrickObjectAdjacents(brickObject: BrickObject, brickObjects: BrickObject[], cells: Cell[],
-    recursive: boolean = true, checkSides: boolean = false) {
+    recursive: boolean = true) {
     const brickObjectCells = this.getOccupiedCells(brickObject, brickObject.cell);
 
     const checkCells = cells.slice();
@@ -780,19 +752,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     for (const brickObjectCell of brickObjectCells) {
       for (const checkCell of checkCells) {
-        let isAdjacent = false;
 
-        if (checkSides) {
-          const distance = Math.abs(checkCell.x - brickObjectCell.x) +
-            Math.abs(checkCell.y - brickObjectCell.y) +
-            Math.abs(checkCell.z - brickObjectCell.z);
+        const yDistance = Math.abs(checkCell.y - brickObjectCell.y);
 
-          isAdjacent = distance === 1;
-        } else {
-          const yDistance = Math.abs(checkCell.y - brickObjectCell.y);
-
-          isAdjacent = yDistance === 1 && checkCell.x === brickObjectCell.x && checkCell.z === brickObjectCell.z;
-        }
+        const isAdjacent = yDistance === 1 && checkCell.x === brickObjectCell.x && checkCell.z === brickObjectCell.z;
 
         if (isAdjacent) {
           const adjacentBrickObject = this.getBrickObjectFromCell(checkCell);
