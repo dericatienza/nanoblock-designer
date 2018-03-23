@@ -5,6 +5,9 @@ import { BuildCommand } from '../commands/build-command';
 import { Vector3 } from 'three';
 import THREE = require('three');
 import { MoveCommand } from '../commands/move-command';
+import { EraseCommand } from '../commands/erase-command';
+import { RemoveCommand } from '../commands/remove-command';
+import { ChainCommand } from '../commands/chain-command';
 
 const KEY_ROTATE_RIGHT = 69;
 const KEY_ROTATE_LEFT = 81;
@@ -17,6 +20,7 @@ const KEY_PIVOT_MOVE_LEFT = 68;
 export class BuildEditorMode extends EditorMode {
     cameraDirection: Vector3 = new Vector3();
 
+    removeCommand: RemoveCommand;
     isMoving = false;
     oldCell: Cell;
 
@@ -50,7 +54,9 @@ export class BuildEditorMode extends EditorMode {
         if (this.editor.currentBrickObject) {
             this.oldCell = this.editor.currentBrickObject.cell;
 
-            this.editor.removeBrickObject(this.editor.currentBrickObject);
+            this.removeCommand = new RemoveCommand(this.editor.currentBrickObject);
+
+            this.editor.executeCommand(this.removeCommand);
 
             this.isMoving = true;
 
@@ -113,13 +119,22 @@ export class BuildEditorMode extends EditorMode {
 
         this.editor.refreshCurrentBrickColor();
 
+        const buildCommand = new BuildCommand(this.editor.currentBrickObject, cell);
+
+        this.editor.destroyCurrentBrickObject();
+
+        this.editor.executeCommand(buildCommand);
+
         if (this.isMoving) {
-            this.moveBrick(cell);
+            const chainCommand = new ChainCommand(this.removeCommand, buildCommand);
+
+            this.editor.commandHistory.splice(this.editor.commandHistory.indexOf(this.removeCommand), 2);
+            this.editor.commandHistory.push(chainCommand);
+
+            this.editor.commandHistoryIndex = this.editor.commandHistory.length - 1;
 
             this.editor.setMode('select');
         } else {
-            this.buildBrick(cell);
-
             this.editor.createCurrentBrickObject();
             this.editor.setCurrentBrickOpacity();
 
@@ -128,21 +143,5 @@ export class BuildEditorMode extends EditorMode {
 
             this.editor.currentBrickObject.rotationY = rotationY;
         }
-    }
-
-    buildBrick(cell: Cell) {
-        const command = new BuildCommand(this.editor.currentBrickObject, cell);
-
-        this.editor.destroyCurrentBrickObject();
-
-        this.editor.executeCommand(command);
-    }
-
-    moveBrick(cell: Cell) {
-        const command = new MoveCommand(this.editor.currentBrickObject, cell, this.oldCell);
-
-        this.editor.destroyCurrentBrickObject();
-
-        this.editor.executeCommand(command);
     }
 }

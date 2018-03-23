@@ -66,6 +66,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
   @ViewChild('scene')
   private _scene: SceneDirective;
 
+  get scene(): SceneDirective {
+    return this._scene;
+  }
+
   @ViewChild('modesList')
   private _modesList: EditorModeComponent;
 
@@ -175,7 +179,19 @@ export class EditorComponent implements OnInit, AfterViewInit {
   private _currentBrickSelectedMaterial: MeshPhongMaterial;
 
   private _commandHistory: Command[];
+
+  get commandHistory(): Command[] {
+    return this._commandHistory;
+  }
+
   private _commandHistoryIndex = -1;
+
+  get commandHistoryIndex(): number {
+    return this._commandHistoryIndex;
+  }
+  set commandHistoryIndex(v: number) {
+    this._commandHistoryIndex = v;
+  }
 
   constructor(private _brickTypeService: BrickTypeService, private _brickColorService: BrickColorService) {
     this.onKeyDown = this.onKeyDown.bind(this);
@@ -280,7 +296,11 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   refreshCurrentBrickColor() {
-    this.currentBrickObject.mesh.material = this._brickColorService.getBrickColorMaterial(this.currentBrickColor);
+    this.refreshBrickColor(this.currentBrickObject);
+  }
+
+  refreshBrickColor(brickObject: BrickObject) {
+    brickObject.mesh.material = this._brickColorService.getBrickColorMaterial(this.currentBrickColor);
   }
 
   createBrickObject(type: BrickType, color: BrickColor): BrickObject {
