@@ -6,11 +6,19 @@ import { BuildCommand } from './build-command';
 import { EraseCommand } from './erase-command';
 
 export class RemoveCommand extends EraseCommand {
+    rotationY: number;
+    pivotZ: number;
+    pivotX: number;
 
     constructor(brickObject: BrickObject) {
         super(brickObject);
     }
     do(editor: EditorComponent) {
+        this.pivotZ = this.brickObject.brickPivotZ;
+        this.pivotX = this.brickObject.brickPivotX;
+
+        this.rotationY = this.brickObject.rotationY;
+
         const preDoBrickCells = editor.snapshotBrickCells();
 
         editor.removeBrickObject(this.brickObject);
@@ -25,6 +33,11 @@ export class RemoveCommand extends EraseCommand {
         editor.refreshBrickColor(this.brickObject);
 
         super.undo(editor);
+
+        this.brickObject.brickPivotZ = this.pivotZ;
+        this.brickObject.brickPivotX = this.pivotX;
+
+        this.brickObject.rotationY = this.rotationY;
 
         editor.setMode('select');
     }
