@@ -28,7 +28,7 @@ export class SelectEditorMode extends EditorMode {
         }
     }
     enter() {
-        console.log('Entered select mode.');
+
     }
     exit() {
         this.editor.brickObjectHighlight.removeHighlight();

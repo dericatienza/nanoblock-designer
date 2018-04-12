@@ -38,12 +38,12 @@ export class RendererComponent implements AfterViewInit, OnInit {
   }
 
   constructor() {
-    console.log('RendererComponent.constructor');
+
     this.render = this.render.bind(this);
   }
 
   ngAfterViewInit() {
-    console.log('RendererComponent.ngAfterViewInit');
+
 
     this._stats = new Stats();
 
@@ -79,9 +79,9 @@ export class RendererComponent implements AfterViewInit, OnInit {
     // && this.cameraComponents != undefined && this.cameraComponents.length == 1) {
     const sceneComponent = this.sceneComponents.first;
     const cameraComponent = this.cameraComponents.first;
-    // console.log("render");
-    // console.log(scene.object);
-    // console.log(camera.camera);
+    // 
+    // 
+    // 
     this._stats.begin();
 
     this.renderer.render(sceneComponent.object, cameraComponent.camera);
@@ -103,7 +103,7 @@ export class RendererComponent implements AfterViewInit, OnInit {
   public onResize(event: Event) {
     this.canvas.style.width = '100%';
     this.canvas.style.height = '100%';
-    console.log('RendererComponent.onResize: ' + this.canvas.clientWidth + ', ' + this.canvas.clientHeight);
+
 
     this.updateChildCamerasAspectRatio();
 
@@ -119,7 +119,7 @@ export class RendererComponent implements AfterViewInit, OnInit {
   /*
   @HostListener('document:keypress', ['$event'])
   public onKeyPress(event: KeyboardEvent) {
-    console.log("onKeyPress: " + event.key);
+    
   }
 */
 

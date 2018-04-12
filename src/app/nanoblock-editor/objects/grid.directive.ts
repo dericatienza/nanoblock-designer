@@ -123,7 +123,7 @@ export class GridDirective extends AbstractObject3D<THREE.GridHelper> {
       }
     }
 
-    console.log('Reached grid bounds.');
+
 
     return null;
   }

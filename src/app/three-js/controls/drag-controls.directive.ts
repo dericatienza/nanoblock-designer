@@ -17,13 +17,13 @@ export class DragControlsDirective implements AfterViewInit {
   @ContentChildren(ObjectLoaderDirective, { descendants: true }) childObjects: QueryList<ObjectLoaderDirective>;
 
   constructor() {
-    console.log('DragControlsDirective.constructor');
+
   }
 
   // private controls: THREE.DragControls;
 
   ngAfterViewInit(): void {
-    console.log('DragControlsDirective.ngAfterViewInit');
+
     if (this.childCameras === undefined || this.childCameras.first === undefined) {
       throw new Error('Camera is not found');
     }
@@ -31,7 +31,7 @@ export class DragControlsDirective implements AfterViewInit {
       throw new Error('Renderer is not found');
     }
 
-    console.log(`Draggable objects: ${this.childObjects} Count: ${this.childObjects.length}`);
+
     const objects = this.childObjects.map(ao => ao.object);
 
     // this.controls = new THREE.DragControls(objects, this.childCameras.first.camera, this.childRenderers.first.canvas);
