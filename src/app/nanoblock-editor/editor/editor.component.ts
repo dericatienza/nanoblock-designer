@@ -141,6 +141,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
       this.refreshCurrentBrickColor();
       this.setCurrentBrickOpacity();
     }
+
+    this.renderer.canvas.focus();
   }
 
   private _currentBrickObject: BrickObject;
