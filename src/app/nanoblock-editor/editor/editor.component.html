@@ -34,8 +34,9 @@
             <ne-grid #grid="ne-grid" size=24></ne-grid>
             <ne-brick-object-highlight #brickObjectHighlight="ne-brick-object-highlight"></ne-brick-object-highlight>
 
-            <three-point-light color="white" intensity="1" distance="1000" translateX=40 translateY=80 translateZ=80></three-point-light>
-            <three-point-light color="white" intensity="1" distance="1000" translateX=-40 translateY=80 translateZ=-80></three-point-light>
+            <three-ambient-light color="white" intensity="0.2" translateX="0" translateY="0" translateZ="80"></three-ambient-light>
+            <three-point-light color="white" intensity="1" distance="1000" translateX="40" translateY="80" translateZ="80"></three-point-light>
+            <three-point-light color="white" intensity="1" distance="1000" translateX="-40" translateY="80" translateZ="-80"></three-point-light>
           </three-scene>
         </three-orbit-controls>
         <ne-grid-selector #gridSelector="ne-grid-selector" [camera]="mainCamera" [grid]="grid" [renderer]="renderer" [cameraControls]="cameraControls"

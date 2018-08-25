@@ -11,6 +11,7 @@ import { PointLightDirective } from './objects/point-light.directive';
 import { DragControlsDirective } from './controls/drag-controls.directive';
 import { JsonLoaderDirective } from './objects/json-loader.directive';
 import { OrthographicCameraDirective } from './cameras/orthographic-camera.directive';
+import { AmbientLightDirective } from './objects/ambient-light.directive';
 
 @NgModule({
   imports: [
@@ -29,7 +30,8 @@ import { OrthographicCameraDirective } from './cameras/orthographic-camera.direc
     ObjectLoaderDirective,
     PointLightDirective,
     DragControlsDirective,
-    JsonLoaderDirective
+    JsonLoaderDirective,
+    AmbientLightDirective
   ],
   exports: [
     RendererComponent,
@@ -44,7 +46,8 @@ import { OrthographicCameraDirective } from './cameras/orthographic-camera.direc
     ObjectLoaderDirective,
     PointLightDirective,
     DragControlsDirective,
-    JsonLoaderDirective
+    JsonLoaderDirective,
+    AmbientLightDirective
   ]
 })
 export class ThreeJsModule { }

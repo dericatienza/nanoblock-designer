@@ -23,12 +23,9 @@ export abstract class AbstractObject3D<T extends THREE.Object3D> implements Afte
 
     if (this.childNodes !== undefined && this.childNodes.length > 1) {
       this.childNodes.filter(i => i !== this && i.object !== undefined).forEach(i => {
-        // 
-        // 
         this.addChild(i.object);
       });
     } else {
-      // 
     }
 
     this.afterInit();
