@@ -156,7 +156,13 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   private _brickIdCounter = 0;
 
-  private _modes: EditorMode[];
+  private _modes: EditorMode[] = [
+    new SelectEditorMode(this),
+    new BuildEditorMode(this),
+    new PaintEditorMode(this),
+    new EraseEditorMode(this)
+  ];
+
   get modes(): EditorMode[] {
     return this._modes;
   }
@@ -256,21 +262,14 @@ export class EditorComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.initBrickColors();
 
-    this._modes = [
-      new SelectEditorMode(this),
-      new BuildEditorMode(this),
-      new PaintEditorMode(this),
-      new EraseEditorMode(this)
-    ];
-
     this.brickObjects = [];
     this._commandHistory = [];
+
+    this.setMode('select');
   }
 
   ngAfterViewInit(): void {
     this.addListeners();
-
-    this.setMode('select');
   }
 
   setMode(name: string) {
