@@ -981,7 +981,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   onLoadFilePicked(file: ReadFile) {
-    const jsonString = atob(file.content.replace('data:;base64,', ''));
+    const base64 = file.content.split(',').pop();
+
+    const jsonString = atob(base64);
     const json: object = JSON.parse(jsonString);
 
     const jsonConvert: JsonConvert = new JsonConvert();
