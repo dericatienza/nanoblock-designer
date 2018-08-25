@@ -141,6 +141,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
       this.refreshCurrentBrickColor();
       this.setCurrentBrickOpacity();
     }
+
+    this.renderer.canvas.focus();
   }
 
   private _currentBrickObject: BrickObject;
@@ -207,6 +209,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this._brickTypeService.getBrickTypes()
       .subscribe((brickTypes: BrickType[]) => {
         this.brickTypes = brickTypes;
+
+        this.brickTypes.sort((a, b) => a.width * a.depth - b.width * b.depth);
+
         this.initBrickTypeGeometries();
 
         this._currentBrickType = this.brickTypes[0];

@@ -12,16 +12,16 @@ export class AxesHelperDirective extends AbstractObject3D<THREE.AxisHelper> {
 
   constructor() {
     super();
-    console.log("AxesHelperDirective.constructor");
+
   }
 
   protected newObject3DInstance(): THREE.AxisHelper {
-    console.log("AxesHelperDirective.newObject3DInstance");
+
     return new THREE.AxisHelper(this.size);
   }
 
   protected afterInit(): void {
-    console.log("AxesHelperDirective.afterInit");
+
     // none
   }
 

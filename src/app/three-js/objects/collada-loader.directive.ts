@@ -16,23 +16,23 @@ export class ColladaLoaderDirective extends AbstractObject3D<THREE.Object3D> {
 
   constructor() {
     super();
-    console.log("ColladaLoaderDirective.constructor");
+
   }
 
   protected newObject3DInstance(): THREE.Object3D {
-    console.log("ColladaLoaderDirective.newObject3DInstance");
+
     return new THREE.Object3D();
   }
 
   protected afterInit(): void {
-    console.log("ColladaLoaderDirective.afterInit");
+
     var loader = new THREE.ColladaLoader();
-    
+
     loader.load(this.model, this.onModelLoadingCompleted.bind(this));
   }
 
   private onModelLoadingCompleted(collada: THREE.ColladaModel) {
-    console.log("ColladaLoaderDirective.onModelLoadingCompleted")
+
     this.addChild(collada.scene);
     this.renderer.render();
   }
