@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, HostListener } from '@angular/core';
 import { SceneDirective } from '../../three-js/objects/index';
 import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
 import { GridSelectorDirective } from '../objects/grid-selector.directive';
@@ -203,6 +203,13 @@ export class EditorComponent implements OnInit, AfterViewInit {
       transparent: true,
       opacity: CURRENT_BRICK_OPACITY_FACTOR
     });
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  unloadNotification($event: any) {
+    if (this.brickObjects.length > 0) {
+      $event.returnValue = true;
+    }
   }
 
   initBrickTypes(): void {
