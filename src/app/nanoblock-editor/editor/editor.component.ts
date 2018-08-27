@@ -115,9 +115,11 @@ export class EditorComponent implements OnInit, AfterViewInit {
   private _defaultBrickColors: BrickColor[];
 
   private _currentBrickType: BrickType;
+
   get currentBrickType(): BrickType {
     return this._currentBrickType;
   }
+
   set currentBrickType(v: BrickType) {
     this._currentBrickType = v;
 
@@ -125,9 +127,11 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   private _currentBrickColor: BrickColor;
+
   get currentBrickColor(): BrickColor {
     return this._currentBrickColor;
   }
+
   set currentBrickColor(v: BrickColor) {
     this._currentBrickColor = v;
 
@@ -146,6 +150,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   private _currentBrickObject: BrickObject;
+
   get currentBrickObject(): BrickObject {
     return this._currentBrickObject;
   }
@@ -168,6 +173,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   private _currentMode: EditorMode;
+
   get currentMode(): EditorMode {
     return this._currentMode;
   }
@@ -197,9 +203,12 @@ export class EditorComponent implements OnInit, AfterViewInit {
   get commandHistoryIndex(): number {
     return this._commandHistoryIndex;
   }
+
   set commandHistoryIndex(v: number) {
     this._commandHistoryIndex = v;
   }
+
+  hasUnsavedChanges = false;
 
   constructor(private _brickTypeService: BrickTypeService, private _brickColorService: BrickColorService) {
     this.onKeyDown = this.onKeyDown.bind(this);
@@ -213,7 +222,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   @HostListener('window:beforeunload', ['$event'])
   unloadNotification($event: any) {
-    if (this.brickObjects.length > 0) {
+    if (this.hasUnsavedChanges) {
       $event.returnValue = true;
     }
   }
@@ -415,6 +424,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   executeCommand(command: Command) {
     command.do(this);
+
+    this.hasUnsavedChanges = true;
 
     if (this._commandHistoryIndex < this._commandHistory.length - 1) {
       this._commandHistory.splice(this._commandHistoryIndex + 1, this._commandHistory.length - this._commandHistoryIndex - 1);
@@ -989,6 +1000,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
     design.colors = this.brickColors;
 
     this.promptDownloadJSON(design, 'nanoblock-design');
+
+    this.hasUnsavedChanges = false;
   }
 
   onLoadFilePicked(file: ReadFile) {
@@ -1002,6 +1015,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     if (design) {
       this.loadDesign(design);
+
+      this.hasUnsavedChanges = false;
 
       this._filePicker.reset();
     }
