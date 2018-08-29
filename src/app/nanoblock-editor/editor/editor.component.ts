@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, HostListener } from '@angular/core';
+import { Component, OnInit, ViewChild, HostListener, ElementRef } from '@angular/core';
 import { SceneDirective } from '../../three-js/objects/index';
 import { AfterViewInit } from '@angular/core/src/metadata/lifecycle_hooks';
 import { GridSelectorDirective } from '../objects/grid-selector.directive';
@@ -42,7 +42,7 @@ const KEY_REDO = 89;
 
 const COMMAND_MAX_HISTORY_LENGTH = 20;
 
-const MIN_GRID_SIZE = 24;
+const DEFAULT_GRID_SIZE = 24;
 
 export enum RotateDirection {
   Right,
@@ -114,6 +114,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   @ViewChild(FilePickerDirective)
   private _filePicker: FilePickerDirective;
+
+  @ViewChild('resizeDismissButton')
+  private _resizeDismissButton: ElementRef;
 
   brickTypes: BrickType[];
   brickColors: BrickColor[];
@@ -219,7 +222,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   hasUnsavedChanges = false;
 
   resizeModel: ResizeModel = {
-    size: MIN_GRID_SIZE
+    size: DEFAULT_GRID_SIZE
   };
 
   constructor(private _brickTypeService: BrickTypeService, private _brickColorService: BrickColorService) {
@@ -972,9 +975,29 @@ export class EditorComponent implements OnInit, AfterViewInit {
     let size = design.size;
 
     if (!size) {
-      const designMaxSize = Math.max(...design.bricks.map(b => Math.max(b.x, b.y, b.z)));
+      const minX = Math.min(...design.bricks
+        .map(b => b.x));
 
-      size = designMaxSize < MIN_GRID_SIZE ? MIN_GRID_SIZE : designMaxSize;
+      const maxX = Math.max(...design.bricks
+        .map(b => b.x));
+
+      const minY = Math.min(...design.bricks
+        .map(b => b.y));
+
+      const maxY = Math.max(...design.bricks
+        .map(b => b.y));
+
+      const minZ = Math.min(...design.bricks
+        .map(b => b.z));
+
+      const maxZ = Math.max(...design.bricks
+        .map(b => b.z));
+
+      const rotationBuffer = Math.max(...this.brickTypes.map(bt => Math.max(bt.width, bt.height, bt.depth)));
+
+      const designSize = Math.max(maxX - minX, maxY - minY, maxZ - minZ) + rotationBuffer;
+
+      size = designSize < DEFAULT_GRID_SIZE ? DEFAULT_GRID_SIZE : designSize;
     }
 
     this.setGridSize(size);
@@ -996,33 +1019,65 @@ export class EditorComponent implements OnInit, AfterViewInit {
     }
   }
 
+  getDesignSize(): number {
+    const brickObjectCells = this.getBrickObjectCells(this.brickObjects);
+
+    const minX = Math.min(...brickObjectCells
+      .map(b => b.x));
+
+    const maxX = Math.max(...brickObjectCells
+      .map(b => b.x));
+
+    const minY = Math.min(...brickObjectCells
+      .map(b => b.y));
+
+    const maxY = Math.max(...brickObjectCells
+      .map(b => b.y));
+
+    const minZ = Math.min(...brickObjectCells
+      .map(b => b.z));
+
+    const maxZ = Math.max(...brickObjectCells
+      .map(b => b.z));
+
+    const designSize = Math.max(maxX - minX + 1, maxY - minY + 1, maxZ - minZ + 1);
+
+    return designSize;
+  }
+
   setGridSize(size: number) {
     if (this.grid.size === size) {
       return;
     }
 
-    const designMaxSize = Math.max(...this.brickObjects
-      .map(b => Math.max(b.cell.x, b.cell.y, b.cell.z)));
+    const designSize = this.getDesignSize();
 
-    if (size < designMaxSize) {
+    if (size < designSize) {
       throw new Error('Cannot resize to size smaller than built bricks bounds.');
     }
 
-    const sizeDifference = size - this.grid.size + (size > this.grid.size ? -1 : 1);
+    const positionAdjustment = Math.floor((size - this.grid.size) / 2);
+
+    const oldSelectorMesh = this.grid.selectorMesh;
 
     this.grid.resize(size);
 
+    this.gridSelector.removeSelectable(oldSelectorMesh);
+    this.gridSelector.addSelectable(this.grid.selectorMesh);
+
     for (const brickObject of this.brickObjects) {
       const newCell = this.grid.getCellByIndex(
-        brickObject.cell.x + sizeDifference,
+        brickObject.cell.x + positionAdjustment,
         brickObject.cell.y,
-        brickObject.cell.z + sizeDifference,
+        brickObject.cell.z + positionAdjustment,
       );
 
       this.moveBrickObject(brickObject, newCell);
     }
 
     this.resizeModel.size = size;
+
+    this._resizeDismissButton.nativeElement.click();
   }
 
   onResize() {

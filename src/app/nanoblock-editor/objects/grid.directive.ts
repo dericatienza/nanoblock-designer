@@ -1,4 +1,4 @@
-import { Directive, forwardRef, Input } from '@angular/core';
+import { Directive, forwardRef, Input, Output, EventEmitter } from '@angular/core';
 import { AbstractObject3D } from '../../three-js/objects/index';
 import * as THREE from 'three';
 import { MathHelper } from '../../helpers/math-helper';
@@ -28,6 +28,8 @@ export class Cell {
 })
 export class GridDirective extends AbstractObject3D<THREE.GridHelper> {
   @Input() size: number;
+
+  @Output() gridResize = new EventEmitter<number>();
 
   get width(): number {
     return this.size * CELL_SIZE.x;
@@ -104,9 +106,9 @@ export class GridDirective extends AbstractObject3D<THREE.GridHelper> {
     let y = MathHelper.snap(cellLocalPosition.y, CELL_SIZE.y);
     let z = MathHelper.snap(cellLocalPosition.z, CELL_SIZE.z);
 
-    x = (x + this.width / 2) / CELL_SIZE.x;
-    y = y > 0 ? y / CELL_SIZE.y : 0;
-    z = (z + this.depth / 2) / CELL_SIZE.z;
+    x = Math.max(0, Math.min(this.size - 1, Math.floor((x + this.width / 2) / CELL_SIZE.x)));
+    y = Math.max(0, Math.min(this.size - 1, Math.floor(y > 0 ? y / CELL_SIZE.y : 0)));
+    z = Math.max(0, Math.min(this.size - 1, Math.floor((z + this.depth / 2) / CELL_SIZE.z)));
 
     const cell = this.getCellByIndex(x, y, z);
 
@@ -153,5 +155,7 @@ export class GridDirective extends AbstractObject3D<THREE.GridHelper> {
     gridHelperParent.add(this._gridHelper);
 
     this.initCells();
+
+    this.gridResize.emit(this.size);
   }
 }
