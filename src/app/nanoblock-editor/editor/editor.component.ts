@@ -42,6 +42,8 @@ const KEY_REDO = 89;
 
 const COMMAND_MAX_HISTORY_LENGTH = 20;
 
+const MIN_GRID_SIZE = 24;
+
 export enum RotateDirection {
   Right,
   Left
@@ -55,6 +57,10 @@ export const BRICK_OUTLINE_MATERIAL = new LineBasicMaterial(
     opacity: 0.25
   }
 );
+
+export class ResizeModel {
+  size: number;
+}
 
 @Component({
   selector: 'ne-editor',
@@ -211,6 +217,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   hasUnsavedChanges = false;
+
+  resizeModel: ResizeModel = {
+    size: MIN_GRID_SIZE
+  };
 
   constructor(private _brickTypeService: BrickTypeService, private _brickColorService: BrickColorService) {
     this.onKeyDown = this.onKeyDown.bind(this);
@@ -959,6 +969,16 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     this.setMode('select');
 
+    let size = design.size;
+
+    if (!size) {
+      const designMaxSize = Math.max(...design.bricks.map(b => Math.max(b.x, b.y, b.z)));
+
+      size = designMaxSize < MIN_GRID_SIZE ? MIN_GRID_SIZE : designMaxSize;
+    }
+
+    this.setGridSize(size);
+
     for (const brick of design.bricks) {
       const brickType = this.brickTypes.find(x => x.id === brick.typeId);
       const brickColor = this.brickColors.find(x => x.id === brick.colorId);
@@ -974,6 +994,39 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
       this.buildBrickObject(brickObject, cell);
     }
+  }
+
+  setGridSize(size: number) {
+    if (this.grid.size === size) {
+      return;
+    }
+
+    const designMaxSize = Math.max(...this.brickObjects
+      .map(b => Math.max(b.cell.x, b.cell.y, b.cell.z)));
+
+    if (size < designMaxSize) {
+      throw new Error('Cannot resize to size smaller than built bricks bounds.');
+    }
+
+    const sizeDifference = size - this.grid.size + (size > this.grid.size ? -1 : 1);
+
+    this.grid.resize(size);
+
+    for (const brickObject of this.brickObjects) {
+      const newCell = this.grid.getCellByIndex(
+        brickObject.cell.x + sizeDifference,
+        brickObject.cell.y,
+        brickObject.cell.z + sizeDifference,
+      );
+
+      this.moveBrickObject(brickObject, newCell);
+    }
+
+    this.resizeModel.size = size;
+  }
+
+  onResize() {
+    this.setGridSize(this.resizeModel.size);
   }
 
   resetEditor() {
@@ -1013,6 +1066,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   onSaveButtonClicked() {
     const design = new Design();
 
+    design.size = this.grid.size;
     design.bricks = this.brickObjects.map(x => x.brick);
     design.colors = this.brickColors;
 

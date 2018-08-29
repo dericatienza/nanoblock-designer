@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { GridSelectorDirective } from './objects/grid-selector.directive';
 import { ThreeJsModule } from '../three-js/three-js.module';
 import { GridDirective } from './objects/grid.directive';
@@ -28,7 +29,8 @@ import { EditorModeComponent } from './editor-mode/editor-mode.component';
     HttpClientModule,
     ColorPickerModule,
     FileHelpersModule,
-    BrowserModule
+    BrowserModule,
+    FormsModule
   ],
   declarations: [
     GridSelectorDirective,

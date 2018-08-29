@@ -71,6 +71,8 @@ export class Brick {
 
 @JsonObject
 export class Design {
+    @JsonProperty('size', Number, true)
+    size: number = undefined;
     @JsonProperty('bricks', [Brick])
     bricks: Brick[] = undefined;
     @JsonProperty('colors', [BrickColor])

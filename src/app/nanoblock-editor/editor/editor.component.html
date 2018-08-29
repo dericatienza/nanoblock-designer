@@ -3,6 +3,12 @@
     <!-- Window -->
     <div class="col-md-10" (click)="onRendererClick()">
       <div class="position-absolute mode py-1 px-2">
+        <div data-toggle="modal" data-target="#resizeModal">
+          <button type="button" class="btn btn-outline-primary w-100" data-toggle="tooltip" data-placement="left" title="RESIZE">
+            <i class="fa fa-expand-arrows-alt fa-2x"></i>
+          </button>
+        </div>
+        <hr>
         <ne-editor-mode #modesList [modes]="modes" [(currentMode)]="currentMode"></ne-editor-mode>
       </div>
       <div class="position-absolute controls py-1 px-2">
@@ -59,6 +65,34 @@
           accept="text/json">Load design</button>
         <button type="button" class="btn btn-primary btn-block" (click)="onSaveButtonClicked()">Save design</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Resize modal -->
+<div class="modal fade" id="resizeModal" tabindex="-1" role="dialog" aria-labelledby="resizeModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="resizeModalTitle">Resize grid</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form #resizeForm="ngForm" (ngSubmit)="resizeForm.form.valid && onResize()">
+        <div class="modal-body">
+          <div class="form-group row">
+            <div class="col-8 mx-auto row">
+              <label for="inputSize" class="col">Size:</label>
+              <input type="number" class="form-control col" id="inputSize" min="24" [(ngModel)]="resizeModel.size" name="size">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Resize</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>

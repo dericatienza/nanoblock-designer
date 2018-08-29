@@ -49,21 +49,24 @@ export class GridDirective extends AbstractObject3D<THREE.GridHelper> {
     return this._selectorMesh;
   }
 
+  private _selectorMaterial = new THREE.MeshBasicMaterial({ color: 'red', side: THREE.BackSide, visible: false });
+
+  private _gridHelper: THREE.GridHelper;
+
   constructor() {
     super();
   }
 
   protected newObject3DInstance(): THREE.GridHelper {
-    const gridHelper = new THREE.GridHelper(this.size * CELL_SIZE.x, this.size);
+    this._gridHelper = new THREE.GridHelper(this.size * CELL_SIZE.x, this.size);
 
     const selectorGeometry = new THREE.PlaneGeometry(this.width, this.depth);
     selectorGeometry.rotateX(THREE.Math.degToRad(90));
-    const material = new THREE.MeshBasicMaterial({ color: 'red', side: THREE.BackSide, visible: false });
 
-    this._selectorMesh = new THREE.Mesh(selectorGeometry, material);
-    gridHelper.add(this._selectorMesh);
+    this._selectorMesh = new THREE.Mesh(selectorGeometry, this._selectorMaterial);
+    this._gridHelper.add(this._selectorMesh);
 
-    return gridHelper;
+    return this._gridHelper;
   }
 
   protected afterInit(): void {
@@ -123,8 +126,32 @@ export class GridDirective extends AbstractObject3D<THREE.GridHelper> {
       }
     }
 
-
-
     return null;
+  }
+
+  resize(size: number) {
+    if (this.size === size) {
+      return;
+    }
+
+    this.size = size;
+
+    const gridHelper = new THREE.GridHelper(this.size * CELL_SIZE.x, this.size);
+
+    const selectorGeometry = new THREE.PlaneGeometry(this.width, this.depth);
+    selectorGeometry.rotateX(THREE.Math.degToRad(90));
+
+    this._selectorMesh = new THREE.Mesh(selectorGeometry, this._selectorMaterial);
+    gridHelper.add(this._selectorMesh);
+
+    const gridHelperParent = this._gridHelper.parent;
+
+    gridHelperParent.remove(this._gridHelper);
+
+    this._gridHelper = gridHelper;
+
+    gridHelperParent.add(this._gridHelper);
+
+    this.initCells();
   }
 }
