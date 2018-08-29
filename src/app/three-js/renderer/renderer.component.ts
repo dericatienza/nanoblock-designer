@@ -79,9 +79,9 @@ export class RendererComponent implements AfterViewInit, OnInit {
     // && this.cameraComponents != undefined && this.cameraComponents.length == 1) {
     const sceneComponent = this.sceneComponents.first;
     const cameraComponent = this.cameraComponents.first;
-    // 
-    // 
-    // 
+    //
+    //
+    //
     this._stats.begin();
 
     this.renderer.render(sceneComponent.object, cameraComponent.camera);
@@ -119,7 +119,7 @@ export class RendererComponent implements AfterViewInit, OnInit {
   /*
   @HostListener('document:keypress', ['$event'])
   public onKeyPress(event: KeyboardEvent) {
-    
+
   }
 */
 

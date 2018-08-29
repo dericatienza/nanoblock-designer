@@ -190,6 +190,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   brickObjects: BrickObject[];
 
+  private _brickObjectCells: Map<BrickObject, Cell[]>;
+
   private _currentBrickSelectedMaterial: MeshPhongMaterial;
 
   private _commandHistory: Command[];
@@ -272,6 +274,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this.initBrickColors();
 
     this.brickObjects = [];
+    this._brickObjectCells = new Map<BrickObject, Cell[]>();
     this._commandHistory = [];
 
     this.setMode('select');
@@ -539,11 +542,11 @@ export class EditorComponent implements OnInit, AfterViewInit {
     }
 
     if (cell.y < 0) {
-      brickObject.cell = cell;
+      this.setBrickObjectCell(brickObject, cell);
 
       const topBrickObjects = this.getBrickObjectTopBrickObjects(brickObject);
 
-      brickObject.cell = null;
+      this.deleteBrickObjectCell(brickObject);
 
       const topBrickObjectsGroup = [];
 
@@ -566,11 +569,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     brickObject.position.set(cell.worldPosition.x, cell.worldPosition.y, cell.worldPosition.z);
 
-    brickObject.brick.x = cell.x;
-    brickObject.brick.y = cell.y;
-    brickObject.brick.z = cell.z;
-
-    brickObject.cell = cell;
+    this.setBrickObjectCell(brickObject, cell);
 
     this._scene.object.add(brickObject);
 
@@ -592,7 +591,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     this.brickObjects.splice(brickObjectIndex, 1);
 
-    brickObject.cell = null;
+    this.deleteBrickObjectCell(brickObject);
 
     if (fixBuild) {
       this.fixBrickBuild();
@@ -665,7 +664,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     }
 
     for (const builtBrickObject of this.brickObjects) {
-      const builtBrickObjectCells = this.getOccupiedCells(builtBrickObject, builtBrickObject.cell);
+      const builtBrickObjectCells = this._brickObjectCells.get(builtBrickObject);
 
       const isIntersecting = brickObjectCells.some(x => builtBrickObjectCells.indexOf(x) > -1);
 
@@ -698,7 +697,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
   getBrickObjectsOccupiedCells(brickObjects: BrickObject[]): Cell[] {
     const cells = [];
 
-    brickObjects.map(x => cells.push(...this.getOccupiedCells(x, x.cell)));
+    for (const brickObject of brickObjects) {
+      cells.push(...this._brickObjectCells.get(brickObject));
+    }
 
     return cells;
   }
@@ -711,6 +712,26 @@ export class EditorComponent implements OnInit, AfterViewInit {
     );
 
     return brickObjects;
+  }
+
+  setBrickObjectCell(brickObject: BrickObject, cell: Cell) {
+    const cells = this.getOccupiedCells(brickObject, cell);
+
+    if (cells) {
+      brickObject.brick.x = cell.x;
+      brickObject.brick.y = cell.y;
+      brickObject.brick.z = cell.z;
+
+      brickObject.cell = cell;
+
+      this._brickObjectCells.set(brickObject, cells);
+    }
+  }
+
+  deleteBrickObjectCell(brickObject: BrickObject) {
+    this._brickObjectCells.delete(brickObject);
+
+    brickObject.cell = null;
   }
 
   getOccupiedCells(brickObject: BrickObject, cell: Cell): Cell[] {
@@ -758,7 +779,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
         return brickObject;
       }
 
-      const cells = this.getOccupiedCells(brickObject, brickObject.cell);
+      const cells = this._brickObjectCells.get(brickObject);
 
       if (cells.indexOf(cell) > -1) {
         return brickObject;
@@ -826,7 +847,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   getBrickObjectAdjacents(brickObject: BrickObject, brickObjects: BrickObject[], cells: Cell[],
     recursive: boolean = true) {
-    const brickObjectCells = this.getOccupiedCells(brickObject, brickObject.cell);
+    const brickObjectCells = this._brickObjectCells.get(brickObject);
 
     const checkCells = cells.slice();
 
@@ -888,7 +909,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     const brickObjectCells = [];
 
     for (const brickObject of brickObjects) {
-      brickObjectCells.push(...this.getOccupiedCells(brickObject, brickObject.cell));
+      brickObjectCells.push(...this._brickObjectCells.get(brickObject));
     }
 
     return brickObjectCells;
@@ -917,11 +938,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   moveBrickObject(brickObject: BrickObject, cell: Cell) {
     brickObject.position.set(cell.worldPosition.x, cell.worldPosition.y, cell.worldPosition.z);
 
-    brickObject.brick.x = cell.x;
-    brickObject.brick.y = cell.y;
-    brickObject.brick.z = cell.z;
-
-    brickObject.cell = cell;
+    this.setBrickObjectCell(brickObject, cell);
   }
 
   onResetButtonClicked() {
@@ -1025,11 +1042,16 @@ export class EditorComponent implements OnInit, AfterViewInit {
   promptDownloadJSON(object: any, title: string) {
     const json = JSON.stringify(object);
 
-    const data = 'data:text/json;charset=utf-8,' + encodeURIComponent(json);
     const downloader = document.createElement('a');
 
-    downloader.setAttribute('href', data);
+    const blob = new Blob([json], { type: 'octet/stream' });
+    const url = window.URL.createObjectURL(blob);
+
+    downloader.setAttribute('href', url);
     downloader.setAttribute('download', `${title}.json`);
     downloader.click();
+    downloader.remove();
+
+    window.URL.revokeObjectURL(url);
   }
 }
