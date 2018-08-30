@@ -33,8 +33,8 @@
       <three-renderer #renderer [displayStats]="true">
         <three-orbit-controls #cameraControls="three-orbit-controls" [rotateSpeed]=1 [zoomSpeed]=1.2 [renderer]="renderer">
           <!-- <three-perspective-camera #mainCamera="three-perspective-camera" [fov]=50 [near]=1 [far]=1000 positionX=60 positionY=60 positionZ=60></three-perspective-camera> -->
-          <three-orthographic-camera #mainCamera="three-orthographic-camera" [height]=50 [near]=1 [far]=1000 positionX=60 positionY=60
-            positionZ=60></three-orthographic-camera>
+          <three-orthographic-camera #mainCamera="three-orthographic-camera" [height]=50 [near]=1 [far]=1000 positionX=60
+            positionY=60 positionZ=60></three-orthographic-camera>
           <three-scene #scene="three-scene">
             <!-- <three-axes-helper size=160></three-axes-helper> -->
             <ne-grid #grid="ne-grid" size=24></ne-grid>
@@ -45,25 +45,27 @@
             <three-point-light color="white" intensity="1" distance="1000" translateX="-48" translateY="96" translateZ="-96"></three-point-light>
           </three-scene>
         </three-orbit-controls>
-        <ne-grid-selector #gridSelector="ne-grid-selector" [camera]="mainCamera" [grid]="grid" [renderer]="renderer" [cameraControls]="cameraControls"
-          (highlight)="onCellHighlighted($event)" (select)="onCellSelected($event)">
+        <ne-grid-selector #gridSelector="ne-grid-selector" [camera]="mainCamera" [grid]="grid" [renderer]="renderer"
+          [cameraControls]="cameraControls" (highlight)="onCellHighlighted($event)" (select)="onCellSelected($event)">
         </ne-grid-selector>
       </three-renderer>
     </div>
     <!-- Menu -->
     <div class="col-md-2 bg-dark gutters-l">
       <div class="h-50 ofy-auto ofx-hidden gutters-r slim-scrollbar" *ngIf="brickTypes">
-        <ne-brick-types-list #brickTypesList [(currentBrickType)]="currentBrickType" [brickTypes]="brickTypes" [brickColor]="currentBrickColor"></ne-brick-types-list>
+        <ne-brick-types-list #brickTypesList [(currentBrickType)]="currentBrickType" [brickTypes]="brickTypes"
+          [brickColor]="currentBrickColor"></ne-brick-types-list>
       </div>
       <div class="h-25 my-2 py-1 px-1 ofy-auto ofx-hidden gutters-r slim-scrollbar" *ngIf="brickColors">
-        <ne-brick-colors-list #brickColorsList [brickColors]="brickColors" [(currentBrickColor)]="currentBrickColor" (brickColorChange)="onBrickColorChanged($event)"
-          (brickColorDelete)="onBrickColorDeleted($event)"></ne-brick-colors-list>
+        <ne-brick-colors-list #brickColorsList [brickColors]="brickColors" [(currentBrickColor)]="currentBrickColor"
+          (brickColorChange)="onBrickColorChanged($event)" (brickColorDelete)="onBrickColorDeleted($event)"></ne-brick-colors-list>
       </div>
       <div class="gutters-r mt-auto">
         <button type="button" class="btn btn-danger btn-block" (click)="onResetButtonClicked()">Reset</button>
         <button type="button" class="btn btn-primary btn-block" [ngxFilePicker]="'readMode'" (filePick)="onLoadFilePicked($event)"
           accept="text/json">Load design</button>
         <button type="button" class="btn btn-primary btn-block" (click)="onSaveButtonClicked()">Save design</button>
+        <button type="button" class="btn btn-primary btn-block">Generate instructions</button>
       </div>
     </div>
   </div>
@@ -93,6 +95,38 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal" #resizeDismissButton>Cancel</button>
         <button type="submit" (click)="resizeModel.size >= getDesignSize() && onResize()" class="btn btn-primary">Resize</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading design modal -->
+<div class="modal fade" id="loadingDesignModal" tabindex="-1" role="dialog" aria-labelledby="loadingDesign" aria-hidden="true"
+  data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-body text-center">
+        <h4>Loading design...</h4>
+        <div class="progress mt-3">
+          <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="100"
+            aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Generating instructions modal -->
+<div class="modal fade" id="generatingInstructionsModal" tabindex="-1" role="dialog" aria-labelledby="generatingInstructions"
+  aria-hidden="true" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-body text-center">
+        <h4>Generating instructions...</h4>
+        <div class="progress mt-3">
+          <div class="progress-bar progress-bar-striped bg-info progress-bar-animated" role="progressbar" aria-valuenow="100"
+            aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+        </div>
       </div>
     </div>
   </div>

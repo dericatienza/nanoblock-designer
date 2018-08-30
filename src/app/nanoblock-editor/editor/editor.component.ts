@@ -995,7 +995,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
       const rotationBuffer = Math.max(...this.brickTypes.map(bt => Math.max(bt.width, bt.height, bt.depth)));
 
-      const designSize = Math.max(maxX - minX, maxY - minY, maxZ - minZ) + rotationBuffer;
+      const designSize = Math.max(maxX - minX, maxY - minY, maxZ - minZ) + 1 + rotationBuffer;
 
       size = designSize < DEFAULT_GRID_SIZE ? DEFAULT_GRID_SIZE : designSize;
     }
@@ -1040,7 +1040,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     const maxZ = Math.max(...brickObjectCells
       .map(b => b.z));
 
-    const designSize = Math.max(maxX - minX + 1, maxY - minY + 1, maxZ - minZ + 1);
+    const designSize = Math.max(maxX - minX, maxY - minY, maxZ - minZ) + 1;
 
     return designSize;
   }
