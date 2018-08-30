@@ -1,4 +1,5 @@
 @import '~sass/variables';
+
 .slim-scrollbar::-webkit-scrollbar {
   width: 5px;
   height: 8px;
@@ -17,4 +18,8 @@
 .controls {
   bottom: 0;
   left: 0;
+}
+
+.colors-menu {
+  height: 12.5%;
 }

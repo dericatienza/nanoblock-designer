@@ -51,21 +51,22 @@
       </three-renderer>
     </div>
     <!-- Menu -->
-    <div class="col-md-2 bg-dark gutters-l">
-      <div class="h-50 ofy-auto ofx-hidden gutters-r slim-scrollbar" *ngIf="brickTypes">
+    <div class="col-md-2 bg-dark gutters-l d-flex flex-column">
+      <div class="flex-shrink-0 h-50 ofy-auto ofx-hidden gutters-r slim-scrollbar" *ngIf="brickTypes">
         <ne-brick-types-list #brickTypesList [(currentBrickType)]="currentBrickType" [brickTypes]="brickTypes"
           [brickColor]="currentBrickColor"></ne-brick-types-list>
       </div>
-      <div class="h-25 my-2 py-1 px-1 ofy-auto ofx-hidden gutters-r slim-scrollbar" *ngIf="brickColors">
+      <div class="flex-shrink-1 my-2 py-1 px-1 ofy-auto ofx-hidden gutters-r slim-scrollbar" *ngIf="brickColors">
         <ne-brick-colors-list #brickColorsList [brickColors]="brickColors" [(currentBrickColor)]="currentBrickColor"
           (brickColorChange)="onBrickColorChanged($event)" (brickColorDelete)="onBrickColorDeleted($event)"></ne-brick-colors-list>
       </div>
-      <div class="gutters-r mt-auto">
-        <button type="button" class="btn btn-danger btn-block" (click)="onResetButtonClicked()">Reset</button>
+      <div class="gutters-r d-flex flex-column justify-content-end flex-grow-1 flex-shrink-0 pb-3">
+        <button type="button" class="btn btn-primary btn-block" (click)="onSaveButtonClicked()">Save design</button>
         <button type="button" class="btn btn-primary btn-block" [ngxFilePicker]="'readMode'" (filePick)="onLoadFilePicked($event)"
           accept="text/json">Load design</button>
-        <button type="button" class="btn btn-primary btn-block" (click)="onSaveButtonClicked()">Save design</button>
-        <button type="button" class="btn btn-primary btn-block">Generate instructions</button>
+        <button type="button" [disabled]="brickObjects.length < 1" class="btn btn-primary btn-block">Generate
+          instructions</button>
+        <button type="button" class="btn btn-danger btn-block" (click)="onResetButtonClicked()">Reset</button>
       </div>
     </div>
   </div>
@@ -100,6 +101,8 @@
   </div>
 </div>
 
+<button type="button" #loadingDesignToggleButton data-target="#loadingDesignModal" data-toggle="modal" hidden></button>
+
 <!-- Loading design modal -->
 <div class="modal fade" id="loadingDesignModal" tabindex="-1" role="dialog" aria-labelledby="loadingDesign" aria-hidden="true"
   data-backdrop="static" data-keyboard="false">
@@ -115,6 +118,9 @@
     </div>
   </div>
 </div>
+
+<button type="button" #generatingInstructionsToggleButton data-target="#generatingInstructionsModal" data-toggle="modal"
+  hidden></button>
 
 <!-- Generating instructions modal -->
 <div class="modal fade" id="generatingInstructionsModal" tabindex="-1" role="dialog" aria-labelledby="generatingInstructions"

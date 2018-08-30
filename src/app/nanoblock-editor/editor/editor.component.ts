@@ -118,6 +118,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
   @ViewChild('resizeDismissButton')
   private _resizeDismissButton: ElementRef;
 
+  @ViewChild('loadingDesignToggleButton')
+  private _loadingDesignToggleButton: ElementRef;
+
   brickTypes: BrickType[];
   brickColors: BrickColor[];
 
@@ -958,7 +961,37 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this.resetEditor();
   }
 
+  loadBuildBrick(bricks: Brick[], take: number = 4) {
+    for (let x = 0; x < take && bricks.length > 0; x++) {
+      const brick = bricks.shift();
+
+      const brickType = this.brickTypes.find(bt => bt.id === brick.typeId);
+      const brickColor = this.brickColors.find(bc => bc.id === brick.colorId);
+
+      const brickObject = this.createBrickObject(brickType, brickColor);
+
+      brickObject.brickPivotZ = brick.pivotZ;
+      brickObject.brickPivotX = brick.pivotX;
+
+      brickObject.rotationY = brick.rotationY;
+
+      const cell = this.grid.getCellByIndex(brick.x, brick.y, brick.z);
+
+      this.buildBrickObject(brickObject, cell);
+    }
+
+    if (bricks.length > 0) {
+      setTimeout(() => {
+        this.loadBuildBrick(bricks, take);
+      }, 0);
+    } else {
+      this._loadingDesignToggleButton.nativeElement.click();
+    }
+  }
+
   loadDesign(design: Design) {
+    this._loadingDesignToggleButton.nativeElement.click();
+
     this.clearBrickObjects();
 
     this.brickObjects = [];
@@ -1002,21 +1035,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     this.setGridSize(size);
 
-    for (const brick of design.bricks) {
-      const brickType = this.brickTypes.find(x => x.id === brick.typeId);
-      const brickColor = this.brickColors.find(x => x.id === brick.colorId);
+    const bricks = design.bricks.slice();
 
-      const brickObject = this.createBrickObject(brickType, brickColor);
-
-      brickObject.brickPivotZ = brick.pivotZ;
-      brickObject.brickPivotX = brick.pivotX;
-
-      brickObject.rotationY = brick.rotationY;
-
-      const cell = this.grid.getCellByIndex(brick.x, brick.y, brick.z);
-
-      this.buildBrickObject(brickObject, cell);
-    }
+    this.loadBuildBrick(bricks);
   }
 
   getDesignSize(): number {
