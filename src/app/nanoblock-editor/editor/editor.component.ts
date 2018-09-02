@@ -30,6 +30,7 @@ import '../../../assets/js/OutlinesGeometry';
 import { PaintEditorMode } from './modes/paint-editor-mode';
 import { EraseEditorMode } from './modes/erase-editor-mode';
 import { EditorModeComponent } from '../editor-mode/editor-mode.component';
+import { InstructionsGenerator } from './instructions-generator';
 
 declare var THREE: any;
 
@@ -120,6 +121,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   @ViewChild('loadingDesignToggleButton')
   private _loadingDesignToggleButton: ElementRef;
+
+  @ViewChild('generatingInstructionsToggleButton')
+  private _generatingInstructionsToggleButton: ElementRef;
 
   brickTypes: BrickType[];
   brickColors: BrickColor[];
@@ -564,13 +568,13 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
       this.deleteBrickObjectCell(brickObject);
 
-      const topBrickObjectsGroup = [];
+      const topBrickObjectsGroup: BrickObject[] = [];
 
       for (const topBrickObject of topBrickObjects) {
         const topBrickObjectGroup = this.getBrickObjectGroup(topBrickObject);
 
         topBrickObjectGroup.forEach(x => {
-          if (!topBrickObjectsGroup.includes(x)) {
+          if (topBrickObjectsGroup.indexOf(x) < 0) {
             topBrickObjectsGroup.push(x);
           }
         });
@@ -1105,6 +1109,22 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this.setGridSize(this.resizeModel.size);
   }
 
+  onInstructionsClicked() {
+    this._generatingInstructionsToggleButton.nativeElement.click();
+
+    const design = this.getDesign();
+
+    const instructionsGenerator = new InstructionsGenerator(design,
+      this._brickTypeService,
+      this._brickColorService);
+
+    instructionsGenerator.onGenerated = (imageUrl) => {
+      this._generatingInstructionsToggleButton.nativeElement.click();
+    };
+
+    instructionsGenerator.generate();
+  }
+
   resetEditor() {
     this.brickObjectHighlight.removeHighlight();
 
@@ -1139,12 +1159,18 @@ export class EditorComponent implements OnInit, AfterViewInit {
     this.brickColors.push(...this._defaultBrickColors.map(x => BrickColor.clone(x)));
   }
 
-  onSaveButtonClicked() {
+  getDesign(): Design {
     const design = new Design();
 
     design.size = this.grid.size;
     design.bricks = this.brickObjects.map(x => x.brick);
     design.colors = this.brickColors;
+
+    return design;
+  }
+
+  onSaveButtonClicked() {
+    const design = this.getDesign();
 
     this.promptDownloadJSON(design, 'nanoblock-design');
 

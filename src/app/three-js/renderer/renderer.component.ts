@@ -38,13 +38,10 @@ export class RendererComponent implements AfterViewInit, OnInit {
   }
 
   constructor() {
-
     this.render = this.render.bind(this);
   }
 
   ngAfterViewInit() {
-
-
     this._stats = new Stats();
 
     if (this.displayStats) {

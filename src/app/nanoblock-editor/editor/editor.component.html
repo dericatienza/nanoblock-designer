@@ -64,7 +64,7 @@
         <button type="button" class="btn btn-primary btn-block" (click)="onSaveButtonClicked()">Save design</button>
         <button type="button" class="btn btn-primary btn-block" [ngxFilePicker]="'readMode'" (filePick)="onLoadFilePicked($event)"
           accept="text/json">Load design</button>
-        <button type="button" [disabled]="brickObjects.length < 1" class="btn btn-primary btn-block">Generate
+        <button type="button" [disabled]="brickObjects.length < 1" class="btn btn-primary btn-block" (click)="onInstructionsClicked()">Generate
           instructions</button>
         <button type="button" class="btn btn-danger btn-block" (click)="onResetButtonClicked()">Reset</button>
       </div>
