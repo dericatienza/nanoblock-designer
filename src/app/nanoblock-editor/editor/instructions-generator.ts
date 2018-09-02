@@ -7,8 +7,7 @@ import { PivotObject3D } from './pivot-object';
 import { CELL_SIZE } from '../objects/grid.directive';
 import { Scene, Renderer, Camera } from 'three';
 import * as mergeImg from 'merge-img';
-
-declare var Jimp: any;
+import Jimp = require('jimp');
 
 declare var THREE: any;
 
