@@ -126,26 +126,38 @@ export class InstructionsGenerator {
 
         const mergeObjects = [];
 
+        const imageCanvas = document.createElement('canvas');
+
+        document.body.appendChild(imageCanvas);
+
+        imageCanvas.width = (brickImagesDataUrls.length / this.brickPanelRows + 1) * brickPanelBrickSize;
+        imageCanvas.height = (this.brickPanelRows + 1) * brickPanelBrickSize;
+        imageCanvas.style.display = 'none';
+
+        const imageContext = imageCanvas.getContext('2d');
+
         for (let x = 0; x < brickImagesDataUrls.length / this.brickPanelRows; x++) {
             for (let y = 0; y < this.brickPanelRows && x + y < brickImagesDataUrls.length; y++) {
-                mergeObjects.push({
-                    src: brickImagesDataUrls[x + y],
-                    offsetX: x * brickPanelBrickSize,
-                    offsetY: y * brickPanelBrickSize
-                });
+                const image = new Image();
+                image.src = brickImagesDataUrls[x + y];
+
+                const dx = x;
+                const dy = y;
+
+                image.onload = () => {
+                    imageContext.drawImage(image,
+                        dx * brickPanelBrickSize,
+                        dy * brickPanelBrickSize);
+                };
             }
         }
 
-        mergeImg(mergeObjects)
-            .then((image: Jimp) => {
-                image.getBase64Async(Jimp.MIME_PNG)
-                    .then((jimp: Jimp) => {
-                        const imageElement = new Image();
-                        imageElement.src = jimp.toString();
+        setTimeout(() => {
+            const instructionsImage = new Image();
+            instructionsImage.src = imageCanvas.toDataURL();
 
-                        imageWindow.document.appendChild(imageElement);
-                    });
-            });
+            imageWindow.document.body.appendChild(instructionsImage);
+        }, 0);
     }
 
     snapScene(renderer: Renderer, scene: Scene, camera: Camera): string {
@@ -188,6 +200,8 @@ export class InstructionsGenerator {
                 this.instructionBricks.push(...instructionBricks);
             }
         }
+
+        console.log(this.instructionBricks);
     }
 
     private createBrickObject(type: BrickType, color: BrickColor): PivotObject3D {
