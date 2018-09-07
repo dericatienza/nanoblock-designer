@@ -5,7 +5,7 @@ import { BrickObject } from './brick-object';
 import * as three from 'three';
 import { PivotObject3D } from './pivot-object';
 import { CELL_SIZE } from '../objects/grid.directive';
-import { Scene, Renderer, Camera } from 'three';
+import { Scene, Renderer, Camera, MeshPhongMaterial } from 'three';
 import * as mergeImg from 'merge-img';
 import Jimp = require('jimp');
 
@@ -34,14 +34,14 @@ export class InstructionsGenerator {
     }
 
     generate() {
+        console.log(this.design.colors);
+
         this.brickTypeService.getBrickTypes()
             .subscribe((brickTypes: BrickType[]) => {
                 this.setupBrickObjects(brickTypes);
                 this.setupBrickLevels();
 
                 this.internalGenerate();
-
-                this.onGenerated('');
             });
     }
 
@@ -69,19 +69,28 @@ export class InstructionsGenerator {
 
         const maxBrickTypeUnitSize = maxBrickTypeSize * CELL_SIZE.x;
 
-        const brickPanelBrickSize = 55;
+        const textFontName = 'Arial';
+
+        const brickPanelBrickSize = 45;
+
+        const brickCountTextSize = 30;
+        const brickCountFontSize = 16;
 
         renderer.setSize(brickPanelBrickSize, brickPanelBrickSize);
 
         const bricksScene = new three.Scene();
 
-        const light = new three.AmbientLight('white');
+        const ambientLight = new three.AmbientLight('white');
+        const pointLight1 = new three.PointLight('white', 1, 1000);
+        pointLight1.position.set(40, 80, 80);
+        const pointLight2 = new three.PointLight('white', 1, 1000);
+        pointLight1.position.set(-40, 80, -80);
 
-        bricksScene.add(light);
+        bricksScene.add(ambientLight, pointLight1, pointLight2);
 
         console.log(maxBrickTypeSize);
 
-        const cameraSize = 12;
+        const cameraSize = 10;
 
         const camera = new three.OrthographicCamera(
             -cameraSize,
@@ -98,9 +107,6 @@ export class InstructionsGenerator {
         const brickImagesDataUrls: string[] = [];
 
         let brickObjectClone: PivotObject3D = null;
-
-        const imageWindow = window.open('', '');
-        imageWindow.document.title = 'Bricks';
 
         const studSize = this.brickTypeService.studSize;
 
@@ -130,33 +136,42 @@ export class InstructionsGenerator {
 
         document.body.appendChild(imageCanvas);
 
-        imageCanvas.width = (brickImagesDataUrls.length / this.brickPanelRows + 1) * brickPanelBrickSize;
-        imageCanvas.height = (this.brickPanelRows + 1) * brickPanelBrickSize;
+        imageCanvas.width = Math.ceil(brickImagesDataUrls.length / this.brickPanelRows)
+            * (brickPanelBrickSize + brickCountTextSize);
+        imageCanvas.height = (brickImagesDataUrls.length < this.brickPanelRows ?
+            brickImagesDataUrls.length : this.brickPanelRows) * brickPanelBrickSize;
         imageCanvas.style.display = 'none';
 
         const imageContext = imageCanvas.getContext('2d');
 
-        for (let x = 0; x < brickImagesDataUrls.length / this.brickPanelRows; x++) {
-            for (let y = 0; y < this.brickPanelRows && x + y < brickImagesDataUrls.length; y++) {
-                const image = new Image();
-                image.src = brickImagesDataUrls[x + y];
+        imageContext.font = `${brickCountFontSize}px ${textFontName}`;
 
+        for (let x = 0; x < brickImagesDataUrls.length / this.brickPanelRows; x++) {
+            const skip = x * this.brickPanelRows;
+
+            for (let y = 0; y < this.brickPanelRows && skip + y < brickImagesDataUrls.length; y++) {
+                const image = new Image();
+                image.src = brickImagesDataUrls[skip + y];
                 const dx = x;
                 const dy = y;
 
+                imageContext.fillText(`x ${this.instructionBricks[skip + y].count}`,
+                    brickPanelBrickSize + (dx * (brickPanelBrickSize + brickCountTextSize)),
+                    dy * brickPanelBrickSize + brickPanelBrickSize / 2);
+
                 image.onload = () => {
                     imageContext.drawImage(image,
-                        dx * brickPanelBrickSize,
+                        dx * (brickPanelBrickSize + brickCountTextSize),
                         dy * brickPanelBrickSize);
                 };
             }
         }
 
-        setTimeout(() => {
-            const instructionsImage = new Image();
-            instructionsImage.src = imageCanvas.toDataURL();
+        document.body.removeChild(canvas);
+        document.body.removeChild(imageCanvas);
 
-            imageWindow.document.body.appendChild(instructionsImage);
+        setTimeout(() => {
+            this.onGenerated(imageCanvas.toDataURL());
         }, 0);
     }
 
