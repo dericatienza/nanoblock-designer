@@ -5,7 +5,7 @@ import { BrickObject } from './brick-object';
 import * as three from 'three';
 import { PivotObject3D } from './pivot-object';
 import { CELL_SIZE } from '../objects/grid.directive';
-import { Scene, Renderer, Camera, MeshPhongMaterial } from 'three';
+import { Scene, Renderer, Camera, MeshPhongMaterial, WebGLRenderer, Vector2, Vector3 } from 'three';
 import * as mergeImg from 'merge-img';
 import Jimp = require('jimp');
 
@@ -27,6 +27,14 @@ export class InstructionsGenerator {
     brickPanelRows = 5;
 
     padding = 15;
+
+    imageWidth = 2480; // 72 DPI: 595;
+    imageHeight = 3508; // 72 DPI: 842;
+
+    rendererClearColor = '#d3d3d3';
+
+    textFontName = 'Arial';
+    textFontSize = 16;
 
     constructor(public design: Design,
         public brickTypeService: BrickTypeService,
@@ -55,30 +63,14 @@ export class InstructionsGenerator {
         renderer.setPixelRatio(devicePixelRatio);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        renderer.setClearColor('#d3d3d3', 0);
+        renderer.setClearColor(this.rendererClearColor, 0);
 
         const canvas = renderer.domElement;
         canvas.style.display = 'none';
 
         document.body.appendChild(renderer.domElement);
 
-        // Bricks panel generation
-        const maxBrickTypeSize = Math.max(...this.instructionBricks
-            .map(ib => ib.type)
-            .map(bt => Math.max(bt.width, bt.height, bt.depth)));
-
-        const maxBrickTypeUnitSize = maxBrickTypeSize * CELL_SIZE.x;
-
-        const textFontName = 'Arial';
-
-        const brickPanelBrickSize = 45;
-
-        const brickCountTextSize = 30;
-        const brickCountFontSize = 16;
-
-        renderer.setSize(brickPanelBrickSize, brickPanelBrickSize);
-
-        const bricksScene = new three.Scene();
+        const scene = new three.Scene();
 
         const ambientLight = new three.AmbientLight('white');
         const pointLight1 = new three.PointLight('white', 1, 1000);
@@ -86,15 +78,150 @@ export class InstructionsGenerator {
         const pointLight2 = new three.PointLight('white', 1, 1000);
         pointLight1.position.set(-40, 80, -80);
 
-        bricksScene.add(ambientLight, pointLight1, pointLight2);
+        scene.add(ambientLight, pointLight1, pointLight2);
 
-        console.log(maxBrickTypeSize);
+        const imageCanvas = document.createElement('canvas');
+
+        imageCanvas.width = this.imageWidth;
+        imageCanvas.height = this.imageHeight;
+        imageCanvas.style.display = 'none';
+
+        document.body.appendChild(imageCanvas);
+
+        const imageContext = imageCanvas.getContext('2d');
+
+        imageContext.font = `${this.textFontSize}px ${this.textFontName}`;
+
+        // Generate bricks panel
+        const bricksPanelSize = this.generateBricksPanel(renderer, scene, imageContext);
+
+        // Generate instructions panel
+        this.generateInstructionsPanel(renderer, scene, imageContext, bricksPanelSize);
+
+        document.body.removeChild(canvas);
+        document.body.removeChild(imageCanvas);
+
+        setTimeout(() => {
+            this.onGenerated(imageCanvas.toDataURL());
+        }, 0);
+    }
+
+    generateInstructionsPanel(renderer: WebGLRenderer, scene: Scene, imageContext: CanvasRenderingContext2D, offset: Vector2) {
+        const panelWidth = 295;
+        const panelHeight = offset.y;
+
+        const fullPanelWidth = panelWidth + this.padding;
+
+        // Accounting for bricks panel on first row
+        const topRowPanelCount = Math.floor((this.imageWidth - offset.x) / fullPanelWidth);
+
+        const excessWidth = (this.imageWidth - offset.x) - topRowPanelCount * fullPanelWidth;
+
+        const topRowPanelWidth = fullPanelWidth + (excessWidth / topRowPanelCount);
+
+        renderer.setSize(topRowPanelWidth, panelHeight);
+
+        const panelAspectRatio = topRowPanelWidth / panelHeight;
+
+        const cameraSize = 30;
+
+        const camera = new three.OrthographicCamera(
+            -cameraSize * panelAspectRatio,
+            cameraSize * panelAspectRatio,
+            cameraSize,
+            -cameraSize,
+            1,
+            1000);
+
+        camera.position.set(cameraSize, cameraSize, cameraSize);
+
+        camera.lookAt(0, 0, 0);
+
+        const builtBrickObjectClones: PivotObject3D[] = [];
+
+        const startX = -(this.design.size / 2) + CELL_SIZE.x / 2;
+        const startZ = -(this.design.size / 2) + CELL_SIZE.z / 2;
+        const startY = 0;
+
+        for (let x = 0; x < this.brickLevels.length && x < topRowPanelCount; x++) {
+            const brickLevelBricks = this.brickLevels[x];
+
+            for (const brick of brickLevelBricks) {
+                const instructionBrick = this.instructionBricks
+                    .find(ib => ib.type.id === brick.typeId && ib.color.id === brick.colorId);
+
+                const brickObjectClone = this.getBrickObjectClone(brick, instructionBrick,
+                    startX, startY, startZ);
+
+                scene.add(brickObjectClone);
+
+                builtBrickObjectClones.push(brickObjectClone);
+            }
+
+            const imageDataUrl = this.snapScene(renderer, scene, camera);
+
+            const image = new Image();
+            image.src = imageDataUrl;
+            const dx = x;
+
+            image.onload = () => {
+                imageContext.drawImage(image,
+                    this.padding + offset.x + dx * topRowPanelWidth,
+                    0);
+            };
+
+            imageContext.strokeRect(this.padding + offset.x + x * topRowPanelWidth, 0, topRowPanelWidth - this.padding, panelHeight);
+        }
+
+        // Equal width panels after first row
+        // panelAspectRatio = panelWidth / panelHeight;
+
+        // renderer.setSize(panelWidth, panelHeight);
+
+        // for (let x = 0; x < this.brickLevels.length; x++) {
+        //     const brickLevelBricks = this.brickLevels[x];
+        // }
+    }
+
+    getBrickObjectClone(brick: Brick, instructionBrick: InstructionBrick,
+        startX: number, startY: number, startZ: number): PivotObject3D {
+        const brickObjectClone = instructionBrick.brickObject.clone();
+
+        const positionX = startX + (CELL_SIZE.x * brick.x);
+        const positionY = startY + (CELL_SIZE.y * brick.y);
+        const positionZ = startZ + (CELL_SIZE.z * brick.z);
+
+        brickObjectClone.position.set(positionX, positionY, positionZ);
+
+        brickObjectClone.pivot.position.setX(-CELL_SIZE.x * brick.pivotX);
+        brickObjectClone.pivot.position.setZ(-CELL_SIZE.z * brick.pivotZ);
+
+        const radiansY = three.Math.degToRad(brick.rotationY);
+
+        brickObjectClone.setRotationFromAxisAngle(new Vector3(0, 1, 0), radiansY);
+
+        return brickObjectClone;
+    }
+
+    generateBricksPanel(renderer: WebGLRenderer, scene: Scene, imageContext: CanvasRenderingContext2D): Vector2 {
+        const panelWidth = 45;
+        const panelHeight = 45;
+
+        const maxBrickTypeSize = Math.max(...this.instructionBricks
+            .map(ib => ib.type)
+            .map(bt => Math.max(bt.width, bt.height, bt.depth)));
+
+        const maxBrickTypeUnitSize = maxBrickTypeSize * CELL_SIZE.x;
+
+        renderer.setSize(panelWidth, panelHeight);
+
+        const panelAspectRatio = panelWidth / panelHeight;
 
         const cameraSize = 10;
 
         const camera = new three.OrthographicCamera(
-            -cameraSize,
-            cameraSize,
+            -cameraSize * panelAspectRatio,
+            cameraSize * panelAspectRatio,
             cameraSize,
             -cameraSize,
             1,
@@ -104,18 +231,14 @@ export class InstructionsGenerator {
 
         camera.lookAt(0, 0, 0);
 
-        const brickImagesDataUrls: string[] = [];
+        const brickCountTextSize = 30;
 
-        let brickObjectClone: PivotObject3D = null;
+        const brickImagesDataUrls: string[] = [];
 
         const studSize = this.brickTypeService.studSize;
 
         for (const instructionBrick of this.instructionBricks) {
-            if (brickObjectClone) {
-                bricksScene.remove(brickObjectClone);
-            }
-
-            brickObjectClone = instructionBrick.brickObject.clone();
+            const brickObjectClone = instructionBrick.brickObject.clone();
 
             const boundingBoxSize = new three.Box3().setFromObject(brickObjectClone).getSize();
 
@@ -125,26 +248,17 @@ export class InstructionsGenerator {
                 (instructionBrick.type.depth - 1) * -studSize.z / 2
             );
 
-            bricksScene.add(brickObjectClone);
+            scene.add(brickObjectClone);
 
-            brickImagesDataUrls.push(this.snapScene(renderer, bricksScene, camera));
+            brickImagesDataUrls.push(this.snapScene(renderer, scene, camera));
+
+            scene.remove(brickObjectClone);
         }
 
-        const mergeObjects = [];
-
-        const imageCanvas = document.createElement('canvas');
-
-        document.body.appendChild(imageCanvas);
-
-        imageCanvas.width = Math.ceil(brickImagesDataUrls.length / this.brickPanelRows)
-            * (brickPanelBrickSize + brickCountTextSize);
-        imageCanvas.height = (brickImagesDataUrls.length < this.brickPanelRows ?
-            brickImagesDataUrls.length : this.brickPanelRows) * brickPanelBrickSize;
-        imageCanvas.style.display = 'none';
-
-        const imageContext = imageCanvas.getContext('2d');
-
-        imageContext.font = `${brickCountFontSize}px ${textFontName}`;
+        const bricksPanelWidth = Math.ceil(brickImagesDataUrls.length / this.brickPanelRows)
+            * (panelWidth + brickCountTextSize);
+        const bricksPanelHeight = (brickImagesDataUrls.length < this.brickPanelRows ?
+            brickImagesDataUrls.length : this.brickPanelRows) * panelHeight;
 
         for (let x = 0; x < brickImagesDataUrls.length / this.brickPanelRows; x++) {
             const skip = x * this.brickPanelRows;
@@ -156,23 +270,20 @@ export class InstructionsGenerator {
                 const dy = y;
 
                 imageContext.fillText(`x ${this.instructionBricks[skip + y].count}`,
-                    brickPanelBrickSize + (dx * (brickPanelBrickSize + brickCountTextSize)),
-                    dy * brickPanelBrickSize + brickPanelBrickSize / 2);
+                    panelWidth + (dx * (panelWidth + brickCountTextSize)),
+                    dy * panelHeight + panelHeight / 2);
 
                 image.onload = () => {
                     imageContext.drawImage(image,
-                        dx * (brickPanelBrickSize + brickCountTextSize),
-                        dy * brickPanelBrickSize);
+                        dx * (panelWidth + brickCountTextSize),
+                        dy * panelHeight);
                 };
             }
         }
 
-        document.body.removeChild(canvas);
-        document.body.removeChild(imageCanvas);
+        imageContext.strokeRect(0, 0, bricksPanelWidth, bricksPanelHeight);
 
-        setTimeout(() => {
-            this.onGenerated(imageCanvas.toDataURL());
-        }, 0);
+        return new Vector2(bricksPanelWidth, bricksPanelHeight);
     }
 
     snapScene(renderer: Renderer, scene: Scene, camera: Camera): string {
