@@ -8,6 +8,7 @@ import { CELL_SIZE } from '../objects/grid.directive';
 import { Scene, Renderer, Camera, MeshPhongMaterial, WebGLRenderer, Vector2, Vector3 } from 'three';
 import * as mergeImg from 'merge-img';
 import Jimp = require('jimp');
+import tinycolor = require('tinycolor2');
 
 declare var THREE: any;
 
@@ -25,6 +26,8 @@ export class InstructionsGenerator {
     private instructionBricks: InstructionBrick[];
 
     brickPanelRows = 5;
+
+    instructionPanelColumns = 9;
 
     padding = 15;
 
@@ -107,10 +110,11 @@ export class InstructionsGenerator {
     }
 
     generateInstructionsPanel(renderer: WebGLRenderer, scene: Scene, imageContext: CanvasRenderingContext2D, offset: Vector2) {
-        const panelWidth = 295;
+        const panelWidth = this.imageWidth / this.instructionPanelColumns - this.padding;
         const panelHeight = offset.y;
 
         const fullPanelWidth = panelWidth + this.padding;
+        const fullPanelHeight = panelHeight + this.padding * 2;
 
         // Accounting for bricks panel on first row
         const topRowPanelCount = Math.floor((this.imageWidth - offset.x) / fullPanelWidth);
@@ -119,11 +123,11 @@ export class InstructionsGenerator {
 
         const topRowPanelWidth = fullPanelWidth + (excessWidth / topRowPanelCount);
 
-        renderer.setSize(topRowPanelWidth, panelHeight);
+        renderer.setSize(topRowPanelWidth - this.padding, panelHeight);
 
-        const panelAspectRatio = topRowPanelWidth / panelHeight;
+        let panelAspectRatio = (topRowPanelWidth - this.padding) / panelHeight;
 
-        const cameraSize = 30;
+        const cameraSize = 60;
 
         const camera = new three.OrthographicCamera(
             -cameraSize * panelAspectRatio,
@@ -137,7 +141,10 @@ export class InstructionsGenerator {
 
         camera.lookAt(0, 0, 0);
 
-        const builtBrickObjectClones: PivotObject3D[] = [];
+        camera.zoom = 1.5;
+        camera.updateProjectionMatrix();
+
+        let builtBrickObjectClones: PivotObject3D[] = [];
 
         const startX = -(this.design.size / 2) + CELL_SIZE.x / 2;
         const startZ = -(this.design.size / 2) + CELL_SIZE.z / 2;
@@ -146,17 +153,8 @@ export class InstructionsGenerator {
         for (let x = 0; x < this.brickLevels.length && x < topRowPanelCount; x++) {
             const brickLevelBricks = this.brickLevels[x];
 
-            for (const brick of brickLevelBricks) {
-                const instructionBrick = this.instructionBricks
-                    .find(ib => ib.type.id === brick.typeId && ib.color.id === brick.colorId);
-
-                const brickObjectClone = this.getBrickObjectClone(brick, instructionBrick,
-                    startX, startY, startZ);
-
-                scene.add(brickObjectClone);
-
-                builtBrickObjectClones.push(brickObjectClone);
-            }
+            builtBrickObjectClones.push(...this.buildBrickLevelObjects(brickLevelBricks,
+                scene, startX, startY, startZ));
 
             const imageDataUrl = this.snapScene(renderer, scene, camera);
 
@@ -171,16 +169,88 @@ export class InstructionsGenerator {
             };
 
             imageContext.strokeRect(this.padding + offset.x + x * topRowPanelWidth, 0, topRowPanelWidth - this.padding, panelHeight);
+
+            this.setBrickObjectsBuiltColor(brickLevelBricks, builtBrickObjectClones);
+
+            builtBrickObjectClones = [];
         }
 
         // Equal width panels after first row
-        // panelAspectRatio = panelWidth / panelHeight;
+        panelAspectRatio = panelWidth / panelHeight;
 
-        // renderer.setSize(panelWidth, panelHeight);
+        renderer.setSize(panelWidth, panelHeight);
 
-        // for (let x = 0; x < this.brickLevels.length; x++) {
-        //     const brickLevelBricks = this.brickLevels[x];
-        // }
+        const rows = Math.ceil((this.brickLevels.length - topRowPanelCount) / this.instructionPanelColumns);
+
+        for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < this.instructionPanelColumns
+                && y * x + x + topRowPanelCount < this.brickLevels.length
+                ; x++) {
+                const brickLevelBricks = this.brickLevels[y * x + x + topRowPanelCount];
+
+                builtBrickObjectClones.push(...this.buildBrickLevelObjects(brickLevelBricks,
+                    scene, startX, startY, startZ));
+
+                const imageDataUrl = this.snapScene(renderer, scene, camera);
+
+                const image = new Image();
+                image.src = imageDataUrl;
+                const dx = x;
+                const dy = y + 1; // Skip first row
+
+                image.onload = () => {
+                    imageContext.drawImage(image,
+                        dx * fullPanelWidth,
+                        dy * fullPanelHeight);
+                };
+
+                imageContext.strokeRect(dx * fullPanelWidth, dy * fullPanelHeight, panelWidth, panelHeight);
+
+                this.setBrickObjectsBuiltColor(brickLevelBricks, builtBrickObjectClones);
+
+                builtBrickObjectClones = [];
+            }
+        }
+    }
+
+    buildBrickLevelObjects(brickLevelBricks: Brick[], scene: Scene,
+        startX: number, startY: number,
+        startZ: number): PivotObject3D[] {
+
+        const builtBrickObjects: PivotObject3D[] = [];
+
+        for (const brick of brickLevelBricks) {
+            const instructionBrick = this.instructionBricks
+                .find(ib => ib.type.id === brick.typeId && ib.color.id === brick.colorId);
+
+            const brickObjectClone = this.getBrickObjectClone(brick, instructionBrick,
+                startX, startY, startZ);
+
+            scene.add(brickObjectClone);
+
+            builtBrickObjects.push(brickObjectClone);
+        }
+
+        return builtBrickObjects;
+    }
+
+    setBrickObjectsBuiltColor(bricks: Brick[], builtBrickObjects: PivotObject3D[]) {
+        if (bricks.length !== builtBrickObjects.length) {
+            throw new Error('Bricks number must equal built brick objects');
+        }
+
+        for (let x = 0; x < bricks.length; x++) {
+            const brick = bricks[x];
+            const builtBrickObject = builtBrickObjects[x];
+
+            const instructionBrick = this.instructionBricks.find(
+                ib => ib.type.id === brick.typeId && ib.color.id === brick.colorId);
+
+            const builtBrickColorMaterial = this.brickColorService.getBrickColorMaterial(instructionBrick.builtColor);
+
+            const mesh = <three.Mesh>builtBrickObject.pivot.children[0].children[0]; // Investigate why pivot has extra child
+            mesh.material = builtBrickColorMaterial;
+        }
     }
 
     getBrickObjectClone(brick: Brick, instructionBrick: InstructionBrick,
@@ -311,9 +381,14 @@ export class InstructionsGenerator {
 
                     const brickObject = this.createBrickObject(brickType, color);
 
+                    const builtColor = BrickColor.clone(color);
+                    builtColor.id = -builtColor.id;
+                    builtColor.colorHex = tinycolor(builtColor.colorHex).lighten(30).toString();
+
                     instructionBricks.push({
                         type: brickType,
                         color: color,
+                        builtColor: builtColor,
                         count: count,
                         brickObject: brickObject
                     });
@@ -336,10 +411,10 @@ export class InstructionsGenerator {
         const material = this.brickColorService.getBrickColorMaterial(color);
 
         const brickObject = new PivotObject3D();
-        const mesh = new three.Mesh(geometry, material);
+        const mesh = new THREE.Mesh(geometry, material);
 
         const outlinesGeometry = new THREE.OutlinesGeometry(geometry, 45);
-        const outline = new three.LineSegments(outlinesGeometry, INSTRUCTIONS_BRICK_OUTLINE_MATERIAL);
+        const outline = new THREE.LineSegments(outlinesGeometry, INSTRUCTIONS_BRICK_OUTLINE_MATERIAL);
         mesh.add(outline);
 
         brickObject.add(mesh);
@@ -361,6 +436,7 @@ export class InstructionsGenerator {
 export class InstructionBrick {
     type: BrickType;
     color: BrickColor;
+    builtColor: BrickColor;
     count: number;
     brickObject: PivotObject3D;
 }

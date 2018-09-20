@@ -15,10 +15,6 @@ export class BrickObject extends PivotObject3D {
         return <THREE.Mesh>this.pivot.children[0];
     }
 
-    get wireframe(): THREE.LineSegments {
-        return <THREE.LineSegments>this.pivot.children[0];
-    }
-
     resetPivot() {
         this.pivot.position.set(0, 0, 0);
         this.brick.pivotX = this.brick.pivotY = this.brick.pivotZ = 0;
