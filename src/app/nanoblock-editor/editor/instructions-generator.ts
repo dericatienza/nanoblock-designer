@@ -12,10 +12,28 @@ import tinycolor = require('tinycolor2');
 
 declare var THREE: any;
 
-export const INSTRUCTIONS_BRICK_OUTLINE_MATERIAL = new three.LineBasicMaterial({
+export const INSTRUCTIONS_LIGHT_BRICK_OUTLINE_MATERIAL = new three.LineBasicMaterial({
     color: 'black',
     linewidth: 1,
     opacity: 1
+});
+
+export const INSTRUCTIONS_BUILT_LIGHT_BRICK_OUTLINE_MATERIAL = new three.LineBasicMaterial({
+    color: 'black',
+    linewidth: 1,
+    opacity: 0.5
+});
+
+export const INSTRUCTIONS_DARK_BRICK_OUTLINE_MATERIAL = new three.LineBasicMaterial({
+    color: 'lightgray',
+    linewidth: 1,
+    opacity: 1
+});
+
+export const INSTRUCTIONS_BUILT_DARK_BRICK_OUTLINE_MATERIAL = new three.LineBasicMaterial({
+    color: 'lightgray',
+    linewidth: 1,
+    opacity: 0.5
 });
 
 export class InstructionsGenerator {
@@ -25,9 +43,9 @@ export class InstructionsGenerator {
 
     private instructionBricks: InstructionBrick[];
 
-    brickPanelRows = 5;
+    brickPanelRows = 6;
 
-    instructionPanelColumns = 9;
+    instructionPanelColumns = 4;
 
     padding = 15;
 
@@ -93,6 +111,12 @@ export class InstructionsGenerator {
 
         const imageContext = imageCanvas.getContext('2d');
 
+        imageContext.rect(0, 0, this.imageWidth, this.imageHeight);
+        imageContext.fillStyle = 'white';
+        imageContext.fill();
+
+        imageContext.fillStyle = 'black';
+
         imageContext.font = `${this.textFontSize}px ${this.textFontName}`;
 
         // Generate bricks panel
@@ -106,7 +130,57 @@ export class InstructionsGenerator {
 
         setTimeout(() => {
             this.onGenerated(imageCanvas.toDataURL());
+
+            renderer.forceContextLoss();
+            renderer.context = null;
+            renderer.domElement = null;
         }, 0);
+    }
+
+    getBrickLevelSize(brickLevelBricks: Brick[]): number {
+        const minX = Math.min(...brickLevelBricks
+            .map(b => b.x));
+
+        const maxX = Math.max(...brickLevelBricks
+            .map(b => b.x));
+
+        const minZ = Math.min(...brickLevelBricks
+            .map(b => b.z));
+
+        const maxZ = Math.max(...brickLevelBricks
+            .map(b => b.z));
+
+        const brickLevelSize = Math.max(maxX - minX, maxZ - minZ) + 1;
+
+        return brickLevelSize;
+    }
+
+    getBrickLevelCenter(brickLevelBricks: Brick[]): Vector3 {
+        const minX = Math.min(...brickLevelBricks
+            .map(b => b.x));
+
+        const maxX = Math.max(...brickLevelBricks
+            .map(b => b.x));
+
+        const minY = Math.min(...brickLevelBricks
+            .map(b => b.y));
+
+        const maxY = Math.max(...brickLevelBricks
+            .map(b => b.y));
+
+        const minZ = Math.min(...brickLevelBricks
+            .map(b => b.z));
+
+        const maxZ = Math.max(...brickLevelBricks
+            .map(b => b.z));
+
+        const center = new Vector3(
+            (minX + ((maxX - minX) / 2)) * CELL_SIZE.x,
+            (minY + ((maxY - minY) / 2)) * CELL_SIZE.y,
+            (minZ + ((maxZ - minZ) / 2)) * CELL_SIZE.z,
+        );
+
+        return center;
     }
 
     generateInstructionsPanel(renderer: WebGLRenderer, scene: Scene, imageContext: CanvasRenderingContext2D, offset: Vector2) {
@@ -137,11 +211,9 @@ export class InstructionsGenerator {
             1,
             1000);
 
-        camera.position.set(cameraSize, cameraSize, cameraSize);
+        const maxBrickLevelSize = (Math.max(...this.brickLevels.map(bl => this.getBrickLevelSize(bl))) + 2) * CELL_SIZE.x;
 
-        camera.lookAt(0, 0, 0);
-
-        camera.zoom = 1.5;
+        camera.zoom = (cameraSize * 2) / maxBrickLevelSize;
         camera.updateProjectionMatrix();
 
         let builtBrickObjectClones: PivotObject3D[] = [];
@@ -151,10 +223,19 @@ export class InstructionsGenerator {
         const startY = 0;
 
         for (let x = 0; x < this.brickLevels.length && x < topRowPanelCount; x++) {
+            console.log(x);
             const brickLevelBricks = this.brickLevels[x];
 
             builtBrickObjectClones.push(...this.buildBrickLevelObjects(brickLevelBricks,
                 scene, startX, startY, startZ));
+
+            const brickLevelCenter = this.getBrickLevelCenter(brickLevelBricks);
+
+            camera.position.set(brickLevelCenter.x + cameraSize,
+                brickLevelCenter.y + cameraSize,
+                brickLevelCenter.z + cameraSize);
+
+            camera.lookAt(brickLevelCenter);
 
             const imageDataUrl = this.snapScene(renderer, scene, camera);
 
@@ -176,20 +257,38 @@ export class InstructionsGenerator {
         }
 
         // Equal width panels after first row
+        renderer.setSize(panelWidth, panelHeight);
+
         panelAspectRatio = panelWidth / panelHeight;
 
-        renderer.setSize(panelWidth, panelHeight);
+        camera.left = -cameraSize * panelAspectRatio;
+        camera.right = cameraSize * panelAspectRatio;
+        camera.top = cameraSize;
+        camera.bottom = -cameraSize;
+
+        camera.updateProjectionMatrix();
 
         const rows = Math.ceil((this.brickLevels.length - topRowPanelCount) / this.instructionPanelColumns);
 
         for (let y = 0; y < rows; y++) {
             for (let x = 0; x < this.instructionPanelColumns
-                && y * x + x + topRowPanelCount < this.brickLevels.length
+                && y * this.instructionPanelColumns + x + topRowPanelCount < this.brickLevels.length
                 ; x++) {
-                const brickLevelBricks = this.brickLevels[y * x + x + topRowPanelCount];
+                const brickLevelIndex = (y * this.instructionPanelColumns) + x + topRowPanelCount;
+                console.log(brickLevelIndex);
+
+                const brickLevelBricks = this.brickLevels[brickLevelIndex];
 
                 builtBrickObjectClones.push(...this.buildBrickLevelObjects(brickLevelBricks,
                     scene, startX, startY, startZ));
+
+                const brickLevelCenter = this.getBrickLevelCenter(brickLevelBricks);
+
+                camera.position.set(brickLevelCenter.x + cameraSize,
+                    brickLevelCenter.y + cameraSize,
+                    brickLevelCenter.z + cameraSize);
+
+                camera.lookAt(brickLevelCenter);
 
                 const imageDataUrl = this.snapScene(renderer, scene, camera);
 
@@ -250,6 +349,14 @@ export class InstructionsGenerator {
 
             const mesh = <three.Mesh>builtBrickObject.pivot.children[0].children[0]; // Investigate why pivot has extra child
             mesh.material = builtBrickColorMaterial;
+
+            const outline = <three.LineSegments>mesh.children[0];
+
+            const outlineMaterial = tinycolor(instructionBrick.color.colorHex).getLuminance() > 0.1 ?
+                INSTRUCTIONS_BUILT_LIGHT_BRICK_OUTLINE_MATERIAL :
+                INSTRUCTIONS_BUILT_DARK_BRICK_OUTLINE_MATERIAL;
+
+            outline.material = outlineMaterial;
         }
     }
 
@@ -274,8 +381,8 @@ export class InstructionsGenerator {
     }
 
     generateBricksPanel(renderer: WebGLRenderer, scene: Scene, imageContext: CanvasRenderingContext2D): Vector2 {
-        const panelWidth = 45;
-        const panelHeight = 45;
+        const panelWidth = 80;
+        const panelHeight = 80;
 
         const maxBrickTypeSize = Math.max(...this.instructionBricks
             .map(ib => ib.type)
@@ -309,6 +416,9 @@ export class InstructionsGenerator {
 
         for (const instructionBrick of this.instructionBricks) {
             const brickObjectClone = instructionBrick.brickObject.clone();
+
+            // const outline = <three.LineSegments>brickObjectClone.pivot.children[0].children[0].children[0];
+            // outline.material = INSTRUCTIONS_LIGHT_BRICK_OUTLINE_MATERIAL;
 
             const boundingBoxSize = new three.Box3().setFromObject(brickObjectClone).getSize();
 
@@ -414,7 +524,12 @@ export class InstructionsGenerator {
         const mesh = new THREE.Mesh(geometry, material);
 
         const outlinesGeometry = new THREE.OutlinesGeometry(geometry, 45);
-        const outline = new THREE.LineSegments(outlinesGeometry, INSTRUCTIONS_BRICK_OUTLINE_MATERIAL);
+
+        const outlineMaterial = tinycolor(color.colorHex).getLuminance() > 0.1 ?
+            INSTRUCTIONS_LIGHT_BRICK_OUTLINE_MATERIAL :
+            INSTRUCTIONS_DARK_BRICK_OUTLINE_MATERIAL;
+
+        const outline = new THREE.LineSegments(outlinesGeometry, outlineMaterial);
         mesh.add(outline);
 
         brickObject.add(mesh);
@@ -430,6 +545,8 @@ export class InstructionsGenerator {
         for (let x = 0; x < designHeight; x++) {
             this.brickLevels[x] = this.design.bricks.filter(b => b.y === x);
         }
+
+        console.log(this.brickLevels);
     }
 }
 

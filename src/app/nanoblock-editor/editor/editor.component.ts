@@ -1119,17 +1119,17 @@ export class EditorComponent implements OnInit, AfterViewInit {
       this._brickColorService);
 
     instructionsGenerator.onGenerated = (imageUrl) => {
-      // imageUrl = imageUrl.replace(/^data:image\/[^;]+/, 'data:application/octet-stream');
+      imageUrl = imageUrl.replace(/^data:image\/[^;]+/, 'data:application/octet-stream');
 
-      // window.open(imageUrl);
+      window.open(imageUrl);
 
-      const imageWindow = window.open('', '');
-      imageWindow.document.title = 'Instructions';
+      // const imageWindow = window.open('', '');
+      // imageWindow.document.title = 'Instructions';
 
-      const instructionsImage = new Image();
-      instructionsImage.src = imageUrl;
+      // const instructionsImage = new Image();
+      // instructionsImage.src = imageUrl;
 
-      imageWindow.document.body.appendChild(instructionsImage);
+      // imageWindow.document.body.appendChild(instructionsImage);
 
       this._generatingInstructionsToggleButton.nativeElement.click();
     };
