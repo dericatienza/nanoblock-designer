@@ -232,7 +232,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
     size: DEFAULT_GRID_SIZE
   };
 
-  constructor(private _brickTypeService: BrickTypeService, private _brickColorService: BrickColorService) {
+  constructor(public brickTypeService: BrickTypeService,
+    public brickColorService: BrickColorService) {
     this.onKeyDown = this.onKeyDown.bind(this);
 
     this._currentBrickSelectedMaterial = new MeshPhongMaterial({
@@ -250,7 +251,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   initBrickTypes(): void {
-    this._brickTypeService.getBrickTypes()
+    this.brickTypeService.getBrickTypes()
       .subscribe((brickTypes: BrickType[]) => {
         this.brickTypes = brickTypes;
 
@@ -264,12 +265,12 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   initBrickTypeGeometries() {
     for (const brickType of this.brickTypes) {
-      this._brickTypeService.getBrickTypeGeometry(brickType);
+      this.brickTypeService.getBrickTypeGeometry(brickType);
     }
   }
 
   initBrickColors() {
-    this._brickColorService.getDefaultBrickColors()
+    this.brickColorService.getDefaultBrickColors()
       .subscribe((brickColors: BrickColor[]) => {
         this._defaultBrickColors = brickColors;
 
@@ -286,7 +287,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
   initBrickColorMaterials() {
     for (const brickColor of this.brickColors) {
-      this._brickColorService.getBrickColorMaterial(brickColor);
+      this.brickColorService.getBrickColorMaterial(brickColor);
     }
   }
 
@@ -343,13 +344,13 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   refreshBrickColor(brickObject: BrickObject) {
-    brickObject.mesh.material = this._brickColorService.getBrickColorMaterial(this.currentBrickColor);
+    brickObject.mesh.material = this.brickColorService.getBrickColorMaterial(this.currentBrickColor);
   }
 
   createBrickObject(type: BrickType, color: BrickColor): BrickObject {
-    const geometry = this._brickTypeService.getBrickTypeGeometry(type);
+    const geometry = this.brickTypeService.getBrickTypeGeometry(type);
 
-    const material = this._brickColorService.getBrickColorMaterial(color);
+    const material = this.brickColorService.getBrickColorMaterial(color);
 
     const brickObject = new BrickObject();
     const mesh = new three.Mesh(geometry, material);
@@ -632,7 +633,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   paintBrickObject(brickObject: BrickObject, brickColor: BrickColor) {
-    brickObject.mesh.material = this._brickColorService.getBrickColorMaterial(brickColor);
+    brickObject.mesh.material = this.brickColorService.getBrickColorMaterial(brickColor);
 
     brickObject.brickColor = brickColor;
     brickObject.brick.colorId = brickColor.id;
@@ -649,11 +650,11 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     this.brickColors.splice(deleteBrickColorIndex, 1);
 
-    this._brickColorService.deleteBrickColorMaterial(brickColor);
+    this.brickColorService.deleteBrickColorMaterial(brickColor);
   }
 
   setBrickObjectColor(brickObject: BrickObject, brickColor: BrickColor) {
-    brickObject.mesh.material = this._brickColorService.getBrickColorMaterial(brickColor);
+    brickObject.mesh.material = this.brickColorService.getBrickColorMaterial(brickColor);
 
     brickObject.brick.colorId = brickColor.id;
   }
@@ -1000,7 +1001,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     this.brickObjects = [];
 
-    this._brickColorService.clearBrickColorMaterials();
+    this.brickColorService.clearBrickColorMaterials();
 
     this.brickColors = design.colors;
     this.currentBrickColor = this.brickColors[0];
@@ -1115,13 +1116,13 @@ export class EditorComponent implements OnInit, AfterViewInit {
     const design = this.getDesign();
 
     const instructionsGenerator = new InstructionsGenerator(design,
-      this._brickTypeService,
-      this._brickColorService);
+      this.brickTypeService,
+      this.brickColorService);
 
     instructionsGenerator.onGenerated = (imageUrl) => {
       imageUrl = imageUrl.replace(/^data:image\/[^;]+/, 'data:application/octet-stream');
 
-      window.open(imageUrl);
+      window.open(imageUrl, 'nanoblock-design.png');
 
       // const imageWindow = window.open('', '');
       // imageWindow.document.title = 'Instructions';
@@ -1165,7 +1166,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
   }
 
   resetBrickColors() {
-    this._brickColorService.clearBrickColorMaterials();
+    this.brickColorService.clearBrickColorMaterials();
 
     this.brickColors = [];
     this.brickColors.push(...this._defaultBrickColors.map(x => BrickColor.clone(x)));

@@ -9,6 +9,7 @@ import { Scene, Renderer, Camera, MeshPhongMaterial, WebGLRenderer, Vector2, Vec
 import * as mergeImg from 'merge-img';
 import Jimp = require('jimp');
 import tinycolor = require('tinycolor2');
+import { EditorComponent } from './editor.component';
 
 declare var THREE: any;
 
@@ -39,7 +40,7 @@ export const INSTRUCTIONS_BUILT_DARK_BRICK_OUTLINE_MATERIAL = new three.LineBasi
 export class InstructionsGenerator {
     onGenerated: (imageUrl: string) => void;
 
-    private brickLevels: Brick[][];
+    private brickLevels: InstructionBrickLevel[];
 
     private instructionBricks: InstructionBrick[];
 
@@ -57,15 +58,16 @@ export class InstructionsGenerator {
     textFontName = 'Arial';
     textFontSize = 16;
 
-    constructor(public design: Design,
-        public brickTypeService: BrickTypeService,
-        public brickColorService: BrickColorService) {
+    design: Design;
+
+    constructor(public editor: EditorComponent) {
+        this.design = editor.getDesign();
     }
 
     generate() {
         console.log(this.design.colors);
 
-        this.brickTypeService.getBrickTypes()
+        this.editor.brickTypeService.getBrickTypes()
             .subscribe((brickTypes: BrickType[]) => {
                 this.setupBrickObjects(brickTypes);
                 this.setupBrickLevels();
@@ -211,7 +213,7 @@ export class InstructionsGenerator {
             1,
             1000);
 
-        const maxBrickLevelSize = (Math.max(...this.brickLevels.map(bl => this.getBrickLevelSize(bl))) + 2) * CELL_SIZE.x;
+        const maxBrickLevelSize = (Math.max(...this.brickLevels.map(bl => this.getBrickLevelSize(bl.bricks))) + 2) * CELL_SIZE.x;
 
         camera.zoom = (cameraSize * 2) / maxBrickLevelSize;
         camera.updateProjectionMatrix();
@@ -224,7 +226,7 @@ export class InstructionsGenerator {
 
         for (let x = 0; x < this.brickLevels.length && x < topRowPanelCount; x++) {
             console.log(x);
-            const brickLevelBricks = this.brickLevels[x];
+            const brickLevelBricks = this.brickLevels[x].bricks;
 
             builtBrickObjectClones.push(...this.buildBrickLevelObjects(brickLevelBricks,
                 scene, startX, startY, startZ));
@@ -277,7 +279,7 @@ export class InstructionsGenerator {
                 const brickLevelIndex = (y * this.instructionPanelColumns) + x + topRowPanelCount;
                 console.log(brickLevelIndex);
 
-                const brickLevelBricks = this.brickLevels[brickLevelIndex];
+                const brickLevelBricks = this.brickLevels[brickLevelIndex].bricks;
 
                 builtBrickObjectClones.push(...this.buildBrickLevelObjects(brickLevelBricks,
                     scene, startX, startY, startZ));
@@ -345,7 +347,7 @@ export class InstructionsGenerator {
             const instructionBrick = this.instructionBricks.find(
                 ib => ib.type.id === brick.typeId && ib.color.id === brick.colorId);
 
-            const builtBrickColorMaterial = this.brickColorService.getBrickColorMaterial(instructionBrick.builtColor);
+            const builtBrickColorMaterial = this.editor.brickColorService.getBrickColorMaterial(instructionBrick.builtColor);
 
             const mesh = <three.Mesh>builtBrickObject.pivot.children[0].children[0]; // Investigate why pivot has extra child
             mesh.material = builtBrickColorMaterial;
@@ -516,9 +518,9 @@ export class InstructionsGenerator {
     }
 
     private createBrickObject(type: BrickType, color: BrickColor): PivotObject3D {
-        const geometry = this.brickTypeService.getBrickTypeGeometry(type);
+        const geometry = this.editor.brickTypeService.getBrickTypeGeometry(type);
 
-        const material = this.brickColorService.getBrickColorMaterial(color);
+        const material = this.editor.brickColorService.getBrickColorMaterial(color);
 
         const brickObject = new PivotObject3D();
         const mesh = new THREE.Mesh(geometry, material);
@@ -543,7 +545,14 @@ export class InstructionsGenerator {
         const designHeight = Math.max(...this.design.bricks.map(b => b.y)) + 1;
 
         for (let x = 0; x < designHeight; x++) {
-            this.brickLevels[x] = this.design.bricks.filter(b => b.y === x);
+            const bricks = this.design.bricks.filter(b => b.y === x);
+
+            const brickLevel = {
+                bricks: bricks,
+                isTopView: true
+            };
+
+            this.brickLevels.push(brickLevel);
         }
 
         console.log(this.brickLevels);
@@ -556,4 +565,9 @@ export class InstructionBrick {
     builtColor: BrickColor;
     count: number;
     brickObject: PivotObject3D;
+}
+
+export class InstructionBrickLevel {
+    bricks: Brick[];
+    isTopView = true;
 }
