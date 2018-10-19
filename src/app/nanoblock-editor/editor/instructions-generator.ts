@@ -9,6 +9,7 @@ import { Scene, Renderer, Camera, MeshPhongMaterial, WebGLRenderer, Vector2, Vec
 import * as mergeImg from 'merge-img';
 import Jimp = require('jimp');
 import tinycolor = require('tinycolor2');
+import { EditorComponent } from './editor.component';
 
 declare var THREE: any;
 
