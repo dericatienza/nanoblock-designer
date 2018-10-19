@@ -4,7 +4,7 @@ import { BrickColorService } from '../brick-color.service';
 import { BrickObject } from './brick-object';
 import * as three from 'three';
 import { PivotObject3D } from './pivot-object';
-import { CELL_SIZE } from '../objects/grid.directive';
+import { CELL_SIZE, Cell } from '../objects/grid.directive';
 import { Scene, Renderer, Camera, MeshPhongMaterial, WebGLRenderer, Vector2, Vector3 } from 'three';
 import * as mergeImg from 'merge-img';
 import Jimp = require('jimp');
@@ -39,7 +39,7 @@ export const INSTRUCTIONS_BUILT_DARK_BRICK_OUTLINE_MATERIAL = new three.LineBasi
 export class InstructionsGenerator {
     onGenerated: (imageUrl: string) => void;
 
-    private brickLevels: Brick[][];
+    private brickLevels: InstructionBrickLevel[];
 
     private instructionBricks: InstructionBrick[];
 
@@ -57,17 +57,19 @@ export class InstructionsGenerator {
     textFontName = 'Arial';
     textFontSize = 16;
 
+    brickTypes: BrickType[];
+
     constructor(public design: Design,
         public brickTypeService: BrickTypeService,
         public brickColorService: BrickColorService) {
     }
 
     generate() {
-        console.log(this.design.colors);
-
         this.brickTypeService.getBrickTypes()
             .subscribe((brickTypes: BrickType[]) => {
-                this.setupBrickObjects(brickTypes);
+                this.brickTypes = brickTypes;
+
+                this.setupBrickObjects();
                 this.setupBrickLevels();
 
                 this.internalGenerate();
@@ -211,7 +213,7 @@ export class InstructionsGenerator {
             1,
             1000);
 
-        const maxBrickLevelSize = (Math.max(...this.brickLevels.map(bl => this.getBrickLevelSize(bl))) + 2) * CELL_SIZE.x;
+        const maxBrickLevelSize = (Math.max(...this.brickLevels.map(bl => this.getBrickLevelSize(bl.bricks))) + 2) * CELL_SIZE.x;
 
         camera.zoom = (cameraSize * 2) / maxBrickLevelSize;
         camera.updateProjectionMatrix();
@@ -223,17 +225,18 @@ export class InstructionsGenerator {
         const startY = 0;
 
         for (let x = 0; x < this.brickLevels.length && x < topRowPanelCount; x++) {
-            console.log(x);
-            const brickLevelBricks = this.brickLevels[x];
+            const brickLevel = this.brickLevels[x];
+
+            const brickLevelBricks = brickLevel.bricks;
 
             builtBrickObjectClones.push(...this.buildBrickLevelObjects(brickLevelBricks,
                 scene, startX, startY, startZ));
 
             const brickLevelCenter = this.getBrickLevelCenter(brickLevelBricks);
 
-            camera.position.set(brickLevelCenter.x + cameraSize,
-                brickLevelCenter.y + cameraSize,
-                brickLevelCenter.z + cameraSize);
+            camera.position.set(brickLevelCenter.x + (cameraSize * (brickLevel.isRightView ? 1 : -1)),
+                brickLevelCenter.y + (cameraSize * (brickLevel.isTopView ? 1 : -1)),
+                brickLevelCenter.z + (cameraSize * (brickLevel.isFrontView ? 1 : -1)));
 
             camera.lookAt(brickLevelCenter);
 
@@ -275,18 +278,19 @@ export class InstructionsGenerator {
                 && y * this.instructionPanelColumns + x + topRowPanelCount < this.brickLevels.length
                 ; x++) {
                 const brickLevelIndex = (y * this.instructionPanelColumns) + x + topRowPanelCount;
-                console.log(brickLevelIndex);
 
-                const brickLevelBricks = this.brickLevels[brickLevelIndex];
+                const brickLevel = this.brickLevels[brickLevelIndex];
+
+                const brickLevelBricks = brickLevel.bricks;
 
                 builtBrickObjectClones.push(...this.buildBrickLevelObjects(brickLevelBricks,
                     scene, startX, startY, startZ));
 
                 const brickLevelCenter = this.getBrickLevelCenter(brickLevelBricks);
 
-                camera.position.set(brickLevelCenter.x + cameraSize,
-                    brickLevelCenter.y + cameraSize,
-                    brickLevelCenter.z + cameraSize);
+                camera.position.set(brickLevelCenter.x + (cameraSize * (brickLevel.isRightView ? 1 : -1)),
+                    brickLevelCenter.y + (cameraSize * (brickLevel.isTopView ? 1 : -1)),
+                    brickLevelCenter.z + (cameraSize * (brickLevel.isFrontView ? 1 : -1)));
 
                 camera.lookAt(brickLevelCenter);
 
@@ -472,7 +476,7 @@ export class InstructionsGenerator {
         return renderer.domElement.toDataURL();
     }
 
-    private setupBrickObjects(allBrickTypes: BrickType[]): any {
+    private setupBrickObjects(): any {
         this.instructionBricks = [];
 
         for (const color of this.design.colors) {
@@ -484,7 +488,7 @@ export class InstructionsGenerator {
                 const instructionBricks: InstructionBrick[] = [];
 
                 for (const brickTypeId of brickTypeIds) {
-                    const brickType = allBrickTypes.find(bt => bt.id === brickTypeId);
+                    const brickType = this.brickTypes.find(bt => bt.id === brickTypeId);
 
                     const count = this.design.bricks.filter(b => b.typeId === brickTypeId
                         && b.colorId === color.id).length;
@@ -511,8 +515,6 @@ export class InstructionsGenerator {
                 this.instructionBricks.push(...instructionBricks);
             }
         }
-
-        console.log(this.instructionBricks);
     }
 
     private createBrickObject(type: BrickType, color: BrickColor): PivotObject3D {
@@ -542,11 +544,207 @@ export class InstructionsGenerator {
 
         const designHeight = Math.max(...this.design.bricks.map(b => b.y)) + 1;
 
+        const builtBrickCells: Cell[] = [];
+
+        const skippedBricks: Brick[] = [];
+
         for (let x = 0; x < designHeight; x++) {
-            this.brickLevels[x] = this.design.bricks.filter(b => b.y === x);
+            let buildableSkippedBricks = skippedBricks
+                .filter(b => this.checkCellBuildable(b, builtBrickCells))
+                .sort((a, b) => a.y - b.y);
+
+            while (buildableSkippedBricks.length > 0) {
+                // Group buildable skipped bricks by level
+                const buildableSkippedBrickLevelMap = new Map<number, Brick[]>();
+
+                buildableSkippedBricks.forEach(brick => {
+                    const level = brick.y;
+                    const skippedLevelBricks = buildableSkippedBrickLevelMap.get(level);
+
+                    if (skippedLevelBricks) {
+                        skippedLevelBricks.push(brick);
+                    } else {
+                        buildableSkippedBrickLevelMap.set(level, [brick]);
+                    }
+                });
+
+                buildableSkippedBrickLevelMap.forEach((bricks, level) => {
+                    const isTopView = level >= Math.max(...builtBrickCells.map(c => c.y));
+
+                    const skippedBrickLevel = {
+                        bricks: bricks,
+                        isTopView: isTopView,
+                        isFrontView: true,
+                        isRightView: true
+                    };
+
+                    const skippedLevelCells: Cell[] = [];
+
+                    for (let z = 0; z < buildableSkippedBricks.length; z++) {
+                        const skippedBrick = buildableSkippedBricks[z];
+
+                        skippedLevelCells.push(...this.getOccupiedCells(skippedBrick));
+
+                        skippedBricks.splice(skippedBricks.indexOf(skippedBrick), 1);
+                    }
+
+                    builtBrickCells.push(...skippedLevelCells);
+
+                    skippedBrickLevel.isFrontView = !(skippedLevelCells.some(c => c.z < this.design.size / 2)
+                        && Math.max(...builtBrickCells.map(c => c.y)) > Math.max(...skippedLevelCells.map(c => c.y)));
+                    skippedBrickLevel.isRightView = skippedLevelCells.filter(c => c.x >= this.design.size / 2).length
+                        >= skippedLevelCells.filter(c => c.x < this.design.size / 2).length;
+
+                    this.brickLevels.push(skippedBrickLevel);
+                });
+
+                buildableSkippedBricks = skippedBricks
+                    .filter(b => this.checkCellBuildable(b, builtBrickCells))
+                    .sort((a, b) => a.y - b.y);
+            }
+
+            const brickLevel = {
+                bricks: [],
+                isTopView: true,
+                isFrontView: true,
+                isRightView: true
+            };
+
+            const levelBricks = this.design.bricks.filter(b => b.y === x);
+
+            const levelCells: Cell[] = [];
+
+            // Filter out non-buildable bricks
+            for (let y = levelBricks.length - 1; y > -1; y--) {
+                const brick = levelBricks[y];
+
+                if (this.checkCellBuildable(brick, builtBrickCells)) {
+                    levelCells.push(...this.getOccupiedCells(brick));
+                } else {
+                    levelBricks.splice(y, 1);
+
+                    skippedBricks.push(brick);
+                }
+            }
+
+            builtBrickCells.push(...levelCells);
+
+            brickLevel.isFrontView = !(levelCells.some(c => c.z < this.design.size / 2)
+                && Math.max(...builtBrickCells.map(c => c.y)) > Math.max(...levelCells.map(c => c.y)));
+            brickLevel.isRightView = levelCells.filter(c => c.x >= this.design.size / 2).length
+                >= levelCells.filter(c => c.x < this.design.size / 2).length;
+
+            brickLevel.bricks = levelBricks;
+
+            if (brickLevel.bricks.length > 0) {
+                this.brickLevels.push(brickLevel);
+            }
         }
 
         console.log(this.brickLevels);
+    }
+
+    getOccupiedCells(brick: Brick): Cell[] {
+        const brickType = this.brickTypes.find(bt => bt.id === brick.typeId);
+
+        const cells = [];
+
+        for (let y = 0; y < brickType.height; y++) {
+            for (let z = 0; z < brickType.depth; z++) {
+                for (let x = 0; x < brickType.width; x++) {
+                    if (!brickType.arrangement[(z * brickType.width) + x]) {
+                        continue;
+                    }
+
+                    const position = new three.Vector3(x, y, z);
+                    position.x -= brick.pivotX;
+                    position.z -= brick.pivotZ;
+
+                    const offset = this.getCellOffset(brick.rotationY, position);
+
+                    const occupiedCell = new Cell(
+                        brick.x + offset.x,
+                        brick.y + offset.y,
+                        brick.z + offset.z,
+                        position
+                    );
+
+                    cells.push(occupiedCell);
+                }
+            }
+        }
+
+        return cells;
+    }
+
+    checkCellBuildable(brick: Brick, builtBrickCells: Cell[]): boolean {
+        if (brick.y > 0) {
+            const brickCells = this.getOccupiedCells(brick);
+
+            const belowBrickObjectsCells = builtBrickCells.filter(c => c.y === brick.y - 1);
+
+            let hasFooting = brickCells.some(x =>
+                belowBrickObjectsCells.some(y => y.x === x.x && y.z === x.z));
+
+            if (!hasFooting) {
+                const aboveBrickObjectsCells = builtBrickCells.filter(c => c.y === brick.y + 1);
+
+                hasFooting = brickCells.some(x =>
+                    aboveBrickObjectsCells.some(y => y.x === x.x && y.z === x.z));
+
+                if (!hasFooting) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    getCellOffset(yRotation: number, position: three.Vector3): three.Vector3 {
+        const offset = new three.Vector3();
+
+        switch (yRotation) {
+            case -270:
+                offset.x = position.z;
+                offset.y = position.y;
+                offset.z = -position.x;
+                break;
+            case -180:
+                offset.x = -position.x;
+                offset.y = position.y;
+                offset.z = -position.z;
+                break;
+            case -90:
+                offset.x = -position.z;
+                offset.y = position.y;
+                offset.z = position.x;
+                break;
+            case 0:
+                offset.x = position.x;
+                offset.y = position.y;
+                offset.z = position.z;
+                break;
+            case 90:
+                offset.x = position.z;
+                offset.y = position.y;
+                offset.z = -position.x;
+                break;
+            case 180:
+                offset.x = -position.x;
+                offset.y = position.y;
+                offset.z = -position.z;
+                break;
+            case 270:
+                offset.x = -position.z;
+                offset.y = position.y;
+                offset.z = position.x;
+                break;
+            default:
+                break;
+        }
+
+        return offset;
     }
 }
 
@@ -556,4 +754,11 @@ export class InstructionBrick {
     builtColor: BrickColor;
     count: number;
     brickObject: PivotObject3D;
+}
+
+export class InstructionBrickLevel {
+    bricks: Brick[];
+    isTopView: boolean;
+    isFrontView: boolean;
+    isRightView: boolean;
 }
