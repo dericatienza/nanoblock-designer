@@ -549,7 +549,9 @@ export class InstructionsGenerator {
 
         const skippedBricks: Brick[] = [];
 
-        for (let x = 0; x < designHeight; x++) {
+        let pushedBrickLevelCount = 0;
+
+        for (let x = 0; x < designHeight + pushedBrickLevelCount; x++) {
             let buildableSkippedBricks = skippedBricks
                 .filter(b => this.checkCellBuildable(b, builtBrickCells))
                 .sort((a, b) => a.y - b.y);
@@ -611,7 +613,19 @@ export class InstructionsGenerator {
                 isRightView: true
             };
 
+            const levelIndex = x < designHeight
+                ? x
+                : designHeight + pushedBrickLevelCount - x;
+
             const levelBricks = this.design.bricks.filter(b => b.y === x);
+
+            if (this.brickLevels.length < 1) {
+                if (!this.isBrickLevelAdjacent(levelBricks)) {
+                    pushedBrickLevelCount += 1;
+
+                    continue;
+                }
+            }
 
             const levelCells: Cell[] = [];
 
@@ -643,6 +657,62 @@ export class InstructionsGenerator {
         }
 
         console.log(this.brickLevels);
+    }
+
+    isBrickLevelAdjacent(bricks: Brick[]): boolean {
+        const brick = bricks[0];
+
+        const cells: Cell[] = [];
+
+        bricks.forEach(b => {
+            cells.push(...this.getOccupiedCells(b));
+        });
+
+        const adjacentBricks: Brick[] = [];
+
+        this.getBrickAdjacents(brick, adjacentBricks, bricks, cells);
+
+        return !bricks.some(b => adjacentBricks.indexOf(b) < 0);
+    }
+
+    getBrickAdjacents(brick: Brick, adjacentBricks: Brick[], bricks: Brick[], cells: Cell[]) {
+        const brickCells = this.getOccupiedCells(brick);
+
+        const checkCells = cells.slice();
+
+        brickCells.forEach((x) => {
+            const i = checkCells.findIndex(c => c.x === x.x
+                && c.y === x.y
+                && c.z === x.z);
+
+            if (i > -1) {
+                checkCells.splice(i, 1);
+            }
+        });
+
+        for (const brickCell of brickCells) {
+            for (const checkCell of checkCells) {
+                const isAdjacent =
+                    (checkCell.x === brickCell.x
+                        && Math.abs(checkCell.z - brickCell.z) === 1)
+                    || (checkCell.z === brickCell.z
+                        && Math.abs(checkCell.x - brickCell.x) === 1);
+
+                if (isAdjacent) {
+                    const adjacentBrick = bricks.find(b => this.getOccupiedCells(b).some(
+                        c => c.x === b.x
+                            && c.y === b.y
+                            && c.z === b.z
+                    ));
+
+                    if (adjacentBricks.indexOf(adjacentBrick) < 0) {
+                        adjacentBricks.push(adjacentBrick);
+
+                        this.getBrickAdjacents(adjacentBrick, adjacentBricks, bricks, cells);
+                    }
+                }
+            }
+        }
     }
 
     getOccupiedCells(brick: Brick): Cell[] {
