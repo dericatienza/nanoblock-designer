@@ -615,9 +615,9 @@ export class InstructionsGenerator {
 
             const levelIndex = x < designHeight
                 ? x
-                : designHeight + pushedBrickLevelCount - x;
+                : designHeight + pushedBrickLevelCount - x - 1;
 
-            const levelBricks = this.design.bricks.filter(b => b.y === x);
+            const levelBricks = this.design.bricks.filter(b => b.y === levelIndex);
 
             if (this.brickLevels.length < 1) {
                 if (!this.isBrickLevelAdjacent(levelBricks)) {
@@ -633,7 +633,8 @@ export class InstructionsGenerator {
             for (let y = levelBricks.length - 1; y > -1; y--) {
                 const brick = levelBricks[y];
 
-                if (this.checkCellBuildable(brick, builtBrickCells)) {
+                if ((this.brickLevels.length < 1 && pushedBrickLevelCount > 0)
+                    || this.checkCellBuildable(brick, builtBrickCells)) {
                     levelCells.push(...this.getOccupiedCells(brick));
                 } else {
                     levelBricks.splice(y, 1);
@@ -644,6 +645,7 @@ export class InstructionsGenerator {
 
             builtBrickCells.push(...levelCells);
 
+            brickLevel.isTopView = levelIndex >= Math.max(...builtBrickCells.map(c => c.y));
             brickLevel.isFrontView = !(levelCells.some(c => c.z < this.design.size / 2)
                 && Math.max(...builtBrickCells.map(c => c.y)) > Math.max(...levelCells.map(c => c.y)));
             brickLevel.isRightView = levelCells.filter(c => c.x >= this.design.size / 2).length
@@ -660,59 +662,47 @@ export class InstructionsGenerator {
     }
 
     isBrickLevelAdjacent(bricks: Brick[]): boolean {
-        const brick = bricks[0];
-
-        const cells: Cell[] = [];
+        const brickCellsMap = new Map<Brick, Cell[]>();
 
         bricks.forEach(b => {
-            cells.push(...this.getOccupiedCells(b));
+            brickCellsMap.set(b, this.getOccupiedCells(b));
         });
 
         const adjacentBricks: Brick[] = [];
 
-        this.getBrickAdjacents(brick, adjacentBricks, bricks, cells);
+        const firstBrick = bricks[0];
 
-        return !bricks.some(b => adjacentBricks.indexOf(b) < 0);
+        this.getBrickAdjacents(firstBrick, brickCellsMap, adjacentBricks);
+
+        const isLevelAdjacent = !bricks.some(b => adjacentBricks.indexOf(b) < 0);
+
+        return isLevelAdjacent;
     }
 
-    getBrickAdjacents(brick: Brick, adjacentBricks: Brick[], bricks: Brick[], cells: Cell[]) {
-        const brickCells = this.getOccupiedCells(brick);
+    getBrickAdjacents(brick: Brick, brickCellsMap: Map<Brick, Cell[]>, adjacentBricks: Brick[]) {
+        const brickCells = brickCellsMap.get(brick);
 
-        const checkCells = cells.slice();
-
-        brickCells.forEach((x) => {
-            const i = checkCells.findIndex(c => c.x === x.x
-                && c.y === x.y
-                && c.z === x.z);
-
-            if (i > -1) {
-                checkCells.splice(i, 1);
+        brickCellsMap.forEach((cells, adjacentBrick) => {
+            if (brick === adjacentBrick) {
+                return;
             }
-        });
 
-        for (const brickCell of brickCells) {
-            for (const checkCell of checkCells) {
-                const isAdjacent =
-                    (checkCell.x === brickCell.x
-                        && Math.abs(checkCell.z - brickCell.z) === 1)
-                    || (checkCell.z === brickCell.z
-                        && Math.abs(checkCell.x - brickCell.x) === 1);
+            for (const brickCell of brickCells) {
+                const hasAdjacent = cells.some(c =>
+                    (brickCell.x === c.x
+                        && Math.abs(brickCell.z - c.z) === 1)
+                    || (brickCell.z === c.z
+                        && Math.abs(brickCell.x - c.x) === 1));
 
-                if (isAdjacent) {
-                    const adjacentBrick = bricks.find(b => this.getOccupiedCells(b).some(
-                        c => c.x === b.x
-                            && c.y === b.y
-                            && c.z === b.z
-                    ));
-
+                if (hasAdjacent) {
                     if (adjacentBricks.indexOf(adjacentBrick) < 0) {
                         adjacentBricks.push(adjacentBrick);
 
-                        this.getBrickAdjacents(adjacentBrick, adjacentBricks, bricks, cells);
+                        this.getBrickAdjacents(adjacentBrick, brickCellsMap, adjacentBricks);
                     }
                 }
             }
-        }
+        });
     }
 
     getOccupiedCells(brick: Brick): Cell[] {
