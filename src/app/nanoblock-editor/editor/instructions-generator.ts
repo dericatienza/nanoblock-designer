@@ -51,12 +51,17 @@ export class InstructionsGenerator {
     padding = 15;
 
     imageWidth = 2480; // 72 DPI: 595;
-    imageHeight = 3508; // 72 DPI: 842;
+    // imageHeight = 3508; // 72 DPI: 842;
 
     rendererClearColor = '#d3d3d3';
 
     textFontName = 'Arial';
     textFontSize = 16;
+
+    brickPanelWidth = 80;
+    brickPanelHeight = 80;
+
+    brickCountTextSize = 30;
 
     brickTypes: BrickType[];
 
@@ -106,15 +111,28 @@ export class InstructionsGenerator {
 
         const imageCanvas = document.createElement('canvas');
 
+        const bricksPanelWidth = Math.ceil(this.instructionBricks.length / this.brickPanelRows)
+            * (this.brickPanelWidth + this.brickCountTextSize);
+        const bricksPanelHeight = (this.instructionBricks.length < this.brickPanelRows ?
+            this.instructionBricks.length : this.brickPanelRows) * this.brickPanelHeight;
+
+        const fullPanelWidth = bricksPanelWidth + this.padding;
+        const fullPanelHeight = bricksPanelHeight + this.padding * 2;
+
+        const topRowPanelCount = Math.floor((this.imageWidth - bricksPanelWidth) / fullPanelWidth);
+        const instructionBricksRows = Math.ceil((this.brickLevels.length - topRowPanelCount) / this.instructionPanelColumns);
+
+        const imageHeight = fullPanelHeight * (instructionBricksRows + 1) - this.padding * 2;
+
         imageCanvas.width = this.imageWidth;
-        imageCanvas.height = this.imageHeight;
+        imageCanvas.height = imageHeight;
         imageCanvas.style.display = 'none';
 
         document.body.appendChild(imageCanvas);
 
         const imageContext = imageCanvas.getContext('2d');
 
-        imageContext.rect(0, 0, this.imageWidth, this.imageHeight);
+        imageContext.rect(0, 0, this.imageWidth, imageHeight);
         imageContext.fillStyle = 'white';
         imageContext.fill();
 
@@ -186,7 +204,8 @@ export class InstructionsGenerator {
         return center;
     }
 
-    generateInstructionsPanel(renderer: WebGLRenderer, scene: Scene, imageContext: CanvasRenderingContext2D, offset: Vector2) {
+    generateInstructionsPanel(renderer: WebGLRenderer, scene: Scene,
+        imageContext: CanvasRenderingContext2D, offset: Vector2) {
         const panelWidth = this.imageWidth / this.instructionPanelColumns - this.padding;
         const panelHeight = offset.y;
 
@@ -386,8 +405,6 @@ export class InstructionsGenerator {
     }
 
     generateBricksPanel(renderer: WebGLRenderer, scene: Scene, imageContext: CanvasRenderingContext2D): Vector2 {
-        const panelWidth = 80;
-        const panelHeight = 80;
 
         const maxBrickTypeSize = Math.max(...this.instructionBricks
             .map(ib => ib.type)
@@ -395,9 +412,9 @@ export class InstructionsGenerator {
 
         const maxBrickTypeUnitSize = maxBrickTypeSize * CELL_SIZE.x;
 
-        renderer.setSize(panelWidth, panelHeight);
+        renderer.setSize(this.brickPanelWidth, this.brickPanelHeight);
 
-        const panelAspectRatio = panelWidth / panelHeight;
+        const panelAspectRatio = this.brickPanelWidth / this.brickPanelHeight;
 
         const cameraSize = 10;
 
@@ -412,8 +429,6 @@ export class InstructionsGenerator {
         camera.position.set(maxBrickTypeUnitSize, maxBrickTypeUnitSize, maxBrickTypeUnitSize);
 
         camera.lookAt(0, 0, 0);
-
-        const brickCountTextSize = 30;
 
         const brickImagesDataUrls: string[] = [];
 
@@ -441,9 +456,9 @@ export class InstructionsGenerator {
         }
 
         const bricksPanelWidth = Math.ceil(brickImagesDataUrls.length / this.brickPanelRows)
-            * (panelWidth + brickCountTextSize);
+            * (this.brickPanelWidth + this.brickCountTextSize);
         const bricksPanelHeight = (brickImagesDataUrls.length < this.brickPanelRows ?
-            brickImagesDataUrls.length : this.brickPanelRows) * panelHeight;
+            brickImagesDataUrls.length : this.brickPanelRows) * this.brickPanelHeight;
 
         for (let x = 0; x < brickImagesDataUrls.length / this.brickPanelRows; x++) {
             const skip = x * this.brickPanelRows;
@@ -455,13 +470,13 @@ export class InstructionsGenerator {
                 const dy = y;
 
                 imageContext.fillText(`x ${this.instructionBricks[skip + y].count}`,
-                    panelWidth + (dx * (panelWidth + brickCountTextSize)),
-                    dy * panelHeight + panelHeight / 2);
+                    this.brickPanelWidth + (dx * (this.brickPanelWidth + this.brickCountTextSize)),
+                    dy * this.brickPanelHeight + this.brickPanelHeight / 2);
 
                 image.onload = () => {
                     imageContext.drawImage(image,
-                        dx * (panelWidth + brickCountTextSize),
-                        dy * panelHeight);
+                        dx * (this.brickPanelWidth + this.brickCountTextSize),
+                        dy * this.brickPanelHeight);
                 };
             }
         }
