@@ -1121,15 +1121,24 @@ export class EditorComponent implements OnInit, AfterViewInit {
         instructionsGenerator.onGenerated = (imageUrl) => {
             // imageUrl = imageUrl.replace(/^data:image\/[^;]+/, 'data:application/octet-stream');
 
-            // window.open(imageUrl);
+            // window.open(imageUrl, 'nanoblock-design.json');
 
-            const imageWindow = window.open('', '');
-            imageWindow.document.title = 'Instructions';
+            const downloader = document.createElement('a');
 
-            const instructionsImage = new Image();
-            instructionsImage.src = imageUrl;
+            downloader.setAttribute('href', imageUrl);
+            downloader.setAttribute('download', `nanoblock-design.jpg`);
+            downloader.click();
+            downloader.remove();
 
-            imageWindow.document.body.appendChild(instructionsImage);
+            window.URL.revokeObjectURL(imageUrl);
+
+            // const imageWindow = window.open('', '');
+            // imageWindow.document.title = 'Instructions';
+
+            // const instructionsImage = new Image();
+            // instructionsImage.src = imageUrl;
+
+            // imageWindow.document.body.appendChild(instructionsImage);
 
             this._generatingInstructionsToggleButton.nativeElement.click();
         };
