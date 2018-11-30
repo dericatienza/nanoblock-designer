@@ -597,8 +597,8 @@ export class InstructionsGenerator {
 
                     const skippedLevelCells: Cell[] = [];
 
-                    for (let z = 0; z < buildableSkippedBricks.length; z++) {
-                        const skippedBrick = buildableSkippedBricks[z];
+                    for (let z = 0; z < bricks.length; z++) {
+                        const skippedBrick = bricks[z];
 
                         skippedLevelCells.push(...this.getOccupiedCells(skippedBrick));
 
@@ -670,6 +670,10 @@ export class InstructionsGenerator {
             if (brickLevel.bricks.length > 0) {
                 this.brickLevels.push(brickLevel);
             }
+        }
+
+        if (skippedBricks.length > 0) {
+            console.error(`Unable to build instructions for ${skippedBricks.length} brick/s.`);
         }
 
         console.log(this.brickLevels);
