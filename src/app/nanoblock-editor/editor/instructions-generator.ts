@@ -110,8 +110,7 @@ export class InstructionsGenerator {
 
         const imageCanvas = document.createElement('canvas');
 
-        const bricksPanelWidth = Math.ceil(this.instructionBricks.length / this.brickPanelRows)
-            * (this.brickPanelWidth + this.brickCountTextSize);
+        const bricksPanelWidth = this.imageWidth / this.instructionPanelColumns - this.padding;
         const bricksPanelHeight = (this.instructionBricks.length < this.brickPanelRows ?
             this.instructionBricks.length : this.brickPanelRows) * this.brickPanelHeight;
 
