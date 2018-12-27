@@ -84,7 +84,7 @@ export class InstructionsGenerator {
     private internalGenerate() {
         const renderer = new three.WebGLRenderer({
             antialias: true,
-            alpha: true
+            alpha: true,
             // preserveDrawingBuffer: true
         });
 
@@ -94,6 +94,15 @@ export class InstructionsGenerator {
         renderer.setClearColor(this.rendererClearColor, 0);
 
         const canvas = renderer.domElement;
+
+        canvas.addEventListener('webglcontextlost', function (event) {
+            event.preventDefault();
+        }, false);
+
+        canvas.addEventListener('webglcontextrestored', function () {
+            console.log('Context restored.');
+        });
+
         canvas.style.display = 'none';
 
         document.body.appendChild(renderer.domElement);
@@ -268,6 +277,8 @@ export class InstructionsGenerator {
                 imageContext.drawImage(image,
                     this.padding + offset.x + dx * topRowPanelWidth,
                     0);
+
+                window.URL.revokeObjectURL(image.src);
             };
 
             imageContext.strokeRect(this.padding + offset.x + x * topRowPanelWidth, 0, topRowPanelWidth - this.padding, panelHeight);
@@ -323,6 +334,8 @@ export class InstructionsGenerator {
                     imageContext.drawImage(image,
                         dx * fullPanelWidth,
                         dy * fullPanelHeight);
+
+                    window.URL.revokeObjectURL(image.src);
                 };
 
                 imageContext.strokeRect(dx * fullPanelWidth, dy * fullPanelHeight, panelWidth, panelHeight);
@@ -475,6 +488,8 @@ export class InstructionsGenerator {
                     imageContext.drawImage(image,
                         dx * (this.brickPanelWidth + this.brickCountTextSize),
                         dy * this.brickPanelHeight);
+
+                    window.URL.revokeObjectURL(image.src);
                 };
             }
         }
@@ -632,9 +647,13 @@ export class InstructionsGenerator {
 
             const levelBricks = this.design.bricks.filter(b => b.y === levelIndex);
 
-            if (this.brickLevels.length < 1) {
+            if (pushedBrickLevelCount < designHeight && this.brickLevels.length < 1) {
                 if (!this.isBrickLevelAdjacent(levelBricks)) {
                     pushedBrickLevelCount += 1;
+
+                    if (pushedBrickLevelCount === this.brickLevels.length) {
+                        x = 0;
+                    }
 
                     continue;
                 }
