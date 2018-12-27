@@ -47,10 +47,12 @@ export class InstructionsGenerator {
 
     instructionPanelColumns = 4;
 
+    margin = 30;
+
     padding = 15;
 
     imageWidth = 2480; // 72 DPI: 595;
-    // imageHeight = 3508; // 72 DPI: 842;
+    minImageHeight = 3508; // 72 DPI: 842;
 
     rendererClearColor = '#d3d3d3';
 
@@ -88,20 +90,12 @@ export class InstructionsGenerator {
             // preserveDrawingBuffer: true
         });
 
-        renderer.setPixelRatio(devicePixelRatio);
+        renderer.setPixelRatio(1);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.setClearColor(this.rendererClearColor, 0);
 
         const canvas = renderer.domElement;
-
-        canvas.addEventListener('webglcontextlost', function (event) {
-            event.preventDefault();
-        }, false);
-
-        canvas.addEventListener('webglcontextrestored', function () {
-            console.log('Context restored.');
-        });
 
         canvas.style.display = 'none';
 
@@ -129,7 +123,9 @@ export class InstructionsGenerator {
         const topRowPanelCount = Math.floor((this.imageWidth - bricksPanelWidth) / fullPanelWidth);
         const instructionBricksRows = Math.ceil((this.brickLevels.length - topRowPanelCount) / this.instructionPanelColumns);
 
-        const imageHeight = fullPanelHeight * (instructionBricksRows + 1) - this.padding * 2;
+        let imageHeight = fullPanelHeight * (instructionBricksRows + 1) - this.padding * 2;
+
+        imageHeight = imageHeight >= this.minImageHeight ? imageHeight : this.minImageHeight;
 
         imageCanvas.width = this.imageWidth;
         imageCanvas.height = imageHeight;
@@ -213,16 +209,17 @@ export class InstructionsGenerator {
 
     generateInstructionsPanel(renderer: WebGLRenderer, scene: Scene,
         imageContext: CanvasRenderingContext2D, offset: Vector2) {
-        const panelWidth = this.imageWidth / this.instructionPanelColumns - this.padding;
+        const panelWidth = this.imageWidth / this.instructionPanelColumns
+            - this.margin;
         const panelHeight = offset.y;
 
-        const fullPanelWidth = panelWidth + this.padding;
+        const fullPanelWidth = panelWidth + this.padding + (this.padding / this.instructionPanelColumns);
         const fullPanelHeight = panelHeight + this.padding * 2;
 
         // Accounting for bricks panel on first row
-        const topRowPanelCount = Math.floor((this.imageWidth - offset.x) / fullPanelWidth);
+        const topRowPanelCount = Math.floor((this.imageWidth - offset.x - this.margin) / fullPanelWidth);
 
-        const excessWidth = (this.imageWidth - offset.x) - topRowPanelCount * fullPanelWidth;
+        const excessWidth = (this.imageWidth - offset.x - this.margin) - topRowPanelCount * fullPanelWidth;
 
         const topRowPanelWidth = fullPanelWidth + (excessWidth / topRowPanelCount);
 
@@ -276,12 +273,13 @@ export class InstructionsGenerator {
             image.onload = () => {
                 imageContext.drawImage(image,
                     this.padding + offset.x + dx * topRowPanelWidth,
-                    0);
+                    this.margin);
 
                 window.URL.revokeObjectURL(image.src);
             };
 
-            imageContext.strokeRect(this.padding + offset.x + x * topRowPanelWidth, 0, topRowPanelWidth - this.padding, panelHeight);
+            imageContext.strokeRect(this.padding + offset.x + x * topRowPanelWidth, this.margin,
+                topRowPanelWidth - this.padding, panelHeight - this.margin);
 
             this.setBrickObjectsBuiltColor(brickLevelBricks, builtBrickObjectClones);
 
@@ -332,13 +330,13 @@ export class InstructionsGenerator {
 
                 image.onload = () => {
                     imageContext.drawImage(image,
-                        dx * fullPanelWidth,
+                        this.margin + dx * fullPanelWidth,
                         dy * fullPanelHeight);
 
                     window.URL.revokeObjectURL(image.src);
                 };
 
-                imageContext.strokeRect(dx * fullPanelWidth, dy * fullPanelHeight, panelWidth, panelHeight);
+                imageContext.strokeRect(this.margin + dx * fullPanelWidth, dy * fullPanelHeight, panelWidth, panelHeight);
 
                 this.setBrickObjectsBuiltColor(brickLevelBricks, builtBrickObjectClones);
 
@@ -481,22 +479,22 @@ export class InstructionsGenerator {
                 const dy = y;
 
                 imageContext.fillText(`x ${this.instructionBricks[skip + y].count}`,
-                    this.brickPanelWidth + (dx * (this.brickPanelWidth + this.brickCountTextSize)),
-                    dy * this.brickPanelHeight + this.brickPanelHeight / 2);
+                    this.brickPanelWidth + this.margin + (dx * (this.brickPanelWidth + this.brickCountTextSize)),
+                    dy * this.brickPanelHeight + this.margin + this.brickPanelHeight / 2);
 
                 image.onload = () => {
                     imageContext.drawImage(image,
-                        dx * (this.brickPanelWidth + this.brickCountTextSize),
-                        dy * this.brickPanelHeight);
+                        dx * (this.brickPanelWidth + this.brickCountTextSize) + this.margin,
+                        dy * this.brickPanelHeight + this.margin);
 
                     window.URL.revokeObjectURL(image.src);
                 };
             }
         }
 
-        imageContext.strokeRect(0, 0, bricksPanelWidth, bricksPanelHeight);
+        imageContext.strokeRect(this.margin, this.margin, bricksPanelWidth, bricksPanelHeight);
 
-        return new Vector2(bricksPanelWidth, bricksPanelHeight);
+        return new Vector2(bricksPanelWidth + this.margin, bricksPanelHeight + this.margin);
     }
 
     snapScene(renderer: Renderer, scene: Scene, camera: Camera): string {
