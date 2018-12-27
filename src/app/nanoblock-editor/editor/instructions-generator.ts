@@ -118,12 +118,12 @@ export class InstructionsGenerator {
             this.instructionBricks.length : this.brickPanelRows) * this.brickPanelHeight;
 
         const fullPanelWidth = bricksPanelWidth + this.padding;
-        const fullPanelHeight = bricksPanelHeight + this.padding * 2;
+        const fullPanelHeight = bricksPanelHeight + this.padding * 4;
 
         const topRowPanelCount = Math.floor((this.imageWidth - bricksPanelWidth) / fullPanelWidth);
         const instructionBricksRows = Math.ceil((this.brickLevels.length - topRowPanelCount) / this.instructionPanelColumns);
 
-        let imageHeight = fullPanelHeight * (instructionBricksRows + 1) - this.padding * 2;
+        let imageHeight = fullPanelHeight * (instructionBricksRows + 1);
 
         imageHeight = imageHeight >= this.minImageHeight ? imageHeight : this.minImageHeight;
 
