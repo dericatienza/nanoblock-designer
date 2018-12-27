@@ -595,8 +595,6 @@ export class EditorComponent implements OnInit, AfterViewInit {
         this._scene.object.add(brickObject);
 
         this.brickObjects.push(brickObject);
-
-        this.currentBrickObject = null;
     }
 
     removeBrickObject(brickObject: BrickObject, fixBuild: boolean = true) {
