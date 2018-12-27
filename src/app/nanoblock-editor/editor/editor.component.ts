@@ -157,6 +157,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
         if (this.currentBrickObject) {
             this.currentBrickObject.brick.colorId = this.currentBrickColor.id;
+            this.currentBrickObject.brickColor = this._currentBrickColor;
 
             this.refreshCurrentBrickColor();
             this.setCurrentBrickOpacity();
