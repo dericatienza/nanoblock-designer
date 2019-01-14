@@ -31,6 +31,7 @@ import { PaintEditorMode } from './modes/paint-editor-mode';
 import { EraseEditorMode } from './modes/erase-editor-mode';
 import { EditorModeComponent } from '../editor-mode/editor-mode.component';
 import { InstructionsGenerator } from './instructions-generator';
+import { DeviceDetectorService } from 'ngx-device-detector';
 
 declare var THREE: any;
 
@@ -124,6 +125,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     @ViewChild('generatingInstructionsToggleButton')
     private _generatingInstructionsToggleButton: ElementRef;
+
+    @ViewChild('modalDisclaimerToggleButton')
+    private _modalDisclaimerToggleButton: ElementRef;
 
     brickTypes: BrickType[];
     brickColors: BrickColor[];
@@ -232,7 +236,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
         size: DEFAULT_GRID_SIZE
     };
 
-    constructor(private _brickTypeService: BrickTypeService, private _brickColorService: BrickColorService) {
+    constructor(private _brickTypeService: BrickTypeService,
+        private _brickColorService: BrickColorService,
+        private _deviceService: DeviceDetectorService) {
         this.onKeyDown = this.onKeyDown.bind(this);
 
         this._currentBrickSelectedMaterial = new MeshPhongMaterial({
@@ -301,6 +307,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
     }
 
     ngAfterViewInit(): void {
+        if (!this._deviceService.isDesktop()) {
+            this._modalDisclaimerToggleButton.nativeElement.click();
+        }
+
         this.addListeners();
     }
 
