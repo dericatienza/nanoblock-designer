@@ -659,6 +659,10 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
         this.brickColors.splice(deleteBrickColorIndex, 1);
 
+        this.currentBrickColor = fallbackBrickColor;
+
+        this.setCurrentBrickOpacity();
+
         this._brickColorService.deleteBrickColorMaterial(brickColor);
     }
 
