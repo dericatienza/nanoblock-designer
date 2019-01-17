@@ -44,3 +44,5 @@ Thumbs.db
 
 # Do not want to share internal repos
 package-lock.json
+/.vs/nanoblock-designer/v15
+/.vs

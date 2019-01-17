@@ -161,6 +161,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
         if (this.currentBrickObject) {
             this.currentBrickObject.brick.colorId = this.currentBrickColor.id;
+            this.currentBrickObject.brickColor = this._currentBrickColor;
 
             this.refreshCurrentBrickColor();
             this.setCurrentBrickOpacity();
@@ -604,8 +605,6 @@ export class EditorComponent implements OnInit, AfterViewInit {
         this._scene.object.add(brickObject);
 
         this.brickObjects.push(brickObject);
-
-        this.currentBrickObject = null;
     }
 
     removeBrickObject(brickObject: BrickObject, fixBuild: boolean = true) {
@@ -1133,26 +1132,19 @@ export class EditorComponent implements OnInit, AfterViewInit {
             this._brickColorService);
 
         instructionsGenerator.onGenerated = (imageUrl) => {
-            // imageUrl = imageUrl.replace(/^data:image\/[^;]+/, 'data:application/octet-stream');
+            const byteString = atob(imageUrl.split(',')[1]);
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
 
-            // window.open(imageUrl, 'nanoblock-design.json');
+            for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
 
-            const downloader = document.createElement('a');
+            const blob = new Blob([ab], { type: 'image/jpeg' });
+            const url = window.URL.createObjectURL(blob);
+            const imageWindow = window.open(url);
 
-            downloader.setAttribute('href', imageUrl);
-            downloader.setAttribute('download', `nanoblock-design.jpg`);
-            downloader.click();
-            downloader.remove();
-
-            window.URL.revokeObjectURL(imageUrl);
-
-            // const imageWindow = window.open('', '');
-            // imageWindow.document.title = 'Instructions';
-
-            // const instructionsImage = new Image();
-            // instructionsImage.src = imageUrl;
-
-            // imageWindow.document.body.appendChild(instructionsImage);
+            // window.URL.revokeObjectURL(url);
 
             this._generatingInstructionsToggleButton.nativeElement.click();
         };
