@@ -7,7 +7,6 @@ import { NanoblockEditorModule } from './nanoblock-editor/nanoblock-editor.modul
 import { AppRoutingModule } from './app-routing.module';
 
 import { DeviceDetectorModule } from 'ngx-device-detector';
-import { Angulartics2Module } from 'angulartics2';
 
 @NgModule({
     declarations: [
@@ -18,8 +17,7 @@ import { Angulartics2Module } from 'angulartics2';
         ThreeJsModule,
         NanoblockEditorModule,
         AppRoutingModule,
-        DeviceDetectorModule.forRoot(),
-        Angulartics2Module.forRoot()
+        DeviceDetectorModule.forRoot()
     ],
     providers: [],
     bootstrap: [AppComponent]

@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { environment } from '../environments/environment';
-import { Angulartics2GoogleGlobalSiteTag } from 'angulartics2/gst';
 
 @Component({
     selector: 'app-root',
@@ -9,10 +8,9 @@ import { Angulartics2GoogleGlobalSiteTag } from 'angulartics2/gst';
 })
 export class AppComponent {
 
-    constructor(private _angulartics: Angulartics2GoogleGlobalSiteTag) {
+    constructor() {
         if (environment.googleAnalytics.enabled) {
             this.appendGoogleAnalyticsCode();
-            this._angulartics.startTracking();
         }
     }
 
@@ -23,7 +21,7 @@ export class AppComponent {
         gtagScript.async = true;
         gtagScript.charset = 'utf-8';
 
-        document.head.append(gtagScript);
+        document.head.appendChild(gtagScript);
 
         const script = document.createElement('script');
 
@@ -35,6 +33,6 @@ export class AppComponent {
             gtag('config', '${environment.googleAnalytics.trackingId}');
         `;
 
-        document.head.append(script);
+        document.head.appendChild(script);
     }
 }

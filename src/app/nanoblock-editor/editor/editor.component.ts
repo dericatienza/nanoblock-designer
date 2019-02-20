@@ -32,7 +32,6 @@ import { EraseEditorMode } from './modes/erase-editor-mode';
 import { EditorModeComponent } from '../editor-mode/editor-mode.component';
 import { InstructionsGenerator } from './instructions-generator';
 import { DeviceDetectorService } from 'ngx-device-detector';
-import { Angulartics2 } from 'angulartics2';
 
 declare var THREE: any;
 
@@ -240,8 +239,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     constructor(private _brickTypeService: BrickTypeService,
         private _brickColorService: BrickColorService,
-        private _deviceService: DeviceDetectorService,
-        private _angulartics2: Angulartics2) {
+        private _deviceService: DeviceDetectorService) {
         this.onKeyDown = this.onKeyDown.bind(this);
 
         this._currentBrickSelectedMaterial = new MeshPhongMaterial({
@@ -1134,13 +1132,6 @@ export class EditorComponent implements OnInit, AfterViewInit {
             this._brickColorService);
 
         instructionsGenerator.onGenerated = (imageUrl) => {
-            this._angulartics2.eventTrack.next({
-                action: 'generate instructions',
-                properties: {
-                    category: 'Editor'
-                }
-            });
-
             const byteString = atob(imageUrl.split(',')[1]);
             const ab = new ArrayBuffer(byteString.length);
             const ia = new Uint8Array(ab);
