@@ -266,6 +266,10 @@ export class InstructionsGenerator {
 
             camera.lookAt(brickLevelCenter);
 
+            camera.position.set(camera.position.x - (CELL_SIZE.x * (1 - this.cameraXZFactor)),
+                camera.position.y,
+                camera.position.z - (CELL_SIZE.z * (1 - this.cameraXZFactor)));
+
             const imageDataUrl = this.snapScene(renderer, scene, camera);
 
             const image = new Image();
@@ -322,6 +326,10 @@ export class InstructionsGenerator {
                     brickLevelCenter.z + (cameraSize * this.cameraXZFactor * (brickLevel.isFrontView ? 1 : -1)));
 
                 camera.lookAt(brickLevelCenter);
+
+                camera.position.set(camera.position.x - (CELL_SIZE.x * (1 - this.cameraXZFactor)),
+                    camera.position.y,
+                    camera.position.z - (CELL_SIZE.z * (1 - this.cameraXZFactor)));
 
                 const imageDataUrl = this.snapScene(renderer, scene, camera);
 
@@ -437,7 +445,9 @@ export class InstructionsGenerator {
             1,
             1000);
 
-        camera.position.set(maxBrickTypeUnitSize, maxBrickTypeUnitSize, maxBrickTypeUnitSize);
+        camera.position.set(maxBrickTypeUnitSize * this.cameraXZFactor,
+            maxBrickTypeUnitSize,
+            maxBrickTypeUnitSize * this.cameraXZFactor);
 
         camera.lookAt(0, 0, 0);
 
