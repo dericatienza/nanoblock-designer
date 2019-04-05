@@ -5,7 +5,9 @@ import { BrickType } from './editor/editor.models';
 import * as three from 'three';
 import '../../assets/js/ThreeCSG';
 import 'rxjs/add/operator/map';
-import { Geometry, Material, Vector3, BufferGeometry, BoxGeometry } from 'three';
+import { Geometry, Material, Vector3, BufferGeometry, BoxGeometry, Mesh } from 'three';
+import { BrickObject } from './editor/brick-object';
+import { BRICK_OUTLINE_MATERIAL } from './editor/editor.component';
 
 declare var THREE: any;
 
@@ -22,6 +24,8 @@ export class BrickTypeService {
   private _brickTypeGeometries: Map<number, BufferGeometry>;
   private _brickTypeHighlightGeometries: Map<number, BufferGeometry>;
 
+  private _brickTypeMeshes: Map<number, Mesh>;
+
   get studSize(): Vector3 {
     return this.studGeometry.boundingBox.getSize();
   }
@@ -29,6 +33,7 @@ export class BrickTypeService {
   constructor(private _http: HttpClient) {
     this._brickTypeGeometries = new Map<number, BufferGeometry>();
     this._brickTypeHighlightGeometries = new Map<number, BufferGeometry>();
+    this._brickTypeMeshes = new Map<number, Mesh>();
     this.initStud();
   }
 
@@ -57,6 +62,24 @@ export class BrickTypeService {
     this.getBrickTypeGeometry(brickType);
 
     return this._brickTypeHighlightGeometries.get(brickType.id);
+  }
+
+  getBrickTypeMesh(brickType: BrickType): Mesh {
+    if (this._brickTypeMeshes.has(brickType.id)) {
+      return this._brickTypeMeshes.get(brickType.id).clone();
+    }
+
+    const geometry = this.getBrickTypeGeometry(brickType);
+
+    const mesh = new three.Mesh(geometry);
+
+    const outlinesGeometry = new THREE.OutlinesGeometry(geometry, 45);
+    const outline = new three.LineSegments(outlinesGeometry, BRICK_OUTLINE_MATERIAL);
+    mesh.add(outline);
+
+    this._brickTypeMeshes.set(brickType.id, mesh);
+
+    return mesh.clone();
   }
 
   getBrickTypeGeometry(brickType: BrickType): BufferGeometry {

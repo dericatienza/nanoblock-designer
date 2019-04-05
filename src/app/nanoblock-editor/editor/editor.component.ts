@@ -358,16 +358,13 @@ export class EditorComponent implements OnInit, AfterViewInit {
     }
 
     createBrickObject(type: BrickType, color: BrickColor): BrickObject {
-        const geometry = this._brickTypeService.getBrickTypeGeometry(type);
+        const mesh = this._brickTypeService.getBrickTypeMesh(type);
 
         const material = this._brickColorService.getBrickColorMaterial(color);
 
-        const brickObject = new BrickObject();
-        const mesh = new three.Mesh(geometry, material);
+        mesh.material = material;
 
-        const outlinesGeometry = new THREE.OutlinesGeometry(geometry, 45);
-        const outline = new three.LineSegments(outlinesGeometry, BRICK_OUTLINE_MATERIAL);
-        mesh.add(outline);
+        const brickObject = new BrickObject();
 
         brickObject.add(mesh);
 

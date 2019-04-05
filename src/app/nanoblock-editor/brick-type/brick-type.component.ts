@@ -44,15 +44,9 @@ export class BrickTypeComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    const geometry = this._brickTypeService.getBrickTypeGeometry(this.brickType);
+    this.mesh = this._brickTypeService.getBrickTypeMesh(this.brickType);
 
-    const material = this._brickColorService.getBrickColorMaterial(this.brickColor);
-
-    this.mesh = new three.Mesh(geometry, material);
-
-    const outlinesGeometry = new THREE.OutlinesGeometry(geometry, 45);
-    const outline = new three.LineSegments(outlinesGeometry, BRICK_OUTLINE_MATERIAL);
-    this.mesh.add(outline);
+    this.mesh.material = this._brickColorService.getBrickColorMaterial(this.brickColor);
 
     const studSize = this._brickTypeService.studSize;
 
