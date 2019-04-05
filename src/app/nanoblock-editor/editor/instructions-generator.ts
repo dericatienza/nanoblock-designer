@@ -69,12 +69,12 @@ export class InstructionsGenerator {
     cameraXZFactor = 0.5;
 
     constructor(public design: Design,
-        public brickTypeService: BrickTypeService,
-        public brickColorService: BrickColorService) {
+        public _brickTypeService: BrickTypeService,
+        public _brickColorService: BrickColorService) {
     }
 
     generate() {
-        this.brickTypeService.getBrickTypes()
+        this._brickTypeService.getBrickTypes()
             .subscribe((brickTypes: BrickType[]) => {
                 this.brickTypes = brickTypes;
 
@@ -392,7 +392,7 @@ export class InstructionsGenerator {
             const instructionBrick = this.instructionBricks.find(
                 ib => ib.type.id === brick.typeId && ib.color.id === brick.colorId);
 
-            const builtBrickColorMaterial = this.brickColorService.getBrickColorMaterial(instructionBrick.builtColor);
+            const builtBrickColorMaterial = this._brickColorService.getBrickColorMaterial(instructionBrick.builtColor);
 
             const mesh = <three.Mesh>builtBrickObject.pivot.children[0].children[0]; // Investigate why pivot has extra child
             mesh.material = builtBrickColorMaterial;
@@ -457,7 +457,7 @@ export class InstructionsGenerator {
 
         const brickImagesDataUrls: string[] = [];
 
-        const studSize = this.brickTypeService.studSize;
+        const studSize = this._brickTypeService.studSize;
 
         for (const instructionBrick of this.instructionBricks) {
             const brickObjectClone = instructionBrick.brickObject.clone();
@@ -561,21 +561,13 @@ export class InstructionsGenerator {
     }
 
     private createBrickObject(type: BrickType, color: BrickColor): PivotObject3D {
-        const geometry = this.brickTypeService.getBrickTypeGeometry(type);
+        const mesh = this._brickTypeService.getBrickTypeMesh(type);
 
-        const material = this.brickColorService.getBrickColorMaterial(color);
+        const material = this._brickColorService.getBrickColorMaterial(color);
+
+        mesh.material = material;
 
         const brickObject = new PivotObject3D();
-        const mesh = new THREE.Mesh(geometry, material);
-
-        const outlinesGeometry = new THREE.OutlinesGeometry(geometry, 45);
-
-        const outlineMaterial = tinycolor(color.colorHex).getLuminance() > 0.1 ?
-            INSTRUCTIONS_LIGHT_BRICK_OUTLINE_MATERIAL :
-            INSTRUCTIONS_DARK_BRICK_OUTLINE_MATERIAL;
-
-        const outline = new THREE.LineSegments(outlinesGeometry, outlineMaterial);
-        mesh.add(outline);
 
         brickObject.add(mesh);
 
