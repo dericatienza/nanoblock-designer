@@ -105,7 +105,7 @@ export class InstructionsGenerator {
 
         const scene = new three.Scene();
 
-        const ambientLight = new three.AmbientLight('white', 1);
+        const ambientLight = new three.AmbientLight('white', 0.8);
         const pointLight1 = new three.PointLight('white', 1, 1000);
         pointLight1.position.set(48, 96, 96);
         const pointLight2 = new three.PointLight('white', 1, 1000);
@@ -239,7 +239,7 @@ export class InstructionsGenerator {
             1,
             1000);
 
-        const maxBrickLevelSize = (Math.max(...this.brickLevels.map(bl => this.getBrickLevelSize(bl.bricks))) + 2) * CELL_SIZE.x;
+        const maxBrickLevelSize = (Math.max(...this.brickLevels.map(bl => bl.size)) + 1) * CELL_SIZE.x;
 
         camera.zoom = (cameraSize * 2) / maxBrickLevelSize;
         camera.updateProjectionMatrix();
@@ -266,9 +266,11 @@ export class InstructionsGenerator {
 
             camera.lookAt(brickLevelCenter);
 
-            camera.position.set(camera.position.x - (CELL_SIZE.x * (1 - this.cameraXZFactor)),
+            const cameraXZOffset = CELL_SIZE.x + CELL_SIZE.z;
+
+            camera.position.set(camera.position.x - cameraXZOffset,
                 camera.position.y,
-                camera.position.z - (CELL_SIZE.z * (1 - this.cameraXZFactor)));
+                camera.position.z - cameraXZOffset);
 
             const imageDataUrl = this.snapScene(renderer, scene, camera);
 
@@ -327,9 +329,11 @@ export class InstructionsGenerator {
 
                 camera.lookAt(brickLevelCenter);
 
-                camera.position.set(camera.position.x - (CELL_SIZE.x * (1 - this.cameraXZFactor)),
+                const cameraXZOffset = CELL_SIZE.x + CELL_SIZE.z;
+
+                camera.position.set(camera.position.x - cameraXZOffset,
                     camera.position.y,
-                    camera.position.z - (CELL_SIZE.z * (1 - this.cameraXZFactor)));
+                    camera.position.z - cameraXZOffset);
 
                 const imageDataUrl = this.snapScene(renderer, scene, camera);
 
@@ -612,13 +616,6 @@ export class InstructionsGenerator {
                 buildableSkippedBrickLevelMap.forEach((bricks, level) => {
                     const isTopView = level >= Math.max(...builtBrickCells.map(c => c.y));
 
-                    const skippedBrickLevel = {
-                        bricks: bricks,
-                        isTopView: isTopView,
-                        isFrontView: true,
-                        isRightView: true
-                    };
-
                     const skippedLevelCells: Cell[] = [];
 
                     for (let z = 0; z < bricks.length; z++) {
@@ -631,10 +628,15 @@ export class InstructionsGenerator {
 
                     builtBrickCells.push(...skippedLevelCells);
 
-                    skippedBrickLevel.isFrontView = !(skippedLevelCells.some(c => c.z < this.design.size / 2)
-                        && Math.max(...builtBrickCells.map(c => c.y)) > Math.max(...skippedLevelCells.map(c => c.y)));
-                    skippedBrickLevel.isRightView = skippedLevelCells.filter(c => c.x >= this.design.size / 2).length
-                        >= skippedLevelCells.filter(c => c.x < this.design.size / 2).length;
+                    const skippedBrickLevel = {
+                        bricks: bricks,
+                        isTopView: isTopView,
+                        isFrontView: !(skippedLevelCells.some(c => c.z < this.design.size / 2)
+                            && Math.max(...builtBrickCells.map(c => c.y)) > Math.max(...skippedLevelCells.map(c => c.y))),
+                        isRightView: skippedLevelCells.filter(c => c.x >= this.design.size / 2).length
+                            >= skippedLevelCells.filter(c => c.x < this.design.size / 2).length,
+                        size: this.getBrickLevelSize(bricks)
+                    };
 
                     this.brickLevels.push(skippedBrickLevel);
                 });
@@ -643,13 +645,6 @@ export class InstructionsGenerator {
                     .filter(b => this.checkCellBuildable(b, builtBrickCells))
                     .sort((a, b) => a.y - b.y);
             }
-
-            const brickLevel = {
-                bricks: [],
-                isTopView: true,
-                isFrontView: true,
-                isRightView: true
-            };
 
             const levelIndex = x < designHeight
                 ? x
@@ -687,13 +682,15 @@ export class InstructionsGenerator {
 
             builtBrickCells.push(...levelCells);
 
-            brickLevel.isTopView = levelIndex >= Math.max(...builtBrickCells.map(c => c.y));
-            brickLevel.isFrontView = !(levelCells.some(c => c.z < this.design.size / 2)
-                && Math.max(...builtBrickCells.map(c => c.y)) > Math.max(...levelCells.map(c => c.y)));
-            brickLevel.isRightView = levelCells.filter(c => c.x >= this.design.size / 2).length
-                >= levelCells.filter(c => c.x < this.design.size / 2).length;
-
-            brickLevel.bricks = levelBricks;
+            const brickLevel = {
+                bricks: levelBricks,
+                isTopView: levelIndex >= Math.max(...builtBrickCells.map(c => c.y)),
+                isFrontView: !(levelCells.some(c => c.z < this.design.size / 2)
+                    && Math.max(...builtBrickCells.map(c => c.y)) > Math.max(...levelCells.map(c => c.y))),
+                isRightView: levelCells.filter(c => c.x >= this.design.size / 2).length
+                    >= levelCells.filter(c => c.x < this.design.size / 2).length,
+                size: this.getBrickLevelSize(levelBricks)
+            };
 
             if (brickLevel.bricks.length > 0) {
                 this.brickLevels.push(brickLevel);
@@ -868,4 +865,5 @@ export class InstructionBrickLevel {
     isTopView: boolean;
     isFrontView: boolean;
     isRightView: boolean;
+    size: number;
 }
