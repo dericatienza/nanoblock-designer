@@ -66,6 +66,8 @@ export class InstructionsGenerator {
 
     brickTypes: BrickType[];
 
+    cameraXZFactor = 0.5;
+
     constructor(public design: Design,
         public brickTypeService: BrickTypeService,
         public brickColorService: BrickColorService) {
@@ -103,11 +105,11 @@ export class InstructionsGenerator {
 
         const scene = new three.Scene();
 
-        const ambientLight = new three.AmbientLight('white');
+        const ambientLight = new three.AmbientLight('white', 1);
         const pointLight1 = new three.PointLight('white', 1, 1000);
-        pointLight1.position.set(40, 80, 80);
+        pointLight1.position.set(48, 96, 96);
         const pointLight2 = new three.PointLight('white', 1, 1000);
-        pointLight1.position.set(-40, 80, -80);
+        pointLight1.position.set(-48, 96, -96);
 
         scene.add(ambientLight, pointLight1, pointLight2);
 
@@ -258,9 +260,9 @@ export class InstructionsGenerator {
 
             const brickLevelCenter = this.getBrickLevelCenter(brickLevelBricks);
 
-            camera.position.set(brickLevelCenter.x + (cameraSize * (brickLevel.isRightView ? 1 : -1)),
+            camera.position.set(brickLevelCenter.x + (cameraSize * this.cameraXZFactor * (brickLevel.isRightView ? 1 : -1)),
                 brickLevelCenter.y + (cameraSize * (brickLevel.isTopView ? 1 : -1)),
-                brickLevelCenter.z + (cameraSize * (brickLevel.isFrontView ? 1 : -1)));
+                brickLevelCenter.z + (cameraSize * this.cameraXZFactor * (brickLevel.isFrontView ? 1 : -1)));
 
             camera.lookAt(brickLevelCenter);
 
@@ -315,9 +317,9 @@ export class InstructionsGenerator {
 
                 const brickLevelCenter = this.getBrickLevelCenter(brickLevelBricks);
 
-                camera.position.set(brickLevelCenter.x + (cameraSize * (brickLevel.isRightView ? 1 : -1)),
+                camera.position.set(brickLevelCenter.x + (cameraSize * this.cameraXZFactor * (brickLevel.isRightView ? 1 : -1)),
                     brickLevelCenter.y + (cameraSize * (brickLevel.isTopView ? 1 : -1)),
-                    brickLevelCenter.z + (cameraSize * (brickLevel.isFrontView ? 1 : -1)));
+                    brickLevelCenter.z + (cameraSize * this.cameraXZFactor * (brickLevel.isFrontView ? 1 : -1)));
 
                 camera.lookAt(brickLevelCenter);
 
