@@ -417,7 +417,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     }
 
     onKeyDown(event: KeyboardEvent) {
-        if (event.ctrlKey) {
+        if (event.ctrlKey || event.metaKey) {
             if (event.keyCode === KEY_UNDO) {
                 this.undo();
             } else if (event.keyCode === KEY_REDO) {

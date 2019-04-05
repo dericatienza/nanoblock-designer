@@ -1,11 +1,15 @@
 <div class="box w-100">
   <div class="content">
     <three-renderer [clearColorAlpha]="0">
-      <three-orthographic-camera [height]=10 [near]=1 [far]=1000 positionX=10 positionY=10 positionZ=10></three-orthographic-camera>
+      <three-orthographic-camera [height]=10 [near]=1 [far]=1000 positionX=10 positionY=10 positionZ=10>
+      </three-orthographic-camera>
       <three-scene #scene="three-scene">
-        <three-ambient-light color="white" intensity="0.2" translateX="0" translateY="0" translateZ="0"></three-ambient-light>
-        <three-point-light color="white" intensity="1" distance="1000" translateX=40 translateY=80 translateZ=80></three-point-light>
-        <three-point-light color="white" intensity="1" distance="1000" translateX=-40 translateY=80 translateZ=-80></three-point-light>
+        <three-ambient-light color="white" intensity="0.4" translateX="0" translateY="0" translateZ="0">
+        </three-ambient-light>
+        <three-point-light color="white" intensity="1" distance="1000" translateX=40 translateY=80 translateZ=80>
+        </three-point-light>
+        <three-point-light color="white" intensity="1" distance="1000" translateX=-40 translateY=80 translateZ=-80>
+        </three-point-light>
       </three-scene>
     </three-renderer>
   </div>

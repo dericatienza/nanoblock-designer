@@ -142,6 +142,8 @@ export class BuildEditorMode extends EditorMode {
             this.editor.currentBrickObject.brickPivotX = pivotX;
 
             this.editor.currentBrickObject.rotationY = rotationY;
+
+            this.highlight(cell);
         }
     }
 }
