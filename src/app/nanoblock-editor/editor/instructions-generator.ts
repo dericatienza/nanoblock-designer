@@ -9,6 +9,7 @@ import { Scene, Renderer, Camera, MeshPhongMaterial, WebGLRenderer, Vector2, Vec
 import * as mergeImg from 'merge-img';
 import * as tinycolor from 'tinycolor2';
 import { EditorComponent } from './editor.component';
+import { MathHelper } from '../../helpers/math-helper';
 
 declare var THREE: any;
 
@@ -69,6 +70,7 @@ export class InstructionsGenerator {
     cameraXZFactor = 0.5;
 
     constructor(public design: Design,
+        public isCharacter: boolean,
         public _brickTypeService: BrickTypeService,
         public _brickColorService: BrickColorService) {
     }
@@ -105,11 +107,11 @@ export class InstructionsGenerator {
 
         const scene = new three.Scene();
 
-        const ambientLight = new three.AmbientLight('white', 0.8);
+        const ambientLight = new three.AmbientLight('white', 0.4);
         const pointLight1 = new three.PointLight('white', 1, 1000);
         pointLight1.position.set(48, 96, 96);
         const pointLight2 = new three.PointLight('white', 1, 1000);
-        pointLight1.position.set(-48, 96, -96);
+        pointLight2.position.set(-48, 96, -96);
 
         scene.add(ambientLight, pointLight1, pointLight2);
 
@@ -225,9 +227,9 @@ export class InstructionsGenerator {
 
         const topRowPanelWidth = fullPanelWidth + (excessWidth / topRowPanelCount);
 
-        renderer.setSize(topRowPanelWidth - this.padding, panelHeight);
+        renderer.setSize(topRowPanelWidth - this.padding, panelHeight - this.margin);
 
-        let panelAspectRatio = (topRowPanelWidth - this.padding) / panelHeight;
+        let panelAspectRatio = (topRowPanelWidth - this.padding) / (panelHeight - this.margin);
 
         const cameraSize = 60;
 
@@ -239,16 +241,32 @@ export class InstructionsGenerator {
             1,
             1000);
 
-        const maxBrickLevelSize = (Math.max(...this.brickLevels.map(bl => bl.size)) + 1) * CELL_SIZE.x;
+        const maxBrickLevelSize = Math.max(...this.brickLevels.map(bl => bl.size));
 
-        camera.zoom = (cameraSize * 2) / maxBrickLevelSize;
+        camera.zoom = (cameraSize * 2) / ((maxBrickLevelSize + 1) * CELL_SIZE.x);
         camera.updateProjectionMatrix();
 
         let builtBrickObjectClones: PivotObject3D[] = [];
 
-        const startX = -(this.design.size / 2) + CELL_SIZE.x / 2;
-        const startZ = -(this.design.size / 2) + CELL_SIZE.z / 2;
+        const startX = -(this.design.size / 2) * CELL_SIZE.x;
         const startY = 0;
+        const startZ = -(this.design.size / 2) * CELL_SIZE.z;
+
+        if (!this.isCharacter) {
+            const largestBrickLevel = this.brickLevels.find(bl => bl.size === maxBrickLevelSize);
+
+            const largestBrickLevelCenter = this.getBrickLevelCenter(largestBrickLevel.bricks);
+
+            const gridHelperSize = largestBrickLevel.size * CELL_SIZE.x;
+
+            const gridHelper = new three.GridHelper(gridHelperSize, maxBrickLevelSize);
+
+            gridHelper.position.set(startX + largestBrickLevelCenter.x,
+                0,
+                startZ + largestBrickLevelCenter.z);
+
+            scene.add(gridHelper);
+        }
 
         for (let x = 0; x < this.brickLevels.length && x < topRowPanelCount; x++) {
             const brickLevel = this.brickLevels[x];
@@ -259,18 +277,15 @@ export class InstructionsGenerator {
                 scene, startX, startY, startZ));
 
             const brickLevelCenter = this.getBrickLevelCenter(brickLevelBricks);
+            brickLevelCenter.x += startX;
+            brickLevelCenter.y += startY;
+            brickLevelCenter.z += startZ;
 
             camera.position.set(brickLevelCenter.x + (cameraSize * this.cameraXZFactor * (brickLevel.isRightView ? 1 : -1)),
                 brickLevelCenter.y + (cameraSize * (brickLevel.isTopView ? 1 : -1)),
                 brickLevelCenter.z + (cameraSize * this.cameraXZFactor * (brickLevel.isFrontView ? 1 : -1)));
 
             camera.lookAt(brickLevelCenter);
-
-            const cameraXZOffset = CELL_SIZE.x + CELL_SIZE.z;
-
-            camera.position.set(camera.position.x - cameraXZOffset,
-                camera.position.y,
-                camera.position.z - cameraXZOffset);
 
             const imageDataUrl = this.snapScene(renderer, scene, camera);
 
@@ -322,18 +337,15 @@ export class InstructionsGenerator {
                     scene, startX, startY, startZ));
 
                 const brickLevelCenter = this.getBrickLevelCenter(brickLevelBricks);
+                brickLevelCenter.x += startX;
+                brickLevelCenter.y += startY;
+                brickLevelCenter.z += startZ;
 
                 camera.position.set(brickLevelCenter.x + (cameraSize * this.cameraXZFactor * (brickLevel.isRightView ? 1 : -1)),
                     brickLevelCenter.y + (cameraSize * (brickLevel.isTopView ? 1 : -1)),
                     brickLevelCenter.z + (cameraSize * this.cameraXZFactor * (brickLevel.isFrontView ? 1 : -1)));
 
                 camera.lookAt(brickLevelCenter);
-
-                const cameraXZOffset = CELL_SIZE.x + CELL_SIZE.z;
-
-                camera.position.set(camera.position.x - cameraXZOffset,
-                    camera.position.y,
-                    camera.position.z - cameraXZOffset);
 
                 const imageDataUrl = this.snapScene(renderer, scene, camera);
 
@@ -428,7 +440,6 @@ export class InstructionsGenerator {
     }
 
     generateBricksPanel(renderer: WebGLRenderer, scene: Scene, imageContext: CanvasRenderingContext2D): Vector2 {
-
         const maxBrickTypeSize = Math.max(...this.instructionBricks
             .map(ib => ib.type)
             .map(bt => Math.max(bt.width, bt.height, bt.depth)));
@@ -586,6 +597,58 @@ export class InstructionsGenerator {
         let pushedBrickLevelCount = 0;
 
         for (let x = 0; x < designHeight + pushedBrickLevelCount; x++) {
+
+            const levelIndex = x < designHeight
+                ? x
+                : designHeight + pushedBrickLevelCount - x - 1;
+
+            const levelBricks = this.design.bricks.filter(b => b.y === levelIndex);
+
+            if (this.isCharacter &&
+                pushedBrickLevelCount < designHeight &&
+                this.brickLevels.length < 1) {
+                if (!this.isBrickLevelAdjacent(levelBricks)) {
+                    pushedBrickLevelCount += 1;
+
+                    if (pushedBrickLevelCount === this.brickLevels.length) {
+                        x = 0;
+                    }
+
+                    continue;
+                }
+            }
+
+            const levelCells: Cell[] = [];
+
+            // Filter out non-buildable bricks
+            for (let y = levelBricks.length - 1; y > -1; y--) {
+                const brick = levelBricks[y];
+
+                if ((this.brickLevels.length < 1 && pushedBrickLevelCount > 0)
+                    || this.checkCellBuildable(brick, builtBrickCells)) {
+                    levelCells.push(...this.getOccupiedCells(brick));
+                } else {
+                    levelBricks.splice(y, 1);
+
+                    skippedBricks.push(brick);
+                }
+            }
+
+            builtBrickCells.push(...levelCells);
+
+            const brickLevel = {
+                bricks: levelBricks,
+                isTopView: levelIndex >= Math.max(...builtBrickCells.map(c => c.y)),
+                isFrontView: !(levelCells.some(c => c.z < this.design.size / 2)
+                    && Math.max(...builtBrickCells.map(c => c.y)) > Math.max(...levelCells.map(c => c.y))),
+                isRightView: levelCells.filter(c => c.x >= this.design.size / 2).length
+                    >= levelCells.filter(c => c.x < this.design.size / 2).length,
+                size: this.getBrickLevelSize(levelBricks)
+            };
+
+            if (brickLevel.bricks.length > 0) {
+                this.brickLevels.push(brickLevel);
+            }
             let buildableSkippedBricks = skippedBricks
                 .filter(b => this.checkCellBuildable(b, builtBrickCells))
                 .sort((a, b) => a.y - b.y);
@@ -636,56 +699,6 @@ export class InstructionsGenerator {
                 buildableSkippedBricks = skippedBricks
                     .filter(b => this.checkCellBuildable(b, builtBrickCells))
                     .sort((a, b) => a.y - b.y);
-            }
-
-            const levelIndex = x < designHeight
-                ? x
-                : designHeight + pushedBrickLevelCount - x - 1;
-
-            const levelBricks = this.design.bricks.filter(b => b.y === levelIndex);
-
-            if (pushedBrickLevelCount < designHeight && this.brickLevels.length < 1) {
-                if (!this.isBrickLevelAdjacent(levelBricks)) {
-                    pushedBrickLevelCount += 1;
-
-                    if (pushedBrickLevelCount === this.brickLevels.length) {
-                        x = 0;
-                    }
-
-                    continue;
-                }
-            }
-
-            const levelCells: Cell[] = [];
-
-            // Filter out non-buildable bricks
-            for (let y = levelBricks.length - 1; y > -1; y--) {
-                const brick = levelBricks[y];
-
-                if ((this.brickLevels.length < 1 && pushedBrickLevelCount > 0)
-                    || this.checkCellBuildable(brick, builtBrickCells)) {
-                    levelCells.push(...this.getOccupiedCells(brick));
-                } else {
-                    levelBricks.splice(y, 1);
-
-                    skippedBricks.push(brick);
-                }
-            }
-
-            builtBrickCells.push(...levelCells);
-
-            const brickLevel = {
-                bricks: levelBricks,
-                isTopView: levelIndex >= Math.max(...builtBrickCells.map(c => c.y)),
-                isFrontView: !(levelCells.some(c => c.z < this.design.size / 2)
-                    && Math.max(...builtBrickCells.map(c => c.y)) > Math.max(...levelCells.map(c => c.y))),
-                isRightView: levelCells.filter(c => c.x >= this.design.size / 2).length
-                    >= levelCells.filter(c => c.x < this.design.size / 2).length,
-                size: this.getBrickLevelSize(levelBricks)
-            };
-
-            if (brickLevel.bricks.length > 0) {
-                this.brickLevels.push(brickLevel);
             }
         }
 

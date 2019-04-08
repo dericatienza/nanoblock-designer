@@ -1125,6 +1125,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
         const design = this.getDesign();
 
         const instructionsGenerator = new InstructionsGenerator(design,
+            true,
             this._brickTypeService,
             this._brickColorService);
 
