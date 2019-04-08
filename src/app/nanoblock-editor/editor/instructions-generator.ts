@@ -166,39 +166,51 @@ export class InstructionsGenerator {
     }
 
     getBrickLevelSize(brickLevelBricks: Brick[]): Vector2 {
-        const minX = Math.min(...brickLevelBricks
-            .map(b => b.x));
+        const brickLevelBrickCells: Cell[] = [];
 
-        const maxX = Math.max(...brickLevelBricks
-            .map(b => b.x));
+        for (const brick of brickLevelBricks) {
+            brickLevelBrickCells.push(...this.getOccupiedCells(brick));
+        }
 
-        const minZ = Math.min(...brickLevelBricks
-            .map(b => b.z));
+        const minX = Math.min(...brickLevelBrickCells
+            .map(c => c.x));
 
-        const maxZ = Math.max(...brickLevelBricks
-            .map(b => b.z));
+        const maxX = Math.max(...brickLevelBrickCells
+            .map(c => c.x));
+
+        const minZ = Math.min(...brickLevelBrickCells
+            .map(c => c.z));
+
+        const maxZ = Math.max(...brickLevelBrickCells
+            .map(c => c.z));
 
         return new Vector2(maxX - minX + 1, maxZ - minZ + 1);
     }
 
     getBrickLevelCenter(brickLevelBricks: Brick[]): Vector3 {
-        const minX = Math.min(...brickLevelBricks
-            .map(b => b.x));
+        const brickLevelBrickCells: Cell[] = [];
 
-        const maxX = Math.max(...brickLevelBricks
-            .map(b => b.x));
+        for (const brick of brickLevelBricks) {
+            brickLevelBrickCells.push(...this.getOccupiedCells(brick));
+        }
 
-        const minY = Math.min(...brickLevelBricks
-            .map(b => b.y));
+        const minX = Math.min(...brickLevelBrickCells
+            .map(c => c.x));
 
-        const maxY = Math.max(...brickLevelBricks
-            .map(b => b.y));
+        const maxX = Math.max(...brickLevelBrickCells
+            .map(c => c.x));
 
-        const minZ = Math.min(...brickLevelBricks
-            .map(b => b.z));
+        const minY = Math.min(...brickLevelBrickCells
+            .map(c => c.y));
 
-        const maxZ = Math.max(...brickLevelBricks
-            .map(b => b.z));
+        const maxY = Math.max(...brickLevelBrickCells
+            .map(c => c.y));
+
+        const minZ = Math.min(...brickLevelBrickCells
+            .map(c => c.z));
+
+        const maxZ = Math.max(...brickLevelBrickCells
+            .map(c => c.z));
 
         const center = new Vector3(
             (minX + ((maxX - minX) / 2)) * CELL_SIZE.x,
@@ -239,41 +251,40 @@ export class InstructionsGenerator {
             1,
             1000);
 
-        const largestBrickLevelDimension = Math.max(...this.brickLevels.map(b => Math.max(b.size.x, b.size.y)));
-
-        camera.zoom = (cameraSize * 2) / ((largestBrickLevelDimension + 1) * CELL_SIZE.x);
-        camera.updateProjectionMatrix();
-
         let builtBrickObjectClones: PivotObject3D[] = [];
 
         const startX = -(this.design.size / 2) * CELL_SIZE.x;
         const startY = 0;
         const startZ = -(this.design.size / 2) * CELL_SIZE.z;
 
-        if (!this.isCharacter) {
-            const bricksX = this.design.bricks.map(b => b.x);
+        if (this.isCharacter) {
+            const largestBrickLevelDimension = Math.max(...this.brickLevels.map(b => Math.max(b.size.x, b.size.y)));
 
-            const maxX = Math.max(...bricksX);
-            const minX = Math.min(...bricksX);
+            camera.zoom = (cameraSize * 2) / ((largestBrickLevelDimension + 1) * CELL_SIZE.x);
+        } else {
+            const brickLevelBrickCells: Cell[] = [];
 
-            const bricksZ = this.design.bricks.map(b => b.z);
+            for (const brick of this.design.bricks) {
+                brickLevelBrickCells.push(...this.getOccupiedCells(brick));
+            }
 
-            const maxZ = Math.max(...bricksZ);
-            const minZ = Math.min(...bricksZ);
+            const minX = Math.min(...brickLevelBrickCells
+                .map(c => c.x));
+
+            const maxX = Math.max(...brickLevelBrickCells
+                .map(c => c.x));
+
+            const minZ = Math.min(...brickLevelBrickCells
+                .map(c => c.z));
+
+            const maxZ = Math.max(...brickLevelBrickCells
+                .map(c => c.z));
 
             const gridSize = new Vector2(maxX - minX + 1, maxZ - minZ + 1);
 
             const gridCenter = new Vector2(
                 (minX + ((maxX - minX) / 2)) * CELL_SIZE.x,
                 (minZ + ((maxZ - minZ) / 2)) * CELL_SIZE.z);
-
-            if (gridSize.x % 2 !== 0) {
-                gridCenter.x += CELL_SIZE.x / 2;
-            }
-
-            if (gridSize.y % 2 !== 0) {
-                gridCenter.y += CELL_SIZE.z / 2;
-            }
 
             const gridDimension = Math.max(gridSize.x, gridSize.y);
 
@@ -286,7 +297,17 @@ export class InstructionsGenerator {
                 startZ + gridCenter.y);
 
             scene.add(gridHelper);
+
+            camera.zoom = (cameraSize * 2) / gridHelperSize;
+
+            camera.position.set(gridHelper.position.x,
+                this.design.size * CELL_SIZE.y,
+                gridHelper.position.z);
+
+            camera.lookAt(gridHelper.position);
         }
+
+        camera.updateProjectionMatrix();
 
         for (let x = 0; x < this.brickLevels.length && x < topRowPanelCount; x++) {
             const brickLevel = this.brickLevels[x];
@@ -296,16 +317,18 @@ export class InstructionsGenerator {
             builtBrickObjectClones.push(...this.buildBrickLevelObjects(brickLevelBricks,
                 scene, startX, startY, startZ));
 
-            const brickLevelCenter = this.getBrickLevelCenter(brickLevelBricks);
-            brickLevelCenter.x += startX;
-            brickLevelCenter.y += startY;
-            brickLevelCenter.z += startZ;
+            if (this.isCharacter) {
+                const brickLevelCenter = this.getBrickLevelCenter(brickLevelBricks);
+                brickLevelCenter.x += startX;
+                brickLevelCenter.y += startY;
+                brickLevelCenter.z += startZ;
 
-            camera.position.set(brickLevelCenter.x + (cameraSize * this.cameraXZFactor * (brickLevel.isRightView ? 1 : -1)),
-                brickLevelCenter.y + (cameraSize * (brickLevel.isTopView ? 1 : -1)),
-                brickLevelCenter.z + (cameraSize * this.cameraXZFactor * (brickLevel.isFrontView ? 1 : -1)));
+                camera.position.set(brickLevelCenter.x + (cameraSize * this.cameraXZFactor * (brickLevel.isRightView ? 1 : -1)),
+                    brickLevelCenter.y + (cameraSize * (brickLevel.isTopView ? 1 : -1)),
+                    brickLevelCenter.z + (cameraSize * this.cameraXZFactor * (brickLevel.isFrontView ? 1 : -1)));
 
-            camera.lookAt(brickLevelCenter);
+                camera.lookAt(brickLevelCenter);
+            }
 
             const imageDataUrl = this.snapScene(renderer, scene, camera);
 
@@ -356,16 +379,18 @@ export class InstructionsGenerator {
                 builtBrickObjectClones.push(...this.buildBrickLevelObjects(brickLevelBricks,
                     scene, startX, startY, startZ));
 
-                const brickLevelCenter = this.getBrickLevelCenter(brickLevelBricks);
-                brickLevelCenter.x += startX;
-                brickLevelCenter.y += startY;
-                brickLevelCenter.z += startZ;
+                if (this.isCharacter) {
+                    const brickLevelCenter = this.getBrickLevelCenter(brickLevelBricks);
+                    brickLevelCenter.x += startX;
+                    brickLevelCenter.y += startY;
+                    brickLevelCenter.z += startZ;
 
-                camera.position.set(brickLevelCenter.x + (cameraSize * this.cameraXZFactor * (brickLevel.isRightView ? 1 : -1)),
-                    brickLevelCenter.y + (cameraSize * (brickLevel.isTopView ? 1 : -1)),
-                    brickLevelCenter.z + (cameraSize * this.cameraXZFactor * (brickLevel.isFrontView ? 1 : -1)));
+                    camera.position.set(brickLevelCenter.x + (cameraSize * this.cameraXZFactor * (brickLevel.isRightView ? 1 : -1)),
+                        brickLevelCenter.y + (cameraSize * (brickLevel.isTopView ? 1 : -1)),
+                        brickLevelCenter.z + (cameraSize * this.cameraXZFactor * (brickLevel.isFrontView ? 1 : -1)));
 
-                camera.lookAt(brickLevelCenter);
+                    camera.lookAt(brickLevelCenter);
+                }
 
                 const imageDataUrl = this.snapScene(renderer, scene, camera);
 
@@ -791,14 +816,14 @@ export class InstructionsGenerator {
 
                     const offset = this.getCellOffset(brick.rotationY, position);
 
-                    const occupiedCell = new Cell(
+                    const cell = new Cell(
                         brick.x + offset.x,
                         brick.y + offset.y,
                         brick.z + offset.z,
                         position
                     );
 
-                    cells.push(occupiedCell);
+                    cells.push(cell);
                 }
             }
         }
