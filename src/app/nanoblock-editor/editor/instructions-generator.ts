@@ -165,7 +165,7 @@ export class InstructionsGenerator {
         }, 0);
     }
 
-    getBrickLevelSize(brickLevelBricks: Brick[]): number {
+    getBrickLevelSize(brickLevelBricks: Brick[]): Vector2 {
         const minX = Math.min(...brickLevelBricks
             .map(b => b.x));
 
@@ -178,9 +178,7 @@ export class InstructionsGenerator {
         const maxZ = Math.max(...brickLevelBricks
             .map(b => b.z));
 
-        const brickLevelSize = Math.max(maxX - minX, maxZ - minZ) + 1;
-
-        return brickLevelSize;
+        return new Vector2(maxX - minX + 1, maxZ - minZ + 1);
     }
 
     getBrickLevelCenter(brickLevelBricks: Brick[]): Vector3 {
@@ -241,9 +239,9 @@ export class InstructionsGenerator {
             1,
             1000);
 
-        const maxBrickLevelSize = Math.max(...this.brickLevels.map(bl => bl.size));
+        const largestBrickLevelDimension = Math.max(...this.brickLevels.map(b => Math.max(b.size.x, b.size.y)));
 
-        camera.zoom = (cameraSize * 2) / ((maxBrickLevelSize + 1) * CELL_SIZE.x);
+        camera.zoom = (cameraSize * 2) / ((largestBrickLevelDimension + 1) * CELL_SIZE.x);
         camera.updateProjectionMatrix();
 
         let builtBrickObjectClones: PivotObject3D[] = [];
@@ -253,17 +251,39 @@ export class InstructionsGenerator {
         const startZ = -(this.design.size / 2) * CELL_SIZE.z;
 
         if (!this.isCharacter) {
-            const largestBrickLevel = this.brickLevels.find(bl => bl.size === maxBrickLevelSize);
+            const bricksX = this.design.bricks.map(b => b.x);
 
-            const largestBrickLevelCenter = this.getBrickLevelCenter(largestBrickLevel.bricks);
+            const maxX = Math.max(...bricksX);
+            const minX = Math.min(...bricksX);
 
-            const gridHelperSize = largestBrickLevel.size * CELL_SIZE.x;
+            const bricksZ = this.design.bricks.map(b => b.z);
 
-            const gridHelper = new three.GridHelper(gridHelperSize, maxBrickLevelSize);
+            const maxZ = Math.max(...bricksZ);
+            const minZ = Math.min(...bricksZ);
 
-            gridHelper.position.set(startX + largestBrickLevelCenter.x,
+            const gridSize = new Vector2(maxX - minX + 1, maxZ - minZ + 1);
+
+            const gridCenter = new Vector2(
+                (minX + ((maxX - minX) / 2)) * CELL_SIZE.x,
+                (minZ + ((maxZ - minZ) / 2)) * CELL_SIZE.z);
+
+            if (gridSize.x % 2 !== 0) {
+                gridCenter.x += CELL_SIZE.x / 2;
+            }
+
+            if (gridSize.y % 2 !== 0) {
+                gridCenter.y += CELL_SIZE.z / 2;
+            }
+
+            const gridDimension = Math.max(gridSize.x, gridSize.y);
+
+            const gridHelperSize = gridDimension * CELL_SIZE.x;
+
+            const gridHelper = new three.GridHelper(gridHelperSize, gridDimension);
+
+            gridHelper.position.set(startX + gridCenter.x,
                 0,
-                startZ + largestBrickLevelCenter.z);
+                startZ + gridCenter.y);
 
             scene.add(gridHelper);
         }
@@ -870,5 +890,5 @@ export class InstructionBrickLevel {
     isTopView: boolean;
     isFrontView: boolean;
     isRightView: boolean;
-    size: number;
+    size: Vector2;
 }
