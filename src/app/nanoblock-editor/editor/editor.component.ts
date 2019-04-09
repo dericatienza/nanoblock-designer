@@ -129,6 +129,9 @@ export class EditorComponent implements OnInit, AfterViewInit {
     @ViewChild('modalDisclaimerToggleButton')
     private _modalDisclaimerToggleButton: ElementRef;
 
+    @ViewChild('generateInstructionsDismissButton')
+    private _generateInstructionsDismissButton: ElementRef;
+
     brickTypes: BrickType[];
     brickColors: BrickColor[];
 
@@ -1119,13 +1122,15 @@ export class EditorComponent implements OnInit, AfterViewInit {
         this.setGridSize(this.resizeModel.size);
     }
 
-    onInstructionsClicked() {
+    onInstructionsClicked(isCharacter: boolean = true) {
+        this._generateInstructionsDismissButton.nativeElement.click();
+
         this._generatingInstructionsToggleButton.nativeElement.click();
 
         const design = this.getDesign();
 
         const instructionsGenerator = new InstructionsGenerator(design,
-            true,
+            isCharacter,
             this._brickTypeService,
             this._brickColorService);
 

@@ -70,8 +70,8 @@
         <button type="button" class="btn btn-primary btn-block" (click)="onSaveButtonClicked()">Save design</button>
         <button type="button" class="btn btn-primary btn-block" [ngxFilePicker]="'readMode'"
           (filePick)="onLoadFilePicked($event)" accept="text/json">Load design</button>
-        <button type="button" [disabled]="brickObjects.length < 1" class="btn btn-primary btn-block"
-          (click)="onInstructionsClicked()">Generate
+        <button type="button" [disabled]="brickObjects.length < 1" class="btn btn-primary btn-block" data-toggle="modal"
+          data-target="#generateInstructionsModal">Generate
           instructions</button>
         <button type="button" class="btn btn-danger btn-block" (click)="onResetButtonClicked()">Reset</button>
       </div>
@@ -102,9 +102,42 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal" #resizeDismissButton>Cancel</button>
+        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal"
+          #resizeDismissButton>Cancel</button>
         <button type="submit" (click)="resizeModel.size >= getDesignSize() && onResize()"
           class="btn btn-primary">Resize</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Generate instructions modal -->
+<div class="modal" id="generateInstructionsModal" tabindex="-1" role="dialog" aria-labelledby="resizeModalTitle"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="resizeModalTitle">Generate instructions</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="text-center">Are you designing a character or a building?</p>
+        <div class="row">
+          <div class="col">
+            <button type="button" class="btn btn-primary btn-block"
+              (click)="onInstructionsClicked(true)">Character</button>
+          </div>
+          <div class="col">
+            <button type="button" class="btn btn-primary btn-block"
+              (click)="onInstructionsClicked(false)">Building</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal"
+          #generateInstructionsDismissButton>Cancel</button>
       </div>
     </div>
   </div>
