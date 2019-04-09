@@ -243,7 +243,7 @@ export class InstructionsGenerator {
             cameraSize * panelAspectRatio,
             cameraSize,
             -cameraSize,
-            1,
+            -1000,
             1000);
 
         let builtBrickObjectClones: PivotObject3D[] = [];
@@ -254,7 +254,7 @@ export class InstructionsGenerator {
 
         const largestBrickLevelDimension = Math.max(...this.brickLevels.map(b => Math.max(b.size.x, b.size.y)));
 
-        camera.zoom = (cameraSize * 2) / (largestBrickLevelDimension * CELL_SIZE.x);
+        camera.zoom = (cameraSize * 2) / ((largestBrickLevelDimension + 1) * CELL_SIZE.x); // Add one to give extra space
 
         camera.updateProjectionMatrix();
 
@@ -447,7 +447,7 @@ export class InstructionsGenerator {
             cameraSize * panelAspectRatio,
             cameraSize,
             -cameraSize,
-            1,
+            -1000,
             1000);
 
         camera.position.set(maxBrickTypeUnitSize * this.cameraXFactor,

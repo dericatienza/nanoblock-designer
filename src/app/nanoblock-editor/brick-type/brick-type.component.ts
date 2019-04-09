@@ -8,55 +8,67 @@ import * as three from 'three';
 
 import '../../../assets/js/OutlinesGeometry';
 import { BRICK_OUTLINE_MATERIAL } from '../editor/editor.component';
+import { OrthographicCameraDirective } from '../../three-js/cameras/orthographic-camera.directive';
+import { CELL_SIZE } from '../objects/grid.directive';
 
 declare var THREE: any;
 
 @Component({
-  selector: 'ne-brick-type',
-  templateUrl: './brick-type.component.html',
-  styleUrls: ['./brick-type.component.scss']
+    selector: 'ne-brick-type',
+    templateUrl: './brick-type.component.html',
+    styleUrls: ['./brick-type.component.scss']
 })
 export class BrickTypeComponent implements OnInit, AfterViewInit {
-  @ViewChild('scene')
-  private _scene: SceneDirective;
 
-  @Input() brickType: BrickType;
+    @ViewChild('scene')
+    private _scene: SceneDirective;
 
-  private _brickColor: BrickColor;
-  get brickColor(): BrickColor {
-    return this._brickColor;
-  }
+    @ViewChild('mainCamera')
+    private _mainCamera: OrthographicCameraDirective;
 
-  @Input()
-  set brickColor(v: BrickColor) {
-    this._brickColor = v;
+    @Input() brickType: BrickType;
 
-    if (this.mesh) {
-      this.mesh.material = this._brickColorService.getBrickColorMaterial(this.brickColor);
+    private _brickColor: BrickColor;
+    get brickColor(): BrickColor {
+        return this._brickColor;
     }
-  }
 
-  mesh: Mesh;
+    @Input()
+    set brickColor(v: BrickColor) {
+        this._brickColor = v;
 
-  constructor(private _brickTypeService: BrickTypeService, private _brickColorService: BrickColorService) { }
+        if (this.mesh) {
+            this.mesh.material = this._brickColorService.getBrickColorMaterial(this.brickColor);
+        }
+    }
 
-  ngOnInit() {
-  }
+    mesh: Mesh;
 
-  ngAfterViewInit(): void {
-    this.mesh = this._brickTypeService.getBrickTypeMesh(this.brickType);
+    constructor(private _brickTypeService: BrickTypeService, private _brickColorService: BrickColorService) { }
 
-    this.mesh.material = this._brickColorService.getBrickColorMaterial(this.brickColor);
+    ngOnInit() {
+    }
 
-    const studSize = this._brickTypeService.studSize;
+    ngAfterViewInit(): void {
+        this.mesh = this._brickTypeService.getBrickTypeMesh(this.brickType);
 
-    this.mesh.position.set(
-      (this.brickType.width - 1) * -studSize.x / 2,
-      (this.brickType.height - 1) * -studSize.y / 2,
-      (this.brickType.depth - 1) * -studSize.z / 2
-    );
+        this.mesh.material = this._brickColorService.getBrickColorMaterial(this.brickColor);
 
-    this._scene.object.add(this.mesh);
-  }
+        const studSize = this._brickTypeService.studSize;
+
+        this.mesh.position.set(
+            (this.brickType.width - 1) * -studSize.x / 2,
+            (this.brickType.height - 1) * -studSize.y / 2,
+            (this.brickType.depth - 1) * -studSize.z / 2
+        );
+
+        this._scene.object.add(this.mesh);
+
+        const cameraZoom = Math.min((10 * 2) / (Math.max(this.brickType.width, this.brickType.depth) * CELL_SIZE.x), 1);
+
+        this._mainCamera.camera.zoom = cameraZoom;
+
+        this._mainCamera.camera.updateProjectionMatrix();
+    }
 
 }
