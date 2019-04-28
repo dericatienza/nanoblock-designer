@@ -7,7 +7,7 @@ import { BrickObject } from '../editor/brick-object';
 import * as three from 'three';
 import { CELL_SIZE } from './grid.directive';
 
-import '../../../assets/js/OutlinesGeometry';
+// import '../../../assets/js/OutlinesGeometry';
 
 declare var THREE: any;
 
@@ -42,20 +42,20 @@ export class BrickObjectHighlightDirective extends AbstractObject3D<PivotObject3
   setHighlight(brickObject: BrickObject) {
     this.removeHighlight();
 
-    this.highlight = new three.LineSegments(
-      new THREE.OutlinesGeometry(this._brickTypeService.getBrickTypeHighlightGeometry(brickObject.brickType), 1),
-      this._highlightMaterial);
+    // this.highlight = new three.LineSegments(
+    //   new THREE.OutlinesGeometry(this._brickTypeService.getBrickTypeHighlightGeometry(brickObject.brickType), 1),
+    //   this._highlightMaterial);
 
-    this.highlight.position.setZ(-CELL_SIZE.z * brickObject.brickPivotZ);
-    this.highlight.position.setX(-CELL_SIZE.x * brickObject.brickPivotX);
+    // this.highlight.position.setZ(-CELL_SIZE.z * brickObject.brickPivotZ);
+    // this.highlight.position.setX(-CELL_SIZE.x * brickObject.brickPivotX);
 
-    this.object.position.set(brickObject.position.x, brickObject.position.y, brickObject.position.z);
+    // this.object.position.set(brickObject.position.x, brickObject.position.y, brickObject.position.z);
 
-    this.object.add(this.highlight);
+    // this.object.add(this.highlight);
 
-    const radians = three.Math.degToRad(brickObject.rotationY);
+    // const radians = three.Math.degToRad(brickObject.rotationY);
 
-    this.object.pivot.setRotationFromAxisAngle(new three.Vector3(0, 1, 0), radians);
+    // this.object.pivot.setRotationFromAxisAngle(new three.Vector3(0, 1, 0), radians);
   }
 
   removeHighlight() {

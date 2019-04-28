@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 function OutlinesGeometry(geometry, thresholdAngle) {
 
   THREE.BufferGeometry.call(this);
@@ -52,7 +54,11 @@ function OutlinesGeometry(geometry, thresholdAngle) {
       for (var e = vertices.length - 1; e >= 0; e--) {
         if (e === edge[0] || e === edge[1]) continue;
         var v = vertices[e];
-        var closestPoint = line.closestPointToPoint(v, true);
+
+        var closestPoint;
+
+        line.closestPointToPoint(v, true, closestPoint);
+
         if ((new THREE.Line3(closestPoint, v)).distance() < 1e-5) { //1e-5
           // mark the current face as splitted so that his cords won't be considered
           face.splitted = true;

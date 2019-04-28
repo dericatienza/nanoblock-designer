@@ -95,19 +95,6 @@
     1, 0
   ]
 }, {
-  "id": 9,
-  "name": "1x5",
-  "width": 1,
-  "depth": 5,
-  "height": 1,
-  "arrangement": [
-    1,
-    1,
-    1,
-    1,
-    1
-  ]
-}, {
   "id": 10,
   "name": "1x6",
   "width": 1,
@@ -122,19 +109,6 @@
     1
   ]
 }, {
-  "id": 11,
-  "name": "2x5",
-  "width": 2,
-  "depth": 5,
-  "height": 1,
-  "arrangement": [
-    1, 1,
-    1, 1,
-    1, 1,
-    1, 1,
-    1, 1
-  ]
-}, {
   "id": 12,
   "name": "2x6",
   "width": 2,
@@ -147,5 +121,61 @@
     1, 1,
     1, 1,
     1, 1
+  ]
+}, {
+  "id": 13,
+  "name": "1x1 Round",
+  "width": 1,
+  "depth": 1,
+  "height": 1,
+  "arrangement": [
+    1
+  ]
+}, {
+  "id": 14,
+  "name": "1x2 Round",
+  "width": 1,
+  "depth": 2,
+  "height": 1,
+  "arrangement": [
+    1,
+    1
+  ]
+}, {
+  "id": 15,
+  "name": "1x3 Round",
+  "width": 1,
+  "depth": 3,
+  "height": 1,
+  "arrangement": [
+    1,
+    1,
+    1
+  ]
+}, {
+  "id": 16,
+  "name": "1x4 Round",
+  "width": 1,
+  "depth": 4,
+  "height": 1,
+  "arrangement": [
+    1,
+    1,
+    1,
+    1
+  ]
+}, {
+  "id": 17,
+  "name": "1x6 Round",
+  "width": 1,
+  "depth": 6,
+  "height": 1,
+  "arrangement": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
   ]
 }]

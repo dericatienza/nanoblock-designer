@@ -26,7 +26,7 @@ import { ReadFile, FilePickerDirective } from 'ngx-file-helpers';
 import { JsonConvert } from 'json2typescript';
 import { BrickObjectHighlightDirective } from '../objects/brick-object-highlight.directive';
 
-import '../../../assets/js/OutlinesGeometry';
+// import '../../../assets/js/OutlinesGeometry';
 import { PaintEditorMode } from './modes/paint-editor-mode';
 import { EraseEditorMode } from './modes/erase-editor-mode';
 import { EditorModeComponent } from '../editor-mode/editor-mode.component';
@@ -244,6 +244,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
         private _brickColorService: BrickColorService,
         private _deviceService: DeviceDetectorService) {
         this.onKeyDown = this.onKeyDown.bind(this);
+        this.initBrickTypes = this.initBrickTypes.bind(this);
 
         this._currentBrickSelectedMaterial = new MeshPhongMaterial({
             color: 'white',
@@ -266,16 +267,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
                 this.brickTypes.sort((a, b) => a.width * a.depth - b.width * b.depth);
 
-                this.initBrickTypeGeometries();
-
                 this._currentBrickType = this.brickTypes[0];
             });
-    }
-
-    initBrickTypeGeometries() {
-        for (const brickType of this.brickTypes) {
-            this._brickTypeService.getBrickTypeGeometry(brickType);
-        }
     }
 
     initBrickColors() {
@@ -290,7 +283,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
                 this.currentBrickColor = this.brickColors[0];
 
-                this.initBrickTypes();
+                this._brickTypeService.initBrickTypes(this.initBrickTypes);
             });
     }
 

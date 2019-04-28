@@ -1,8 +1,10 @@
 import { Directive, Input, AfterViewInit, ContentChildren, QueryList, ViewChild, ElementRef } from '@angular/core';
-import * as THREE from 'three';
 import { AbstractCamera } from '../cameras/index';
 import { RendererComponent } from '../renderer/renderer.component';
-import 'three/examples/js/controls/OrbitControls';
+import * as three from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+
+declare var THREE: any;
 
 @Directive({
   selector: 'three-orbit-controls',
@@ -10,15 +12,15 @@ import 'three/examples/js/controls/OrbitControls';
 })
 export class OrbitControlsDirective implements AfterViewInit {
 
-  @ContentChildren(AbstractCamera, { descendants: true }) childCameras: QueryList<AbstractCamera<THREE.Camera>>;
+  @ContentChildren(AbstractCamera, { descendants: true }) childCameras: QueryList<AbstractCamera<three.Camera>>;
 
   @Input() rotateSpeed = 1.0;
   @Input() zoomSpeed = 1.2;
   @Input() renderer: RendererComponent;
 
-  private _controls: THREE.OrbitControls;
+  private _controls: OrbitControls;
 
-  get controls(): THREE.OrbitControls {
+  get controls(): OrbitControls {
     return this._controls;
   }
 
@@ -30,7 +32,7 @@ export class OrbitControlsDirective implements AfterViewInit {
       throw new Error('Camera is not found');
     }
 
-    this._controls = new THREE.OrbitControls(this.childCameras.first.camera, this.renderer.canvas);
+    this._controls = new OrbitControls(this.childCameras.first.camera, this.renderer.canvas);
     this._controls.rotateSpeed = this.rotateSpeed;
     this._controls.zoomSpeed = this.zoomSpeed;
     // this._controls.addEventListener('change', this.childRenderers.first.render);

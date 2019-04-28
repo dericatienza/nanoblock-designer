@@ -100,7 +100,7 @@ export class InstructionsGenerator {
 
         renderer.setPixelRatio(1);
         renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.shadowMap.type = three.PCFSoftShadowMap;
         renderer.setClearColor(this.rendererClearColor, 0);
 
         const canvas = renderer.domElement;
@@ -465,8 +465,6 @@ export class InstructionsGenerator {
 
             // const outline = <three.LineSegments>brickObjectClone.pivot.children[0].children[0].children[0];
             // outline.material = INSTRUCTIONS_LIGHT_BRICK_OUTLINE_MATERIAL;
-
-            const boundingBoxSize = new three.Box3().setFromObject(brickObjectClone).getSize();
 
             brickObjectClone.position.set(
                 (instructionBrick.type.width - 1) * -studSize.x / 2,

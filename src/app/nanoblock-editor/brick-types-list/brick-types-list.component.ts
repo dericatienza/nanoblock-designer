@@ -1,13 +1,14 @@
-import { Component, OnInit, Input, Output, EventEmitter, ViewChildren, QueryList } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, ViewChildren, QueryList, AfterViewInit } from '@angular/core';
 import { BrickType, BrickColor } from '../editor/editor.models';
 import { BrickTypeComponent } from '../brick-type/brick-type.component';
+import * as THREE from 'three';
 
 @Component({
   selector: 'ne-brick-types-list',
   templateUrl: './brick-types-list.component.html',
   styleUrls: ['./brick-types-list.component.scss']
 })
-export class BrickTypesListComponent implements OnInit {
+export class BrickTypesListComponent implements OnInit, AfterViewInit {
   @ViewChildren('brickTypes')
   brickTypeComponents: QueryList<BrickTypeComponent>;
 
@@ -17,6 +18,8 @@ export class BrickTypesListComponent implements OnInit {
   @Input() brickTypes: BrickType[];
 
   private _brickColor: BrickColor;
+
+  private _renderer: THREE.WebGLRenderer;
 
   get brickColor(): BrickColor {
     return this._brickColor;
@@ -28,16 +31,41 @@ export class BrickTypesListComponent implements OnInit {
 
     if (this.brickTypeComponents) {
       this.brickTypeComponents.forEach((x) => x.brickColor = this._brickColor);
+
+      this.render();
     }
   }
 
-  constructor() { }
+  constructor() {
+    this.render = this.render.bind(this);
+  }
 
   ngOnInit() {
+    this._renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+    });
   }
 
   onBrickTypeChanged(brickType: BrickType) {
     this.currentBrickType = brickType;
     this.currentBrickTypeChange.emit(this.currentBrickType);
+  }
+
+  ngAfterViewInit() {
+    this._renderer.setPixelRatio(devicePixelRatio);
+
+    this._renderer.shadowMap.enabled = true;
+    this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this._renderer.setClearColor('white', 0);
+    this._renderer.autoClear = true;
+
+    this.render();
+  }
+
+  public render() {
+    if (this.brickTypeComponents) {
+      this.brickTypeComponents.forEach(bc => bc.render(this._renderer));
+    }
   }
 }

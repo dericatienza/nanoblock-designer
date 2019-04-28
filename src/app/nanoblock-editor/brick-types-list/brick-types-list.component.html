@@ -1,7 +1,7 @@
 <div class="row">
   <div class="col-6 my-1" *ngFor="let brickType of brickTypes">
-    <input class="btn-radio" type="radio" id="{{ 'brickType' + brickType.id}}" name="brickTypes" (change)="onBrickTypeChanged(brickType)"
-      [checked]="currentBrickType == brickType" />
+    <input class="btn-radio" type="radio" id="{{ 'brickType' + brickType.id}}" name="brickTypes"
+      (change)="onBrickTypeChanged(brickType)" [checked]="currentBrickType == brickType" />
     <label class="btn btn-outline-primary w-100" for="{{ 'brickType' + brickType.id}}">
       <ne-brick-type #brickTypes [brickType]="brickType" [brickColor]="brickColor"></ne-brick-type>
     </label>
