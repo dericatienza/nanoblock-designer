@@ -57,7 +57,7 @@ export class BrickTypeComponent implements OnInit, AfterViewInit {
     }
 
     ngAfterViewInit(): void {
-        const ambientLight = new AmbientLight('white', 4);
+        const ambientLight = new AmbientLight('white', .4);
 
         this._scene.add(ambientLight);
 
@@ -131,6 +131,7 @@ export class BrickTypeComponent implements OnInit, AfterViewInit {
 
         renderer.render(this._scene, this._mainCamera);
 
+        this.context.clearRect(0, 0, this.canvas.clientWidth * 2, this.canvas.clientHeight);
         this.context.drawImage(renderer.domElement, 0, 0);
     }
 }

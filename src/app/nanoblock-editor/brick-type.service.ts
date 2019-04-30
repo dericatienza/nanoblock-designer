@@ -21,15 +21,15 @@ export class BrickTypeService {
     brickTypesUrl = 'assets/brick-types.json';
 
     private _brickTypeGeometries: Map<number, BufferGeometry>;
-    private _brickTypeHighlightGeometries: Map<number, BufferGeometry>;
 
+    private _brickTypeHighlightMeshes: Map<number, Mesh>;
     private _brickTypeMeshes: Map<number, Mesh>;
 
     public studSize = new Vector3(CELL_SIZE.x, CELL_SIZE.y, CELL_SIZE.z);
 
     constructor(private _http: HttpClient) {
         this._brickTypeGeometries = new Map<number, BufferGeometry>();
-        this._brickTypeHighlightGeometries = new Map<number, BufferGeometry>();
+        this._brickTypeHighlightMeshes = new Map<number, Mesh>();
         this._brickTypeMeshes = new Map<number, Mesh>();
     }
 
@@ -47,23 +47,62 @@ export class BrickTypeService {
 
                     bufferGeometry.rotateY(-90 * three.Math.DEG2RAD); // Temporary fix for blender exports' wrong rotation
 
-                    const highlightGeometry = bufferGeometry.clone();
-                    highlightGeometry.scale(1.2, 1.2, 1.2);
+                    const highlightBoundsOffset = 0.8;
+
+                    const highlightGeometry = this.getHighlightGeometry(bufferGeometry, highlightBoundsOffset);
+
+                    const highlightMesh = new three.Mesh(highlightGeometry);
 
                     this._brickTypeGeometries.set(id, bufferGeometry);
-                    this._brickTypeHighlightGeometries.set(id, highlightGeometry);
+                    this._brickTypeHighlightMeshes.set(id, highlightMesh);
                 }
 
                 onFinish();
             });
     }
 
+    private getHighlightGeometry(geometry: BufferGeometry | Geometry, offset: number): BufferGeometry | Geometry {
+        geometry.computeBoundingBox();
+
+        const geometryBounds = new three.Vector3();
+
+        geometry.boundingBox.getSize(geometryBounds);
+
+        const highlightBounds = new three.Vector3(
+            geometryBounds.x + (offset * 2),
+            geometryBounds.y + (offset * 2),
+            geometryBounds.z + (offset * 2)
+        );
+
+        const highlightGeometry = geometry.clone();
+
+        highlightGeometry.translate(
+            CELL_SIZE.x / 2,
+            0,
+            CELL_SIZE.z / 2
+        );
+
+        highlightGeometry.scale(
+            highlightBounds.x / geometryBounds.x,
+            highlightBounds.y / geometryBounds.y,
+            highlightBounds.z / geometryBounds.z,
+        );
+
+        highlightGeometry.translate(
+            -offset - CELL_SIZE.x / 2,
+            -offset,
+            -offset - CELL_SIZE.z / 2
+        );
+
+        return highlightGeometry;
+    }
+
     getBrickTypes() {
         return this._http.get<BrickType[]>(this.brickTypesUrl);
     }
 
-    getBrickTypeHighlightGeometry(brickType: BrickType): BufferGeometry {
-        return this._brickTypeHighlightGeometries.get(brickType.id);
+    getBrickTypeHighlightMesh(brickType: BrickType): Mesh {
+        return this._brickTypeHighlightMeshes.get(brickType.id);
     }
 
     getBrickTypeMesh(brickType: BrickType): Mesh {

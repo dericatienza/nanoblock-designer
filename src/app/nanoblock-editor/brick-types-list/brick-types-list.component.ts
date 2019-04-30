@@ -1,4 +1,7 @@
-import { Component, OnInit, Input, Output, EventEmitter, ViewChildren, QueryList, AfterViewInit } from '@angular/core';
+import {
+  Component, OnInit, Input, Output, EventEmitter,
+  ViewChildren, QueryList, AfterViewInit, ViewChild, ElementRef
+} from '@angular/core';
 import { BrickType, BrickColor } from '../editor/editor.models';
 import { BrickTypeComponent } from '../brick-type/brick-type.component';
 import * as THREE from 'three';
@@ -9,6 +12,9 @@ import * as THREE from 'three';
   styleUrls: ['./brick-types-list.component.scss']
 })
 export class BrickTypesListComponent implements OnInit, AfterViewInit {
+  @ViewChild('canvas')
+  private canvasRef: ElementRef;
+
   @ViewChildren('brickTypes')
   brickTypeComponents: QueryList<BrickTypeComponent>;
 
@@ -44,7 +50,15 @@ export class BrickTypesListComponent implements OnInit, AfterViewInit {
     this._renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
+      preserveDrawingBuffer: true
     });
+
+    this._renderer.setPixelRatio(devicePixelRatio);
+
+    this._renderer.shadowMap.enabled = true;
+    this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this._renderer.setClearColor('white', 0);
+    this._renderer.autoClear = true;
   }
 
   onBrickTypeChanged(brickType: BrickType) {
@@ -53,13 +67,6 @@ export class BrickTypesListComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this._renderer.setPixelRatio(devicePixelRatio);
-
-    this._renderer.shadowMap.enabled = true;
-    this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this._renderer.setClearColor('white', 0);
-    this._renderer.autoClear = true;
-
     this.render();
   }
 

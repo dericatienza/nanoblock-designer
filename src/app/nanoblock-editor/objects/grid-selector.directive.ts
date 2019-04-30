@@ -112,13 +112,13 @@ export class GridSelectorDirective implements OnInit, AfterViewInit {
         intersects[0].object.worldToLocal(objectLocalIntersectPoint);
 
         objectLocalIntersectPoint.x = objectLocalIntersectPoint.x > 0 ?
-          MathHelper.snap(objectLocalIntersectPoint.x, CELL_SIZE.x) : 0;
+          MathHelper.snap(objectLocalIntersectPoint.x, CELL_SIZE.x) - CELL_SIZE.x / 2 : 0;
         objectLocalIntersectPoint.z = objectLocalIntersectPoint.z > 0 ?
-          MathHelper.snap(objectLocalIntersectPoint.z, CELL_SIZE.z) : 0;
+          MathHelper.snap(objectLocalIntersectPoint.z, CELL_SIZE.z) - CELL_SIZE.z / 2 : 0;
 
         let yAdjustment = intersectPoint.y;
 
-        if (objectLocalIntersectPoint.y > CELL_SIZE.y) {
+        if (objectLocalIntersectPoint.y >= CELL_SIZE.y) {
           yAdjustment -= objectLocalIntersectPoint.y;
           yAdjustment += CELL_SIZE.y / 2;
         }

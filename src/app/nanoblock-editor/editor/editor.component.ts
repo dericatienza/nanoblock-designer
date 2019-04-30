@@ -263,7 +263,7 @@ export class EditorComponent implements OnInit, AfterViewInit {
     initBrickTypes(): void {
         this._brickTypeService.getBrickTypes()
             .subscribe((brickTypes: BrickType[]) => {
-                this.brickTypes = brickTypes;
+                this.brickTypes = brickTypes.filter(bt => bt.isActive);
 
                 this.brickTypes.sort((a, b) => a.width * a.depth - b.width * b.depth);
 

@@ -5,12 +5,10 @@ import { IntArrayToBooleanArrayJsonConverter } from '../../helpers/json-converte
 export class BrickType {
     id: number = undefined;
     name: string = undefined;
-    // tslint:disable-next-line:no-inferrable-types
-    width: number = 1;
-    // tslint:disable-next-line:no-inferrable-types
-    depth: number = 1;
-    // tslint:disable-next-line:no-inferrable-types
-    height: number = 1;
+    width = 1;
+    depth = 1;
+    height = 1;
+    isActive = true;
 
     @JsonProperty('arrangement', IntArrayToBooleanArrayJsonConverter)
     arrangement: boolean[] = [];
@@ -23,11 +21,9 @@ export class BrickColor {
     @JsonProperty('name', String)
     name: string = undefined;
     @JsonProperty('isClear', Boolean)
-    // tslint:disable-next-line:no-inferrable-types
-    isClear: boolean = false;
+    isClear = false;
     @JsonProperty('colorHex', String)
-    // tslint:disable-next-line:no-inferrable-types
-    colorHex: string = '0xFFFFFF';
+    colorHex = '0xFFFFFF';
 
     static clone(brickColor: BrickColor): BrickColor {
         const cloneBrickColor = new BrickColor();
