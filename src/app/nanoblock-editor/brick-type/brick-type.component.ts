@@ -87,6 +87,9 @@ export class BrickTypeComponent implements OnInit, AfterViewInit {
 
         this.setupCamera();
 
+        this.canvas.width = this.canvas.clientWidth;
+        this.canvas.height = this.canvas.clientHeight;
+
         this.context = this.canvas.getContext('2d');
     }
 
@@ -127,11 +130,11 @@ export class BrickTypeComponent implements OnInit, AfterViewInit {
     }
 
     render(renderer: WebGLRenderer) {
-        renderer.setSize(this.canvas.clientWidth * 2, this.canvas.clientHeight); // Multiplying width by 2 works for some reason
+        renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight); // Multiplying width by 2 works for some reason
 
         renderer.render(this._scene, this._mainCamera);
 
-        this.context.clearRect(0, 0, this.canvas.clientWidth * 2, this.canvas.clientHeight);
+        this.context.clearRect(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
         this.context.drawImage(renderer.domElement, 0, 0);
     }
 }
