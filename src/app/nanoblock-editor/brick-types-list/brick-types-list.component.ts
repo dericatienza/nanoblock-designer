@@ -52,7 +52,7 @@ export class BrickTypesListComponent implements OnInit, AfterViewInit {
             alpha: true
         });
 
-        this._renderer.setPixelRatio(devicePixelRatio);
+        this._renderer.setPixelRatio(1);
 
         this._renderer.shadowMap.enabled = true;
         this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
