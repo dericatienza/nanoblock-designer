@@ -44,10 +44,10 @@
 
             <three-ambient-light color="white" intensity="0.4" translateX="0" translateY="0" translateZ="0">
             </three-ambient-light>
-            <three-point-light color="white" intensity="1" distance="1000" translateX="48" translateY="96"
-              translateZ="96"></three-point-light>
-            <three-point-light color="white" intensity="1" distance="1000" translateX="-48" translateY="96"
-              translateZ="-96"></three-point-light>
+            <three-directional-light color="white" intensity="0.6" translateX="1" translateY="2" translateZ="2">
+            </three-directional-light>
+            <three-directional-light color="white" intensity="0.6" translateX="-1" translateY="2" translateZ="-2">
+            </three-directional-light>
           </three-scene>
         </three-orbit-controls>
         <ne-grid-selector #gridSelector="ne-grid-selector" [camera]="mainCamera" [grid]="grid" [renderer]="renderer"

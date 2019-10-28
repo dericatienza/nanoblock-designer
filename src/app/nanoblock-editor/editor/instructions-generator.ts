@@ -112,12 +112,12 @@ export class InstructionsGenerator {
         const scene = new three.Scene();
 
         const ambientLight = new three.AmbientLight('white', 0.4);
-        const pointLight1 = new three.PointLight('white', 1, 1000);
-        pointLight1.position.set(48, 96, 96);
-        const pointLight2 = new three.PointLight('white', 1, 1000);
-        pointLight2.position.set(-48, 96, -96);
+        const directionalLight1 = new three.DirectionalLight('white', 0.6);
+        directionalLight1.position.set(1, 2, 2);
+        const directionalLight2 = new three.DirectionalLight('white', 0.6);
+        directionalLight2.position.set(-1, 2, -2);
 
-        scene.add(ambientLight, pointLight1, pointLight2);
+        scene.add(ambientLight, directionalLight1, directionalLight2);
 
         const imageCanvas = document.createElement('canvas');
 
