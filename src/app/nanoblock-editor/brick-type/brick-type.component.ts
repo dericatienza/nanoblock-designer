@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { BrickType, BrickColor } from '../editor/editor.models';
 import { SceneDirective } from '../../three-js/objects';
-import { Mesh, MeshNormalMaterial, Scene, WebGLRenderer, OrthographicCamera, AmbientLight, PointLight } from 'three';
+import { Mesh, MeshNormalMaterial, Scene, WebGLRenderer, OrthographicCamera, AmbientLight, PointLight, DirectionalLight } from 'three';
 import { BrickTypeService } from '../brick-type.service';
 import { BrickColorService } from '../brick-color.service';
 import * as three from 'three';
@@ -61,15 +61,15 @@ export class BrickTypeComponent implements OnInit, AfterViewInit {
 
         this._scene.add(ambientLight);
 
-        const pointLight1 = new PointLight('white', 1, 1000);
-        pointLight1.position.set(40, 80, 80);
+        const directionalLight1 = new DirectionalLight('white', 0.6);
+        directionalLight1.position.set(1, 2, 2);
 
-        this._scene.add(pointLight1);
+        this._scene.add(directionalLight1);
 
-        const pointLight2 = new PointLight('white', 1, 1000);
-        pointLight2.position.set(-40, 80, -80);
+        const directionalLight2 = new DirectionalLight('white', 0.6);
+        directionalLight2.position.set(-1, 2, -2);
 
-        this._scene.add(pointLight2);
+        this._scene.add(directionalLight2);
 
         this.mesh = this._brickTypeService.getBrickTypeMesh(this.brickType);
 
