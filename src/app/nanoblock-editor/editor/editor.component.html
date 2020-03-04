@@ -31,7 +31,7 @@
           </div>
         </div>
       </div>
-      <three-renderer #renderer [displayStats]="false">
+      <three-renderer #renderer [displayStats]="displayStats">
         <three-orbit-controls #cameraControls="three-orbit-controls" [rotateSpeed]="1" [zoomSpeed]="1.2"
           [renderer]="renderer">
           <!-- <three-perspective-camera #mainCamera="three-perspective-camera" [fov]=50 [near]=1 [far]=1000 positionX=60 positionY=60 positionZ=60></three-perspective-camera> -->

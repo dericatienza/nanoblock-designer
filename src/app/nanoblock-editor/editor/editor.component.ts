@@ -32,6 +32,7 @@ import { EraseEditorMode } from './modes/erase-editor-mode';
 import { EditorModeComponent } from '../editor-mode/editor-mode.component';
 import { InstructionsGenerator } from './instructions-generator';
 import { DeviceDetectorService } from 'ngx-device-detector';
+import { environment } from '../../../environments/environment';
 
 declare var THREE: any;
 
@@ -131,6 +132,8 @@ export class EditorComponent implements OnInit, AfterViewInit {
 
     @ViewChild('generateInstructionsDismissButton')
     private _generateInstructionsDismissButton: ElementRef;
+
+    displayStats = environment.editorDisplayStats;
 
     brickTypes: BrickType[];
     brickColors: BrickColor[];

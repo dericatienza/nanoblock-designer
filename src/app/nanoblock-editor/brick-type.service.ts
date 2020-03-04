@@ -4,7 +4,7 @@ import { JsonConvert } from 'json2typescript';
 import { BrickType } from './editor/editor.models';
 import * as three from 'three';
 import 'rxjs/add/operator/map';
-import { Geometry, Material, Vector3, BufferGeometry, BoxGeometry, Mesh, Scene, EdgesGeometry } from 'three';
+import { Geometry, Material, Vector3, BufferGeometry, BoxGeometry, Mesh, Scene, EdgesGeometry, InstancedBufferGeometry } from 'three';
 import { BrickObject } from './editor/brick-object';
 import { BRICK_OUTLINE_MATERIAL } from './editor/editor.component';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
@@ -37,25 +37,25 @@ export class BrickTypeService {
         const loader = new GLTFLoader();
         loader.load(this.bricksUrl,
             (gltf) => {
-                const brickTypeMeshes = (<Scene>(gltf.scene)).children;
+                gltf.scene.traverse(child => {
+                    if ((<any>child).isMesh) {
+                        const mesh = <Mesh>child;
 
-                for (let x = 0; x < brickTypeMeshes.length; x++) {
-                    const mesh = <Mesh>brickTypeMeshes[x];
+                        const id = Number(mesh.name);
+                        const bufferGeometry = <three.BufferGeometry>mesh.geometry;
 
-                    const id = Number(mesh.name);
-                    const bufferGeometry = <three.BufferGeometry>mesh.geometry;
+                        bufferGeometry.rotateY(-90 * three.Math.DEG2RAD); // Temporary fix for blender exports' wrong rotation
 
-                    bufferGeometry.rotateY(-90 * three.Math.DEG2RAD); // Temporary fix for blender exports' wrong rotation
+                        const highlightBoundsOffset = 0.8;
 
-                    const highlightBoundsOffset = 0.8;
+                        const highlightGeometry = this.getHighlightGeometry(bufferGeometry, highlightBoundsOffset);
 
-                    const highlightGeometry = this.getHighlightGeometry(bufferGeometry, highlightBoundsOffset);
+                        const highlightMesh = new three.Mesh(highlightGeometry);
 
-                    const highlightMesh = new three.Mesh(highlightGeometry);
-
-                    this._brickTypeGeometries.set(id, bufferGeometry);
-                    this._brickTypeHighlightMeshes.set(id, highlightMesh);
-                }
+                        this._brickTypeGeometries.set(id, bufferGeometry);
+                        this._brickTypeHighlightMeshes.set(id, highlightMesh);
+                    }
+                });
 
                 onFinish();
             });

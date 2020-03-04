@@ -3,5 +3,6 @@ export const environment = {
     googleAnalytics: {
         enabled: true,
         trackingId: 'UA-128284420-1'
-    }
+    },
+    editorDisplayStats: false
 };

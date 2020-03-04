@@ -55,6 +55,8 @@ export class InstructionsGenerator {
     imageWidth = 2480; // 72 DPI: 595;
     minImageHeight = 3508; // 72 DPI: 842;
 
+    minBrickCameraSize = CELL_SIZE.x * 3;
+
     rendererClearColor = '#d3d3d3';
 
     textFontName = 'Arial';
@@ -440,7 +442,7 @@ export class InstructionsGenerator {
 
         const panelAspectRatio = this.brickPanelWidth / this.brickPanelHeight;
 
-        const cameraSize = 10;
+        const cameraSize = Math.min(this.minBrickCameraSize, maxBrickTypeUnitSize - CELL_SIZE.x);
 
         const camera = new three.OrthographicCamera(
             -cameraSize * panelAspectRatio,
@@ -474,7 +476,29 @@ export class InstructionsGenerator {
 
             scene.add(brickObjectClone);
 
+            const instructionBrickCameraSize = (Math.max(instructionBrick.type.width,
+                instructionBrick.type.height,
+                instructionBrick.type.depth) * CELL_SIZE.x) - CELL_SIZE.x * 2;
+
+            if (instructionBrickCameraSize > cameraSize) {
+                camera.left = -instructionBrickCameraSize * panelAspectRatio;
+                camera.right = instructionBrickCameraSize * panelAspectRatio;
+                camera.top = instructionBrickCameraSize;
+                camera.bottom = -instructionBrickCameraSize;
+
+                camera.updateProjectionMatrix();
+            }
+
             brickImagesDataUrls.push(this.snapScene(renderer, scene, camera));
+
+            if (instructionBrickCameraSize > cameraSize) {
+                camera.left = -cameraSize * panelAspectRatio;
+                camera.right = cameraSize * panelAspectRatio;
+                camera.top = cameraSize;
+                camera.bottom = -cameraSize;
+
+                camera.updateProjectionMatrix();
+            }
 
             scene.remove(brickObjectClone);
         }

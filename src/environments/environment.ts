@@ -8,5 +8,6 @@ export const environment = {
     googleAnalytics: {
         enabled: false,
         trackingId: ''
-    }
+    },
+    editorDisplayStats: true
 };
