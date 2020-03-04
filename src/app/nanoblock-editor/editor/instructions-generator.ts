@@ -442,7 +442,8 @@ export class InstructionsGenerator {
 
         const panelAspectRatio = this.brickPanelWidth / this.brickPanelHeight;
 
-        const cameraSize = Math.min(this.minBrickCameraSize, maxBrickTypeUnitSize - CELL_SIZE.x - CELL_SIZE.z);
+        const cameraSize = Math.min(this.minBrickCameraSize,
+            Math.max(this.minBrickCameraSize, maxBrickTypeUnitSize - CELL_SIZE.x - CELL_SIZE.z));
 
         const camera = new three.OrthographicCamera(
             -cameraSize * panelAspectRatio,
