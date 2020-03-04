@@ -55,7 +55,7 @@ export class InstructionsGenerator {
     imageWidth = 2480; // 72 DPI: 595;
     minImageHeight = 3508; // 72 DPI: 842;
 
-    minBrickCameraSize = CELL_SIZE.x * 3;
+    minBrickCameraSize = CELL_SIZE.x * 2.5;
 
     rendererClearColor = '#d3d3d3';
 
@@ -442,7 +442,7 @@ export class InstructionsGenerator {
 
         const panelAspectRatio = this.brickPanelWidth / this.brickPanelHeight;
 
-        const cameraSize = Math.min(this.minBrickCameraSize, maxBrickTypeUnitSize - CELL_SIZE.x);
+        const cameraSize = Math.min(this.minBrickCameraSize, maxBrickTypeUnitSize - CELL_SIZE.x - CELL_SIZE.z);
 
         const camera = new three.OrthographicCamera(
             -cameraSize * panelAspectRatio,
@@ -478,7 +478,7 @@ export class InstructionsGenerator {
 
             const instructionBrickCameraSize = (Math.max(instructionBrick.type.width,
                 instructionBrick.type.height,
-                instructionBrick.type.depth) * CELL_SIZE.x) - CELL_SIZE.x * 2;
+                instructionBrick.type.depth) * CELL_SIZE.x) - CELL_SIZE.x - CELL_SIZE.z;
 
             if (instructionBrickCameraSize > cameraSize) {
                 camera.left = -instructionBrickCameraSize * panelAspectRatio;

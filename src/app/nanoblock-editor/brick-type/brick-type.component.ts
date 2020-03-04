@@ -44,7 +44,7 @@ export class BrickTypeComponent implements OnInit, AfterViewInit {
 
     context: CanvasRenderingContext2D;
 
-    private _cameraSize = CELL_SIZE.x * 3;
+    private _cameraSize = CELL_SIZE.x * 2.5;
 
     get canvas(): HTMLCanvasElement {
         return this.canvasRef.nativeElement;
@@ -100,7 +100,7 @@ export class BrickTypeComponent implements OnInit, AfterViewInit {
             this.brickType.height,
             this.brickType.depth) * CELL_SIZE.x;
 
-        this._cameraSize = Math.max(this._cameraSize, cameraSize - CELL_SIZE.x * 2);
+        this._cameraSize = Math.max(this._cameraSize, cameraSize - CELL_SIZE.x - CELL_SIZE.z);
 
         this._mainCamera = new OrthographicCamera(
             -this._cameraSize * aspectRatio,
